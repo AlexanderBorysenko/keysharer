@@ -1,9 +1,10 @@
-import { createUser, createUserMutationDef } from './resolvers/user.createUser.mutation';
-import { createGuestUser, createGuestUserMutationDef } from './resolvers/user.createGuestUser.mutation';
-import { loginUser, loginUserMutationDef } from './resolvers/user.loginUser.mutation';
-import { usersQuery, usersQueryDef } from './resolvers/user.users.query';
-import { meQuery, meQueryDef } from './resolvers/user.me.query';
-import { userTypeDef } from './user.types';
+import { createUser, createUserDefs } from './resolvers/user.createUser.mutation';
+import { createGuestUser, createGuestUserDefs } from './resolvers/user.createGuestUser.mutation';
+import { loginUser, loginUserDefs } from './resolvers/user.loginUser.mutation';
+import { usersQuery, usersQueryDefs } from './resolvers/user.users.query';
+import { meQuery, meQueryDefs } from './resolvers/user.me.query';
+import { userCoreDefs } from './user.types';
+import { mergeTypeDefs } from '@graphql-tools/merge';
 
 export const userResolvers = {
   Query: {
@@ -17,22 +18,10 @@ export const userResolvers = {
   },
 };
 
-export const userDefs = `
-  ${userTypeDef}
-
-  type AuthPayload {
-    token: String!
-    user: User!
-  }
-
-  type Query {
-    ${usersQueryDef}
-    ${meQueryDef}
-  }
-
-  type Mutation {
-    ${createUserMutationDef}
-    ${createGuestUserMutationDef}
-    ${loginUserMutationDef}
-  }
-`;
+export const userDefs = mergeTypeDefs([userCoreDefs,
+  usersQueryDefs,
+  createUserDefs,
+  createGuestUserDefs,
+  loginUserDefs,
+  meQueryDefs
+]);

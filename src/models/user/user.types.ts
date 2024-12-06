@@ -12,7 +12,12 @@ export interface User {
   chats?: Chat[];
 }
 
-export const userTypeDef = `
+export const userCoreDefs = `
+  type AuthPayload {
+    token: String!
+    user: User!
+  }
+
   type User {
     id: ID!
     username: String

@@ -10,7 +10,21 @@ export type LoginUserMutationRequest = {
     password: string;
 };
 
-export const loginUserMutationDef = `loginUser(username: String!, password: String!): AuthPayload!`;
+export const loginUserDefs = `
+input LoginUserInput {
+    username: String!
+    password: String!
+}
+
+type AuthPayload {
+    token: String!
+    user: User!
+}
+
+type Mutation {
+    loginUser(input: LoginUserInput!): AuthPayload!
+}
+`;
 
 export const loginUser = async (parent: any, { username, password }: LoginUserMutationRequest) => {
     await ValidationService.validate({

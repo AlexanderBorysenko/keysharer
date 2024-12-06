@@ -8,7 +8,11 @@ import { publishMessageSent } from "./message.newMessage.subscription";
 import { mapRowIntoMessage } from "../service/mapRowIntoMessage";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 
-export const sendMessageMutationDef = `sendMessage(chatId: ID!, content: String!): Boolean!`;
+export const sendMessageDefs = `
+type Mutation {
+    sendMessage(chatId: ID!, content: String!): Boolean!
+}
+`;
 
 export const sendMessageMutation = async (
     _: any,

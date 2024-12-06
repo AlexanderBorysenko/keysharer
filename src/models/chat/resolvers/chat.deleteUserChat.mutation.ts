@@ -5,9 +5,17 @@ import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
 import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
 import type { types } from "cassandra-driver";
 
-export const deleteUserChatMutationDef = `deleteUserChat(chatId: ID!): Boolean!`;
+export const deleteUserChatDefs = `
+input DeleteUserChatInput {
+    chatId: ID!
+}
 
-export const deleteUserChatMutaion = async (
+type Mutation {
+    deleteUserChat(input: DeleteUserChatInput!): Boolean!
+}
+`
+
+export const deleteUserChat = async (
     _: any,
     { chatId, userId }: { chatId: types.Uuid, userId?: types.Uuid },
     context: AppQraphQLContext

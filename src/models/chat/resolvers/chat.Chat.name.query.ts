@@ -3,7 +3,7 @@ import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticated
 import type { Chat } from "../chat.types";
 import { getChatName } from "../service/getChatName";
 
-export const chatNameQuery = async (parent: Chat, args: any, context: AppQraphQLContext) => {
+export const chatName = async (parent: Chat, args: any, context: AppQraphQLContext) => {
     const user = await isAuthenticatedMiddleware(context);
 
     return getChatName(parent.id, user.id);

@@ -5,7 +5,11 @@ import { createJWTToken } from "../service/createJWTToken";
 import { generateUniqueUsername } from "../service/generateUniqueUsername";
 import { types } from "cassandra-driver";
 
-export const createGuestUserMutationDef = `createGuestUser: AuthPayload!`;
+export const createGuestUserDefs = `
+type Mutation {
+    createGuestUser: AuthPayload!
+}    
+`;
 export const createGuestUser = async () => {
     const username = await generateUniqueUsername();
 
