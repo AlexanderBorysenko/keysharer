@@ -8,6 +8,11 @@ import { publishMessageSent } from "./message.newMessage.subscription";
 import { mapRowIntoMessage } from "../service/mapRowIntoMessage";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 
+export type SendMessageInput = {
+    chatId: types.Uuid;
+    content: string;
+};
+
 export const sendMessageDefs = `
 type Mutation {
     sendMessage(chatId: ID!, content: String!): Boolean!
@@ -16,7 +21,7 @@ type Mutation {
 
 export const sendMessageMutation = async (
     _: any,
-    { chatId, content }: { chatId: types.Uuid, content: string },
+    { input: { chatId, content } }: { input: SendMessageInput },
     context: AppQraphQLContext
 ): Promise<boolean> => {
     const user = await isAuthenticatedMiddleware(context);

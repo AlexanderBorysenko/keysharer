@@ -2,19 +2,17 @@ import { client } from "../../../db/client";
 import type { Chat } from "../chat.types";
 import { types } from "cassandra-driver";
 
-export type CreateChatInput = {
-    ownerId: types.Uuid;
-    name: string;
-    avatar: string;
-    userIds: string[];
-};
-
 export const createChat = async ({
     ownerId,
     name,
     avatar,
     userIds
-}: CreateChatInput): Promise<Chat> => {
+}: {
+    ownerId: types.Uuid;
+    name: string;
+    avatar: string;
+    userIds: types.Uuid[];
+}): Promise<Chat> => {
     // Генерація унікального ідентифікатора для нового чату
     const chatId = types.Uuid.random();
 
@@ -26,8 +24,8 @@ export const createChat = async ({
         },
     ];
 
-    if (!userIds.includes(ownerId.toString())) {
-        userIds.push(ownerId.toString());
+    if (!userIds.map(id => id.toString()).includes(ownerId.toString())) {
+        userIds.push(ownerId);
     }
     userIds.forEach((userId) => {
         queries.push({

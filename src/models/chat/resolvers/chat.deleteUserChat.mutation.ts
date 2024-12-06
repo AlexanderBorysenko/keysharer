@@ -5,9 +5,15 @@ import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
 import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
 import type { types } from "cassandra-driver";
 
+export type DeleteUserChatInput = {
+    chatId: types.Uuid,
+    userId?: types.Uuid,
+};
+
 export const deleteUserChatDefs = `
 input DeleteUserChatInput {
-    chatId: ID!
+    chatId: ID!,
+    userId: ID
 }
 
 type Mutation {
@@ -17,7 +23,7 @@ type Mutation {
 
 export const deleteUserChat = async (
     _: any,
-    { chatId, userId }: { chatId: types.Uuid, userId?: types.Uuid },
+    { input: { chatId, userId } }: { input: DeleteUserChatInput },
     context: AppQraphQLContext
 ): Promise<boolean> => {
     const user = await isAuthenticatedMiddleware(context);

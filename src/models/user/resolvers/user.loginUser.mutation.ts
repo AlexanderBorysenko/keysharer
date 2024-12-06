@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import { createJWTToken } from "../service/createJWTToken";
 import { findUser } from "../service/findUser";
 
-export type LoginUserMutationRequest = {
+export type LoginUserInput = {
     username: string;
     password: string;
 };
@@ -26,7 +26,8 @@ type Mutation {
 }
 `;
 
-export const loginUser = async (parent: any, { username, password }: LoginUserMutationRequest) => {
+export const loginUser = async (parent: any, { input }: { input: LoginUserInput }) => {
+
     await ValidationService.validate({
         username: [
             (value: any) => (!value ? 'Username is required.' : null),
@@ -34,14 +35,14 @@ export const loginUser = async (parent: any, { username, password }: LoginUserMu
         password: [
             (value: any) => (!value ? 'Password is required.' : null),
         ],
-    }, { username, password });
+    }, input);
 
-    const user = await findUser({ username });
+    const user = await findUser({ username: input.username });
 
     if (!user) return throwUserInputError('Invalid username or password.');
 
     // Compare provided password with stored hash
-    const isPasswordValid = await bcrypt.compare(password, user?.password || '');
+    const isPasswordValid = await bcrypt.compare(input.password, user?.password || '');
     if (!isPasswordValid) throwUserInputError('Invalid username or password.');
 
     // Generate JWT token
