@@ -4,7 +4,7 @@ import { client } from "../../../db/client";
 import { isUniqueField } from "../../../db/utils/isUniqueField";
 import { types } from "cassandra-driver";
 
-type CreateUserRequest = {
+type CreateUserInput = {
     username: string;
     email: string;
     password: string;
@@ -25,17 +25,22 @@ type Mutation {
 `;
 export const createUser = async (
     _: any,
-    args: CreateUserRequest
+    { input: {
+        username,
+        email,
+        password,
+        confirm_password
+    } }: { input: CreateUserInput }
 ) => {
     await ValidationService.validate({
         username: [
             (value: any) => (!value ? 'Name is Required' : null),
-            async () => await isUniqueField('users', 'username', args.username) ? null : 'Username is taken'
+            async () => await isUniqueField('users', 'username', username) ? null : 'Username is taken'
         ],
         email: [
             (value: any) => (!value ? 'Email is Required' : null),
             (value: any) => (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? 'Invalid email format' : null),
-            async () => await isUniqueField('users', 'email', args.email) ? null : 'Email is already in use'
+            async () => await isUniqueField('users', 'email', email) ? null : 'Email is already in use'
         ],
         password: [
             (value: any) => (!value ? 'Password is required.' : null),
@@ -43,23 +48,32 @@ export const createUser = async (
                 (value.length <= 8 || !/[!@#$%^&*(),.?":{}|<>+_-]/.test(value)) ? 'Password must be at least 8 characters long and contain at least one special character' : null
         ],
         confirm_password: [
+<<<<<<< HEAD
             (value) => (args.confirm_password !== args.password) ? 'Passwords do not match' : null
+=======
+            (value) => (confirm_password !== password) ? 'Passwords do not match' : null
+>>>>>>> 97a8b6f124f2183c0e51489470ba97596ec7d622
         ]
-    }, { ...args });
+    }, {
+        username,
+        email,
+        password,
+        confirm_password
+    });
 
     const id = types.Uuid.random();
 
-    const hashedPassword = await bcrypt.hash(args.password, 10);
-    const params = [id, args.username, args.email, hashedPassword];
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const params = [id, username, email, hashedPassword];
 
     const query = `INSERT INTO users (id, username, email, password) VALUES (?, ?, ?, ?)`;
 
     await client.execute(query, params, { prepare: true });
 
-    // Повертаємо створеного користувача (без пароля)
+    // Return the created user (without password)
     return {
         id,
-        username: args.username,
-        email: args.email,
+        username,
+        email,
     };
 }
