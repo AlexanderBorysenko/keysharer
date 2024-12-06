@@ -6,7 +6,7 @@ import type { TMessage } from "../../message/message.types";
 import type { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
 
-export const chatMessagesQuery = async (
+export const chatMessages = async (
     chat: Chat,
     { lastMessageId = null }: { lastMessageId: types.TimeUuid | null },
     context: AppQraphQLContext

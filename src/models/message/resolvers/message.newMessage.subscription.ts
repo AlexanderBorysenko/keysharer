@@ -5,7 +5,11 @@ import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticated
 import type { TMessage } from "../message.types";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 
-export const newMessageSubscriptionDef = `newMessage(chatId: ID!): Message!`;
+export const newMessageSubscriptionDefs = `
+type Subscription {
+    newMessage(chatId: ID!): Message!
+}
+`;
 
 export const newMessageSubscription = {
     subscribe: async (_: unknown, { chatId }: { chatId: types.Uuid }, context: AppQraphQLContext) => {

@@ -14,7 +14,7 @@ export type TMessage = {
   chat?: Chat;
 };
 
-export const messageTypeDef = `
+export const messageCoreDefs = `
   type Message {
     id: ID!
     chat_id: ID!
@@ -23,7 +23,5 @@ export const messageTypeDef = `
     content: String!
     status: String!
     timestamp: String!
-    user: User!
-    chat: Chat!
   }
 `;

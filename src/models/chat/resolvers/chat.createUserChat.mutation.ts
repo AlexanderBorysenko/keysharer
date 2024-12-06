@@ -5,17 +5,18 @@ import type { Chat } from "../chat.types";
 import { createChat, type CreateChatInput } from "../service/createChat";
 import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
 
-
-export const createUserChatInputTypeDef = `
+export const createUserChatDefs = `
 input CreateChatInput {
-  name: String!
-  avatar: String
-  userIds: [ID!]!
-}`;
+    name: String!
+    avatar: String
+    userIds: [ID!]!
+}
+type Mutation {
+    createUserChat(input: CreateChatInput!): Chat!
+}
+`;
 
-export const createUserChatMutationDef = `createUserChat(input: CreateChatInput!): Chat!`;
-
-export const createUserChatMutation = async (
+export const createUserChat = async (
     parent: any,
     { input }: { input: CreateChatInput },
     context: AppQraphQLContext

@@ -11,7 +11,18 @@ type CreateUserRequest = {
     confirm_password: string;
 }
 
-export const createUserMutationDef = `createUser(username: String!, email: String!, password: String!, confirm_password: String!): User!`;
+export const createUserDefs = `
+input CreateUserInput {
+    username: String!
+    email: String!
+    password: String!
+    confirm_password: String!
+}
+
+type Mutation {
+    createUser(input: CreateUserInput!): User!
+}
+`;
 export const createUser = async (
     _: any,
     args: CreateUserRequest
@@ -27,11 +38,12 @@ export const createUser = async (
             async () => await isUniqueField('users', 'email', args.email) ? null : 'Email is already in use'
         ],
         password: [
-            () =>
-                (args.password.length <= 8 || !/[!@#$%^&*(),.?":{}|<>+_-]/.test(args.password)) ? 'Password must be at least 8 characters long and contain at least one special character' : null
+            (value: any) => (!value ? 'Password is required.' : null),
+            (value: string) =>
+                (value.length <= 8 || !/[!@#$%^&*(),.?":{}|<>+_-]/.test(value)) ? 'Password must be at least 8 characters long and contain at least one special character' : null
         ],
         confirm_password: [
-            () => (args.confirm_password !== args.password) ? 'Passwords do not match' : null
+            (value) => (args.confirm_password !== args.password) ? 'Passwords do not match' : null
         ]
     }, { ...args });
 

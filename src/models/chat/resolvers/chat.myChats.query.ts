@@ -5,9 +5,13 @@ import { getUserChatsIds } from "../service/getUserChatsIds";
 import { client } from "../../../db/client";
 import { getChatName } from "../service/getChatName";
 
-export const myChatsQueryDef = `myChats: [Chat!]!`;
+export const myChatsDefs = `
+type Query {
+    myChats: [Chat!]!
+}
+`;
 
-export const myChatsQuery = async (_: unknown, __: unknown, context: AppQraphQLContext): Promise<Chat[]> => {
+export const myChats = async (_: unknown, __: unknown, context: AppQraphQLContext): Promise<Chat[]> => {
     const user = await isAuthenticatedMiddleware(context);
 
     const chatIds = await getUserChatsIds(user.id);

@@ -2,10 +2,14 @@ import type { types } from "cassandra-driver";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
-import type { Chat, ChatCard } from "../chat.types";
+import type { ChatCard } from "../chat.types";
 import { getUserChatCards } from "../service/getUserChatCards";
 
-export const myChatCardsSubscriptionDef = `myChatCards: [ChatCard]!`;
+export const myChatCardsSubscriptionDefs = `
+type Subscription {
+    myChatCards: [ChatCard]!
+}    
+`;
 export const myChatCardsSubscription = {
     subscribe: async (_: unknown, __: unknown, context: AppQraphQLContext) => {
         const user = await isAuthenticatedMiddleware(context);

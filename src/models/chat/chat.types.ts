@@ -12,16 +12,6 @@ export interface Chat {
   messages?: Message[];
 }
 
-export const chatTypeDef = `
-  type Chat {
-    id: ID!
-    name: String!
-    avatar: String!
-    users: [User!]
-    messages(lastMessageId: ID): [Message!]
-  }
-`;
-
 export interface ChatCard {
   id: types.Uuid;
   name: string;
@@ -29,7 +19,16 @@ export interface ChatCard {
   unread_messages_count: number;
 }
 
-export const chatCardTypeDef = `
+export const chatCoreDefs = `
+  type Chat {
+    id: ID!
+    name: String!
+    avatar: String!
+    owner_id: ID!
+
+    users: [User!]
+    messages(lastMessageId: ID): [Message!]
+  }
   type ChatCard {
     id: ID!
     name: String!
