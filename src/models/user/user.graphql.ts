@@ -23,5 +23,5 @@ export const userDefs = mergeTypeDefs([userCoreDefs,
   createUserDefs,
   createGuestUserDefs,
   loginUserDefs,
-  meQueryDefs
+  meQueryDefs,
 ]);
