@@ -5,13 +5,6 @@ import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
 import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
 import type { types } from "cassandra-driver";
 
-<<<<<<< HEAD
-export const deleteUserChatDefs = `
-input DeleteUserChatInput {
-    chatId: ID!
-}
-
-=======
 export type DeleteUserChatInput = {
     chatId: types.Uuid,
     userId?: types.Uuid,
@@ -23,7 +16,6 @@ input DeleteUserChatInput {
     userId: ID
 }
 
->>>>>>> 97a8b6f124f2183c0e51489470ba97596ec7d622
 type Mutation {
     deleteUserChat(input: DeleteUserChatInput!): Boolean!
 }

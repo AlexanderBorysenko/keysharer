@@ -25,11 +25,8 @@ type Mutation {
     loginUser(input: LoginUserInput!): AuthPayload!
 }
 `;
-<<<<<<< HEAD
-=======
 
 export const loginUser = async (parent: any, { input }: { input: LoginUserInput }) => {
->>>>>>> 97a8b6f124f2183c0e51489470ba97596ec7d622
 
     await ValidationService.validate({
         username: [

@@ -8,14 +8,11 @@ import { publishMessageSent } from "./message.newMessage.subscription";
 import { mapRowIntoMessage } from "../service/mapRowIntoMessage";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 
-<<<<<<< HEAD
-=======
 export type SendMessageInput = {
     chatId: types.Uuid;
     content: string;
 };
 
->>>>>>> 97a8b6f124f2183c0e51489470ba97596ec7d622
 export const sendMessageDefs = `
 type Mutation {
     sendMessage(chatId: ID!, content: String!): Boolean!

@@ -48,11 +48,7 @@ export const createUser = async (
                 (value.length <= 8 || !/[!@#$%^&*(),.?":{}|<>+_-]/.test(value)) ? 'Password must be at least 8 characters long and contain at least one special character' : null
         ],
         confirm_password: [
-<<<<<<< HEAD
-            (value) => (args.confirm_password !== args.password) ? 'Passwords do not match' : null
-=======
             (value) => (confirm_password !== password) ? 'Passwords do not match' : null
->>>>>>> 97a8b6f124f2183c0e51489470ba97596ec7d622
         ]
     }, {
         username,

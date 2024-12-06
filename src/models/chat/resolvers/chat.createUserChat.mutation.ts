@@ -6,15 +6,12 @@ import type { Chat } from "../chat.types";
 import { createChat } from "../service/createChat";
 import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
 
-<<<<<<< HEAD
-=======
 export type CreateChatInput = {
     name: string,
     avatar: string,
     userIds: types.Uuid[],
 };
 
->>>>>>> 97a8b6f124f2183c0e51489470ba97596ec7d622
 export const createUserChatDefs = `
 input CreateChatInput {
     name: String!
