@@ -25,6 +25,6 @@ export const userCoreDefs = `
     avatar: String
     email: String
     emailVerified: Boolean
-    chats: [Chat]!
+    chats: [Chat!]
   }
 `;

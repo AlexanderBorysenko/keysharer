@@ -20,7 +20,7 @@ export const createChat = async ({
     const queries = [
         {
             query: 'INSERT INTO chats (id, name, avatar, owner_id) VALUES (?, ?, ?, ?)',
-            params: [chatId, name, avatar, ownerId.toString()],
+            params: [chatId, name, avatar, ownerId],
         },
     ];
 

@@ -1,18 +1,10 @@
 import type { types } from "cassandra-driver";
-import { client } from "../../../db/client";
 import type { ChatCard } from "../chat.types";
 import { getChatCard } from "./getUserChatCard";
-import { getUserChatsIds } from "./getUserChatsIds";
+import { getUserChats } from "./getUserChats";
 
 export const getUserChatCards = async (userId: types.Uuid): Promise<ChatCard[]> => {
-    const chatIds: types.Uuid[] = await getUserChatsIds(userId);
-
-    if (chatIds.length === 0) return [];
-
-    // 2. Отримати інформацію про чати
-    const chatsQuery = 'SELECT * FROM chats WHERE id IN ?';
-    const chatsResult = await client.execute(chatsQuery, [chatIds], { prepare: true });
-    const chats = chatsResult.rows;
+    const chats = await getUserChats(userId);
 
     const chatCards: ChatCard[] = [];
 

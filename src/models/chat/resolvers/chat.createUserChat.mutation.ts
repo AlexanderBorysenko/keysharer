@@ -1,4 +1,4 @@
-import type { types } from "cassandra-driver";
+import { types } from "cassandra-driver";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
@@ -8,14 +8,14 @@ import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription"
 import { publishChatCreated } from "./chat.createChat.subscription";
 
 export type CreateChatInput = {
-	name: string;
-	avatar: string;
-	userIds: types.Uuid[];
+    name: string;
+    avatar: string;
+    userIds: types.Uuid[];
 };
 
 export const createUserChatDefs = `
 input CreateChatInput {
-    name: String!
+    name: String
     avatar: String
     userIds: [ID!]!
 }
@@ -25,26 +25,29 @@ type Mutation {
 `;
 
 export const createUserChat = async (
-	parent: any,
-	{ input: { name, avatar, userIds } }: { input: CreateChatInput },
-	context: AppQraphQLContext
+    parent: any,
+    { input: { name, avatar, userIds } }: { input: CreateChatInput },
+    context: AppQraphQLContext
 ): Promise<Chat> => {
-	const user = await isAuthenticatedMiddleware(context);
+    const user = await isAuthenticatedMiddleware(context);
 
-	try {
-		const chat = await createChat({
-			ownerId: user.id,
-			name: name,
-			avatar: avatar,
-			userIds: userIds.map((id) => id),
-		});
+    if (userIds.map(id => id.toString()).includes(user.id.toString())) {
+        return throwUnexpectedError("You can't create a chat without yourself");
+    }
 
-		publishChatCreated(chat.id);
-		// publishMyChatCardsUpdate(user.id);
+    try {
+        const chat = await createChat({
+            ownerId: user.id,
+            name: name,
+            avatar: avatar,
+            userIds: userIds.map((id) => id),
+        });
 
-		return chat;
-	} catch (error) {
-		console.error(error);
-		return throwUnexpectedError("Error creating chat");
-	}
+        publishChatCreated(chat.id, user.id);
+
+        return chat;
+    } catch (error) {
+        console.error(error);
+        return throwUnexpectedError("Error creating chat");
+    }
 };

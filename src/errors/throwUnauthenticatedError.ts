@@ -8,7 +8,7 @@ export const throwUnauthenticatedError = (
 ) => {
     throw new GraphQLError(message, {
         extensions: {
-            code: '401',
+            code: 'UNAUTHENTICATED',
             messages: args?.messages,
         },
     })

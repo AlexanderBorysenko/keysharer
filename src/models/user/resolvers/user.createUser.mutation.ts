@@ -34,7 +34,9 @@ export const createUser = async (
 ) => {
     await ValidationService.validate({
         username: [
-            (value: any) => (!value ? 'Name is Required' : null),
+            (value: any) => (!value ? 'Username is Required' : null),
+            (value: any) => (value.length < 5 ? 'Username must be at least 5 characters long' : null),
+            (value: any) => (!/^[a-zA-Z0-9_]+$/.test(value) ? 'Username can only contain letters, numbers, and underscores' : null),
             async () => await isUniqueField('users', 'username', username) ? null : 'Username is taken'
         ],
         email: [

@@ -1,4 +1,4 @@
-import type { types } from 'cassandra-driver';
+import { types } from 'cassandra-driver';
 import type { User } from '../user.types';
 
 export const mapRowIntoUser = (row: types.Row): User => {

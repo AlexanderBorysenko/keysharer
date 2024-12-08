@@ -7,5 +7,10 @@ CREATE TABLE IF NOT EXISTS app_keyspace.users (
   email_verified boolean,
   password text
 );
-CREATE INDEX IF NOT EXISTS ON app_keyspace.users (username);
+CREATE INDEX IF NOT EXISTS ON app_keyspace.users (username) USING 'org.apache.cassandra.index.sasi.SASIIndex'
+WITH OPTIONS = {
+  'mode': 'CONTAINS',
+  'analyzer_class': 'org.apache.cassandra.index.sasi.analyzer.NonTokenizingAnalyzer',
+  'case_sensitive': 'false'
+};
 CREATE INDEX IF NOT EXISTS ON app_keyspace.users (email);

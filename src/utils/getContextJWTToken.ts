@@ -11,6 +11,9 @@ export function getContextJWTToken(context: AppQraphQLContext): string | null {
     if (context.params.extensions?.headers?.Authorization) {
         return getJWTFromStr(context.params.extensions.headers.Authorization);
     }
+    //@ts-ignore
+    if (context?.connectionParams?.authorization) return getJWTFromStr(context.connectionParams.authorization);
+
     if (context.request) {
         const request = context.request;
         const authHeader = request.headers.get('Authorization');

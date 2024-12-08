@@ -23,7 +23,7 @@ export const chatCoreDefs = `
   type Chat {
     id: ID!
     name: String!
-    avatar: String!
+    avatar: String
     owner_id: ID!
 
     users: [User!]
@@ -32,7 +32,7 @@ export const chatCoreDefs = `
   type ChatCard {
     id: ID!
     name: String!
-    avatar: String!
+    avatar: String
     unread_messages_count: Int!
   }
 `;

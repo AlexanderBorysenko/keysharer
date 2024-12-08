@@ -9,7 +9,7 @@ export const throwUserInputError = (
     throw new GraphQLError(message, {
         extensions: {
             code: 'BAD_USER_INPUT',
-            messages: args?.messages,
+            details: args?.messages,
         },
     })
 }
