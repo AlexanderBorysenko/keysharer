@@ -20,11 +20,11 @@ export const userCoreDefs = `
 
   type User {
     id: ID!
-    username: String
+    username: String!
     displayName: String
     avatar: String
-    email: String
-    emailVerified: Boolean
+    email: String!
+    emailVerified: Boolean!
     chats: [Chat!]
   }
 `;
