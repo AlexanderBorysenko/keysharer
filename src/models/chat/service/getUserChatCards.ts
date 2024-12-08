@@ -5,7 +5,6 @@ import { getUserChats } from "./getUserChats";
 
 export const getUserChatCards = async (userId: types.Uuid): Promise<ChatCard[]> => {
     const chats = await getUserChats(userId);
-
     const chatCards: ChatCard[] = [];
 
     for (const chat of chats) {

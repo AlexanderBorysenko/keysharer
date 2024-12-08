@@ -23,8 +23,8 @@ export const userCoreDefs = `
     username: String!
     displayName: String
     avatar: String
-    email: String!
-    emailVerified: Boolean!
+    email: String
+    emailVerified: Boolean
     chats: [Chat!]
   }
 `;

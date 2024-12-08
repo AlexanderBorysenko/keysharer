@@ -26,7 +26,7 @@ export const usersQuery = async (
             'SELECT * FROM users WHERE username LIKE ? LIMIT 10',
             [`%${input.search}%`],
             { prepare: true }
-        )).rows.filter((row) => row.id !== user.id);
+        )).rows.filter((row) => row.id.toString() !== user.id.toString());
     } else {
         return (await client.execute('SELECT * FROM users', [], { prepare: true })).rows;
     }
