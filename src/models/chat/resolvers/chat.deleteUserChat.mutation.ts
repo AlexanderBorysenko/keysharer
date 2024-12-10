@@ -31,34 +31,30 @@ export const deleteUserChat = async (
 
 	const queries = userId
 		? [
-				{
-					query: "DELETE FROM user_chat WHERE chat_id = ? AND user_id = ?",
-					params: [chatId, userId],
-				},
-		  ]
+			{
+				query: "DELETE FROM user_chat WHERE chat_id = ? AND user_id = ?",
+				params: [chatId, userId],
+			},
+		]
 		: [
-				{
-					query: "DELETE FROM chats WHERE id = ?",
-					params: [chatId],
-				},
-				{
-					query: "DELETE FROM user_chat WHERE chat_id = ?",
-					params: [chatId],
-				},
-				{
-					query: "DELETE FROM messages WHERE chat_id = ?",
-					params: [chatId],
-				},
-		  ];
+			{
+				query: "DELETE FROM chats WHERE id = ?",
+				params: [chatId],
+			},
+			{
+				query: "DELETE FROM user_chat WHERE chat_id = ?",
+				params: [chatId],
+			},
+			{
+				query: "DELETE FROM messages WHERE chat_id = ?",
+				params: [chatId],
+			},
+		];
 
 	try {
 		await client.batch(queries, { prepare: true });
 
-		if (!userId) {
-			publishMyChatCardsUpdate(user.id);
-		} else {
-			publishChatDeleted(chatId);
-		}
+		await publishChatDeleted(chatId);
 
 		return true;
 	} catch (error) {

@@ -8,6 +8,6 @@ export const getUserChatsIds = async (userId: types.Uuid): Promise<types.Uuid[]>
         return chatIdsResult.rows.map(row => row.chat_id);
     } catch (error) {
         console.error('Error getting user chats ids', error);
-        throw new Error('Error getting user chats ids');
+        throw error;
     }
 }

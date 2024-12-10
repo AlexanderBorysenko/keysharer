@@ -4,7 +4,8 @@ import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticated
 import { getChatUsersIds } from "../service/getChatUsersIds";
 import { getChatCard } from "../service/getUserChatCard";
 import type { types } from "cassandra-driver";
-import type { ChatCard } from "../chat.types";
+import type { Chat, ChatCard } from "../chat.types";
+import { resolveChat } from "../service/resolveChat";
 
 export const createChatSubscriptionDefs = `
 type Subscription {
@@ -14,23 +15,32 @@ type Subscription {
 
 export const createChatSubscription = {
 	subscribe: async (_: unknown, __: unknown, context: AppQraphQLContext) => {
-		const user = await isAuthenticatedMiddleware(context);
-		console.log(`Subscribed To CHAT_CREATED_${user.id.toString()}`)
-		return pubsub.subscribe(`CHAT_CREATED_${user.id.toString()}`);
+		try {
+			const user = await isAuthenticatedMiddleware(context);
+			console.log(`Subscribed To CHAT_CREATED_${user.id.toString()}`)
+			return pubsub.subscribe(`CHAT_CREATED_${user.id.toString()}`);
+		} catch (err) {
+			console.error(err);
+		}
 	},
 	resolve: (payload: ChatCard) => {
 		return payload;
 	},
 	onDisconnect: async (context: AppQraphQLContext) => {
-		const user = await isAuthenticatedMiddleware(context);
-		console.log(`Unsubscribed From CHAT_CREATED_${user.id.toString()}`);
-		// Handle any additional cleanup if necessary
+		try {
+			const user = await isAuthenticatedMiddleware(context);
+			console.log(`Unsubscribed From CHAT_CREATED_${user.id.toString()}`);
+			// Handle any additional cleanup if necessary
+		} catch (err) {
+			console.error(err);
+		}
 	},
 };
 
-export const publishChatCreated = async (chatId: types.Uuid, userId: types.Uuid) => {
-	const chatUsers = await getChatUsersIds(chatId);
-	const chatCard = await getChatCard(chatId, userId);
+export const publishChatCreated = async (chatReference: types.Uuid | Chat, userId: types.Uuid) => {
+	const chat = await resolveChat(chatReference);
+	const chatUsers = await getChatUsersIds(chat.id);
+	const chatCard = await getChatCard(chat.id, userId);
 
 	chatUsers.forEach((userId) => {
 		pubsub.publish(`CHAT_CREATED_${userId.toString()}`, chatCard);

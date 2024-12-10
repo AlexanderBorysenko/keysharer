@@ -24,13 +24,6 @@ export const myChat = async (
     await isUserAChatMemberMiddleware(user.id, chatUUID);
 
     const chat = await getChat(chatUUID);
-    const chatName = await getChatName(chatUUID, user.id);
-    const chatAvatar = await getChatAvatar(chatUUID, user.id);
 
-    return {
-        id: chat.id,
-        name: chatName,
-        avatar: chatAvatar,
-        owner_id: chat.owner_id,
-    };
+    return chat;
 };

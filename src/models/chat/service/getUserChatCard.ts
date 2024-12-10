@@ -1,22 +1,22 @@
 import type { types } from "cassandra-driver";
-import type { ChatCard } from "../chat.types";
+import type { Chat, ChatCard } from "../chat.types";
 import { getChatName } from "./getChatName";
 import { getUserUnreadMessagesByChat } from "../../message/service/getUserUnreadMessagesByChat";
-import { getChat } from "./getChat";
 import { getChatAvatar } from "./getChatAvatar";
+import { resolveChat } from "./resolveChat";
 
 export const getChatCard = async (
-    chatId: types.Uuid,
+    chatReference: types.Uuid | Chat,
     userId: types.Uuid
 ): Promise<ChatCard> => {
     try {
-        const chat = await getChat(chatId);
-        const chatName = await getChatName(chatId, userId);
-        const chatAvatar = await getChatAvatar(chatId, userId);
-        const unreadMessagesCount = userId ? await getUserUnreadMessagesByChat(userId, chatId) : 0;
+        const chat = await resolveChat(chatReference);
+        const chatName = await getChatName(chat, userId);
+        const chatAvatar = await getChatAvatar(chat, userId);
+        const unreadMessagesCount = userId ? await getUserUnreadMessagesByChat(userId, chat.id) : 0;
 
         return {
-            id: chatId,
+            id: chat.id,
             name: chatName,
             avatar: chatAvatar,
             unread_messages_count: unreadMessagesCount,

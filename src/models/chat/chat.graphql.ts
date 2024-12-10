@@ -25,6 +25,9 @@ import {
 	deleteChatSubscriptionDefs,
 } from "./resolvers/chat.deleteChat.subscription";
 import { myChat, myChatDefs } from "./resolvers/chat.myChat.query";
+import { updateChat, updateChatDefs } from "./resolvers/chat.updateChat.query";
+import { chatUpdatedSubscription, chatUpdatedSubscriptionDefs } from "./resolvers/chat.chatUpdated.subscription";
+import { chatAvatar } from "./resolvers/chat.Chat.avatar.query";
 
 export const chatResolvers = {
 	Query: {
@@ -35,15 +38,18 @@ export const chatResolvers = {
 	Mutation: {
 		createUserChat,
 		deleteUserChat,
+		updateChat
 	},
 	Subscription: {
 		chatCreated: createChatSubscription,
 		chatDeleted: deleteChatSubscription,
+		chatUpdated: chatUpdatedSubscription,
 	},
 	Chat: {
 		users: chatUsers,
 		name: chatName,
 		messages: chatMessages,
+		avatar: chatAvatar
 	},
 };
 
@@ -54,7 +60,9 @@ export const chatDefs = mergeTypeDefs([
 	myChatDefs,
 	createUserChatDefs,
 	deleteUserChatDefs,
+	updateChatDefs,
 
+	chatUpdatedSubscriptionDefs,
 	createChatSubscriptionDefs,
 	deleteChatSubscriptionDefs,
 ]);

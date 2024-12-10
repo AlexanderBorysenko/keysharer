@@ -23,6 +23,7 @@
     "isomorphic-dompurify": "^2.18.0",
     "jsonwebtoken": "^9.0.2",
     "markdown-it": "^14.1.0",
+    "sharp": "^0.33.5",
     "uuid": "^11.0.3",
     "xss": "^1.0.15",
     "yup": "^1.4.0"

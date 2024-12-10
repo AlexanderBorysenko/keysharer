@@ -1,6 +1,7 @@
 import { client } from "../../../db/client";
 import type { Chat } from "../chat.types";
 import { types } from "cassandra-driver";
+import { getChat } from "./getChat";
 
 export const createChat = async ({
     ownerId,
@@ -38,15 +39,9 @@ export const createChat = async ({
     try {
         await client.batch(queries, { prepare: true });
 
-        return {
-            id: chatId,
-            name,
-            avatar,
-            owner_id: ownerId,
-        };
+        return await getChat(chatId);
     } catch (error) {
-        throw new Error('Error Creating Chat', {
-            cause: error
-        });
+        console.error('Error creating chat', error);
+        throw error;
     }
 }

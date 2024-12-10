@@ -7,6 +7,7 @@ import type { AppQraphQLContext } from '../types/AppQraphQLContext';
 import { getContextUser } from './models/user/service/getContextUser';
 import { makeHandler } from 'graphql-ws/lib/use/bun';
 import { type ExecutionArgs } from "@envelop/types";
+import { join } from 'path';
 
 async function startServer() {
     try {
@@ -61,14 +62,33 @@ async function startServer() {
             },
         })
 
+        const PUBLIC_DIR = join(process.cwd(), 'public');
+
         const server = Bun.serve({
-            fetch: (request: Request, server: Bun.Server): Promise<Response> | Response => {
-                // Upgrade the request to a WebSocket
+            fetch: async (request: Request, server: Bun.Server): Promise<Response> => {
+                // Перевірка на WebSocket-запит
                 if (server.upgrade(request)) {
                     return new Response()
                 }
+
+                const url = new URL(request.url);
+                const pathName = url.pathname;
+                // Спробуємо повернути файл лише якщо шлях починається на /public/
+                if (pathName.startsWith('/public/')) {
+                    const relativePath = pathName.slice('/public/'.length);
+                    const filePath = join(PUBLIC_DIR, relativePath);
+
+                    try {
+                        return new Response(Bun.file(filePath));
+                    } catch (e) {
+                        // Якщо файл не існує, повертаємось до GraphQL
+                        //@ts-ignore
+                        return yoga.fetch(request, server);
+                    }
+                }
+
                 //@ts-ignore
-                return yoga.fetch(request, server)
+                return yoga.fetch(request, server);
             },
             websocket: websocketHandler,
             port: 4000,

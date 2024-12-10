@@ -3,7 +3,7 @@ import type { Chat } from "../chat/chat.types";
 
 export interface User {
   id: types.Uuid;
-  username?: string;
+  username: string;
   displayName?: string;
   avatar?: string;
   email?: string;
