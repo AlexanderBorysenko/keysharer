@@ -2,14 +2,13 @@ import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { getChatUsersIds } from "../service/getChatUsersIds";
-import { getChatCard } from "../service/getUserChatCard";
 import type { types } from "cassandra-driver";
-import type { Chat, ChatCard } from "../chat.types";
+import type { Chat } from "../chat.types";
 import { resolveChat } from "../service/resolveChat";
 
 export const createChatSubscriptionDefs = `
 type Subscription {
-	chatCreated: ChatCard!
+	chatCreated: Chat!
 }
 `;
 
@@ -23,26 +22,16 @@ export const createChatSubscription = {
 			console.error(err);
 		}
 	},
-	resolve: (payload: ChatCard) => {
+	resolve: (payload: Chat) => {
 		return payload;
-	},
-	onDisconnect: async (context: AppQraphQLContext) => {
-		try {
-			const user = await isAuthenticatedMiddleware(context);
-			console.log(`Unsubscribed From CHAT_CREATED_${user.id.toString()}`);
-			// Handle any additional cleanup if necessary
-		} catch (err) {
-			console.error(err);
-		}
 	},
 };
 
-export const publishChatCreated = async (chatReference: types.Uuid | Chat, userId: types.Uuid) => {
+export const publishChatCreated = async (chatReference: types.Uuid | Chat) => {
 	const chat = await resolveChat(chatReference);
 	const chatUsers = await getChatUsersIds(chat.id);
-	const chatCard = await getChatCard(chat.id, userId);
 
 	chatUsers.forEach((userId) => {
-		pubsub.publish(`CHAT_CREATED_${userId.toString()}`, chatCard);
+		pubsub.publish(`CHAT_CREATED_${userId.toString()}`, chat);
 	});
 };

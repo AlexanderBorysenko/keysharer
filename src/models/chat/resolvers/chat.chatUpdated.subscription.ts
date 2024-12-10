@@ -4,25 +4,29 @@ import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticated
 import { getChat } from "../service/getChat";
 import type { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
+import type { Chat } from "../chat.types";
+import { getChatUsersIds } from "../service/getChatUsersIds";
 
 export const chatUpdatedSubscriptionDefs = `
 type Subscription {
-    chatUpdated(id: ID!): Chat!
+    chatUpdated: Chat!
 }
 `;
 
 export const chatUpdatedSubscription = {
-    subscribe: async (_: unknown, { id }: { id: types.Uuid }, context: AppQraphQLContext) => {
+    subscribe: async (_: unknown, __: unknown, context: AppQraphQLContext) => {
         const user = await isAuthenticatedMiddleware(context);
-        await isUserAChatMemberMiddleware(user.id, id);
-        return pubsub.subscribe(`CHAT_UPDATED_${id}`);
+        return pubsub.subscribe(`CHAT_UPDATED_${user.id.toString()}`);
     },
-    resolve: async (payload: { id: types.Uuid }) => {
-        const chat = await getChat(payload.id);
-        return { ...chat };
-    },
+    resolve: async (payload: { chatUpdated: Chat }) => {
+        return payload.chatUpdated;
+    }
 };
 
-export const publishChatUpdated = async (id: types.Uuid) => {
-    pubsub.publish(`CHAT_UPDATED_${id.toString()}`, { id });
+export const publishChatUpdated = async (chatId: types.Uuid) => {
+    const chat = await getChat(chatId);
+    const chatUsers = await getChatUsersIds(chatId);
+    chatUsers.forEach((userId) => {
+        pubsub.publish(`CHAT_UPDATED_${userId.toString()}`, { chatUpdated: chat });
+    });
 };

@@ -4,7 +4,6 @@ import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import type { Chat } from "../chat.types";
 import { createChat } from "../service/createChat";
-import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
 import { publishChatCreated } from "./chat.createChat.subscription";
 
 export type CreateChatInput = {
@@ -43,7 +42,7 @@ export const createUserChat = async (
             userIds: userIds.map((id) => id),
         });
 
-        await publishChatCreated(chat.id, user.id);
+        await publishChatCreated(chat);
 
         return chat;
     } catch (error) {

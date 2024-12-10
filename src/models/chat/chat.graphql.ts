@@ -2,10 +2,6 @@ import {
 	createUserChat,
 	createUserChatDefs,
 } from "./resolvers/chat.createUserChat.mutation";
-import {
-	myChatCards,
-	myChatCardsDefs,
-} from "./resolvers/chat.myChatCards.query";
 import { chatUsers } from "./resolvers/chat.Chat.users.query";
 import { chatName } from "./resolvers/chat.Chat.name.query";
 import {
@@ -28,10 +24,10 @@ import { myChat, myChatDefs } from "./resolvers/chat.myChat.query";
 import { updateChat, updateChatDefs } from "./resolvers/chat.updateChat.query";
 import { chatUpdatedSubscription, chatUpdatedSubscriptionDefs } from "./resolvers/chat.chatUpdated.subscription";
 import { chatAvatar } from "./resolvers/chat.Chat.avatar.query";
+import { chatUnreadMessagesCount } from "./resolvers/chat.Chat.unread_messages_count.query";
 
 export const chatResolvers = {
 	Query: {
-		myChatCards,
 		myChats,
 		myChat,
 	},
@@ -49,13 +45,13 @@ export const chatResolvers = {
 		users: chatUsers,
 		name: chatName,
 		messages: chatMessages,
-		avatar: chatAvatar
+		avatar: chatAvatar,
+		unread_messages_count: chatUnreadMessagesCount,
 	},
 };
 
 export const chatDefs = mergeTypeDefs([
 	chatCoreDefs,
-	myChatCardsDefs,
 	myChatsDefs,
 	myChatDefs,
 	createUserChatDefs,

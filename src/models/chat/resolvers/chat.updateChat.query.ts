@@ -7,9 +7,6 @@ import type { Chat } from "../chat.types";
 import { updateChatName } from "../service/updateChatName";
 import { updateChatAvatar } from "../service/updateChatAvatar";
 import { publishChatUpdated } from "./chat.chatUpdated.subscription";
-import { publishMyChatCardsUpdate } from "./chat.myChatCardsUpdate.subscription";
-
-// /src/models/chat/resolvers/chat.updateChat.mutation.ts
 
 export const updateChatDefs = `
 scalar File
