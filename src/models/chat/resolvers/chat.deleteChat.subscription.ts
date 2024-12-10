@@ -21,8 +21,7 @@ export const deleteChatSubscription = {
 };
 
 export const publishChatDeleted = async (usersIds: types.Uuid[], chatId: types.Uuid) => {
-	const chatUsers = await getChatUsersIds(chatId);
-	chatUsers.forEach((userId) => {
+	usersIds.forEach((userId) => {
 		pubsub.publish(`CHAT_DELETED_${userId.toString()}`, { chatId });
 	});
 };
