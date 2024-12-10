@@ -4,25 +4,28 @@ import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import type { TMessage } from "../message.types";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
+import { getChatUsersIds } from "../../chat/service/getChatUsersIds";
 
 export const newMessageSubscriptionDefs = `
 type Subscription {
-    newMessage(chatId: ID!): Message!
+    newMessage: Message!
 }
 `;
 
 export const newMessageSubscription = {
-    subscribe: async (_: unknown, { chatId }: { chatId: types.Uuid }, context: AppQraphQLContext) => {
+    subscribe: async (_: unknown, __: unknown, context: AppQraphQLContext) => {
         const user = await isAuthenticatedMiddleware(context);
-        await isUserAChatMemberMiddleware(user.id, chatId);
 
-        return pubsub.subscribe(`NEW_MESSAGE_${chatId}`);
+        return pubsub.subscribe(`NEW_MESSAGE_${user.id.toString()}`);
     },
     resolve: (payload: TMessage) => {
         return payload;
     }
 };
 
-export const publishMessageSent = async (chatId: types.Uuid, message: TMessage) => {
-    pubsub.publish(`NEW_MESSAGE_${chatId.toString()}`, message);
+export const publishMessageSent = async (message: TMessage) => {
+    const chatUsersIds = await getChatUsersIds(message.chat_id);
+    chatUsersIds.forEach((userId) => {
+        pubsub.publish(`NEW_MESSAGE_${userId.toString()}`, message);
+    });
 };

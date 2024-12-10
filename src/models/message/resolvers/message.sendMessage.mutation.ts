@@ -60,16 +60,12 @@ export const sendMessageMutation = async (
 			[messageId],
 			{ prepare: true }
 		);
-		const message = messageResult.rows[0];
+		const message = messageResult.first();
 
-		publishMessageSent(chatId, mapRowIntoMessage(message));
+		publishMessageSent(mapRowIntoMessage(message));
 	} catch (error) {
 		console.error(error as any);
-		return throwUserInputError("Error sending message", {
-			messages: {
-				error: error as any,
-			},
-		});
+		throw error;
 	}
 
 	return true;
