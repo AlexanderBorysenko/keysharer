@@ -23,49 +23,6 @@ type Mutation {
 }
 `;
 
-const getDeleteQueries = (chatId: types.Uuid, userId?: types.Uuid) => {
-	if (userId) {
-		return [
-			{
-				query: "DELETE FROM user_chat WHERE chat_id = ? AND user_id = ?",
-				params: [chatId, userId],
-			},
-		];
-	}
-	return [
-		{
-			query: "DELETE FROM chats WHERE id = ?",
-			params: [chatId],
-		},
-		{
-			query: "DELETE FROM user_chat WHERE chat_id = ?",
-			params: [chatId],
-		},
-		{
-			query: "DELETE FROM messages WHERE chat_id = ?",
-			params: [chatId],
-		},
-	];
-};
-
-// Check if there are no users in the chat - delete the chat
-const getAdditionalQueriesIfNoUsers = async (chatId: types.Uuid) => {
-	const chatUsersIds = await getChatUsersIds(chatId);
-	if (chatUsersIds.length === 0) {
-		return [
-			{
-				query: "DELETE FROM chats WHERE id = ?",
-				params: [chatId],
-			},
-			{
-				query: "DELETE FROM messages WHERE chat_id = ?",
-				params: [chatId],
-			},
-		];
-	}
-	return [];
-};
-
 export const deleteUserChat = async (
 	_: any,
 	{ input: { chatId, userId } }: { input: DeleteUserChatInput },
@@ -74,17 +31,22 @@ export const deleteUserChat = async (
 	const user = await isAuthenticatedMiddleware(context);
 	await isUserAChatMemberMiddleware(user.id, chatId);
 
-	let queries = getDeleteQueries(chatId, userId);
+	const chatUserIds = await getChatUsersIds(chatId);
+
+	const queries: string[] = [];
+	const targerUsersIds = userId ? [userId] : chatUserIds;
+	targerUsersIds.forEach((userId) => {
+		queries.push(`DELETE FROM user_chat WHERE chat_id = ${chatId} AND user_id = ${userId}`);
+	});
+	if (chatUserIds.length === targerUsersIds.length) {
+		queries.push(`DELETE FROM chats WHERE id = ${chatId}`);
+		queries.push(`DELETE FROM messages WHERE chat_id = ${chatId}`);
+	}
 
 	try {
 		await client.batch(queries, { prepare: true });
 
-		if (userId) {
-			const additionalQueries = await getAdditionalQueriesIfNoUsers(chatId);
-			await client.batch(additionalQueries, { prepare: true });
-		}
-
-		await publishChatDeleted(chatId);
+		await publishChatDeleted(targerUsersIds, chatId);
 
 		return true;
 	} catch (error) {
