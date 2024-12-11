@@ -7,9 +7,9 @@ import { createChat } from "../service/createChat";
 import { publishChatCreated } from "./chat.createChat.subscription";
 
 export type CreateChatInput = {
-    name: string;
-    avatar: string;
-    userIds: types.Uuid[];
+	name: string;
+	avatar: string;
+	userIds: types.Uuid[];
 };
 
 export const createUserChatDefs = `
@@ -24,29 +24,29 @@ type Mutation {
 `;
 
 export const createUserChat = async (
-    parent: any,
-    { input: { name, avatar, userIds } }: { input: CreateChatInput },
-    context: AppQraphQLContext
+	parent: any,
+	{ input: { name, avatar, userIds } }: { input: CreateChatInput },
+	context: AppQraphQLContext
 ): Promise<Chat> => {
-    const user = await isAuthenticatedMiddleware(context);
+	const user = await isAuthenticatedMiddleware(context);
 
-    if (userIds.map(id => id.toString()).includes(user.id.toString())) {
-        return throwUnexpectedError("You can't create a chat without yourself");
-    }
+	if (userIds.map((id) => id.toString()).includes(user.id.toString())) {
+		return throwUnexpectedError("You can't create a chat without yourself");
+	}
 
-    try {
-        const chat = await createChat({
-            ownerId: user.id,
-            name: name,
-            avatar: avatar,
-            userIds: userIds.map((id) => id),
-        });
+	try {
+		const chat = await createChat({
+			ownerId: user.id,
+			name: name,
+			avatar: avatar,
+			userIds: userIds.map((id) => id),
+		});
 
-        await publishChatCreated(chat);
+		await publishChatCreated(chat);
 
-        return chat;
-    } catch (error) {
-        console.error(error);
-        return throwUnexpectedError("Error creating chat");
-    }
+		return chat;
+	} catch (error) {
+		console.error(error);
+		return throwUnexpectedError("Error creating chat");
+	}
 };

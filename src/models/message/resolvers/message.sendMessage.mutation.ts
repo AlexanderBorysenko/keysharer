@@ -41,18 +41,29 @@ export const sendMessageMutation = async (
 	content = encrypt(content);
 
 	try {
-		// Insert the message into the messages table
-		const query = `INSERT INTO messages (id, chat_id, user_id, type, content, status, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-		const params = [
-			messageId,
-			chatId,
-			user.id,
-			"text",
-			content,
-			"sent",
-			new Date(),
+		const queries = [
+			// Insert the message into the messages table
+			{
+				query: `INSERT INTO messages (id, chat_id, user_id, type, content, status, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+				params: [
+					messageId,
+					chatId,
+					user.id,
+					"text",
+					content,
+					"sent",
+					new Date(),
+				],
+			},
+
+			// Update the chat's updated_at field
+			{
+				query: `UPDATE chats SET updated_at = ? WHERE id = ?`,
+				params: [new Date(), chatId],
+			},
 		];
-		await client.execute(query, params, { prepare: true });
+
+		await client.batch(queries, { prepare: true });
 
 		const getMessageQuery = `SELECT * FROM messages WHERE id = ?`;
 		const messageResult = await client.execute(

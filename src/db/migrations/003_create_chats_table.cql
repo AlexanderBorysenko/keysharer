@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS app_keyspace.chats (
     name text,
     avatar text,
     owner_id UUID,
+    updated_at timestamp
 );
 CREATE INDEX IF NOT EXISTS ON app_keyspace.chats (owner_id);
 

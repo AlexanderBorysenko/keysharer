@@ -4,44 +4,44 @@ import { types } from "cassandra-driver";
 import { getChat } from "./getChat";
 
 export const createChat = async ({
-    ownerId,
-    name,
-    avatar,
-    userIds
+	ownerId,
+	name,
+	avatar,
+	userIds,
 }: {
-    ownerId: types.Uuid;
-    name: string;
-    avatar: string;
-    userIds: types.Uuid[];
+	ownerId: types.Uuid;
+	name: string;
+	avatar: string;
+	userIds: types.Uuid[];
 }): Promise<Chat> => {
-    // Генерація унікального ідентифікатора для нового чату
-    const chatId = types.Uuid.random();
+	// Генерація унікального ідентифікатора для нового чату
+	const chatId = types.Uuid.random();
 
-    // Підготовка запитів для пакетного виконання
-    const queries = [
-        {
-            query: 'INSERT INTO chats (id, name, avatar, owner_id) VALUES (?, ?, ?, ?)',
-            params: [chatId, name, avatar, ownerId],
-        },
-    ];
+	// Підготовка запитів для пакетного виконання
+	const queries = [
+		{
+			query: "INSERT INTO chats (id, name, avatar, owner_id, updated_at) VALUES (?, ?, ?, ?, ?)",
+			params: [chatId, name, avatar, ownerId, new Date()],
+		},
+	];
 
-    if (!userIds.map(id => id.toString()).includes(ownerId.toString())) {
-        userIds.push(ownerId);
-    }
-    userIds.forEach((userId) => {
-        queries.push({
-            query: 'INSERT INTO user_chat (chat_id, user_id) VALUES (?, ?)',
-            params: [chatId, userId],
-        });
-    });
+	if (!userIds.map((id) => id.toString()).includes(ownerId.toString())) {
+		userIds.push(ownerId);
+	}
+	userIds.forEach((userId) => {
+		queries.push({
+			query: "INSERT INTO user_chat (chat_id, user_id) VALUES (?, ?)",
+			params: [chatId, userId],
+		});
+	});
 
-    // Виконання пакетного запиту
-    try {
-        await client.batch(queries, { prepare: true });
+	// Виконання пакетного запиту
+	try {
+		await client.batch(queries, { prepare: true });
 
-        return await getChat(chatId);
-    } catch (error) {
-        console.error('Error creating chat', error);
-        throw error;
-    }
-}
+		return await getChat(chatId);
+	} catch (error) {
+		console.error("Error creating chat", error);
+		throw error;
+	}
+};
