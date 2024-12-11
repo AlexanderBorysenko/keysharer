@@ -8,6 +8,7 @@ import { getContextUser } from './models/user/service/getContextUser';
 import { makeHandler } from 'graphql-ws/lib/use/bun';
 import { type ExecutionArgs } from "@envelop/types";
 import { join } from 'path';
+import { useCookies } from '@whatwg-node/server-plugin-cookies';
 
 async function startServer() {
     try {
@@ -30,6 +31,9 @@ async function startServer() {
             },
             landingPage: false,
             graphqlEndpoint: '/',
+            plugins: [
+                useCookies()
+            ]
         });
 
         const websocketHandler = makeHandler({

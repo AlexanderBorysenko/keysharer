@@ -1,9 +1,9 @@
 import { throwUserInputError } from "../../../errors/throwUserInputError";
-import { client } from "../../../db/client";
 import { ValidationService } from "../../../services/validationService";
 import bcrypt from 'bcrypt';
 import { createJWTToken } from "../service/createJWTToken";
 import { findUser } from "../service/findUser";
+import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 
 export type LoginUserInput = {
     username: string;
@@ -26,8 +26,7 @@ type Mutation {
 }
 `;
 
-export const loginUser = async (parent: any, { input }: { input: LoginUserInput }) => {
-
+export const loginUser = async (parent: any, { input }: { input: LoginUserInput }, context: AppQraphQLContext) => {
     await ValidationService.validate({
         username: [
             (value: any) => (!value ? 'Username is required.' : null),
@@ -47,6 +46,18 @@ export const loginUser = async (parent: any, { input }: { input: LoginUserInput 
 
     // Generate JWT token
     const token = createJWTToken(user);
+
+    // send token as Authorization cookie
+    context.request.cookieStore?.set({
+        name: 'Authorization',
+        value: token,
+        httpOnly: true,
+        secure: process.env.IS_DEV ? false : true,
+        sameSite: 'strict',
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+        domain: process.env.CLIENT_URL,
+        path: '/',
+    });
 
     // Return token and user data
     return {
