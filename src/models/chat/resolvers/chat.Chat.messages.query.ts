@@ -5,7 +5,7 @@ import type { Chat } from "../chat.types";
 import type { TMessage } from "../../message/message.types";
 import type { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
-import { decrypt } from "../../../utils/cryptoUtils";
+import { mapRowIntoMessage } from "../../message/service/mapRowIntoMessage";
 
 export const chatMessages = async (
     chat: Chat,
@@ -24,18 +24,17 @@ export const chatMessages = async (
         LIMIT ${pageSize}`
         : `SELECT * FROM messages 
         WHERE chat_id = ${chat.id.toString()} 
+        ORDER BY id DESC 
         LIMIT ${pageSize}`;
     const messagesResult = await client.execute(messagesQuery, [], {
         prepare: true,
     });
 
-    return messagesResult.rows.map((row) => ({
-        id: row.id,
-        chat_id: row.chat_id,
-        user_id: row.user_id,
-        type: row.type,
-        content: decrypt(row.content),
-        status: row.status,
-        timestamp: row.timestamp,
-    }));
+    const messages = messagesResult.rows.map((row) => mapRowIntoMessage(row));
+
+    if (!lastMessageId) {
+        messages.reverse();
+    }
+
+    return messages;
 };

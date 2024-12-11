@@ -1,9 +1,7 @@
-import MarkdownIt from "markdown-it";
 import xss, { type IFilterXSSOptions } from "xss";
 import DOMPurify from "isomorphic-dompurify";
 
 export const prepareMessageTextContent = (content: string): string => {
-	const md = new MarkdownIt();
 	const xssOptions: IFilterXSSOptions = {
 		onIgnoreTagAttr: function (
 			tag: string,
@@ -18,7 +16,6 @@ export const prepareMessageTextContent = (content: string): string => {
 	};
 	content = xss(content, xssOptions);
 	content = DOMPurify.sanitize(content);
-	content = md.render(content);
 
 	return content;
 };

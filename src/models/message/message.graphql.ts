@@ -1,7 +1,8 @@
 import { mergeTypeDefs } from "@graphql-tools/merge";
 import { newMessageSubscription, newMessageSubscriptionDefs } from "./resolvers/message.newMessage.subscription";
 import { sendMessageDefs, sendMessageMutation } from "./resolvers/message.sendMessage.mutation";
-import { messageCoreDefs } from "./message.types";
+import { messageCoreDefs, type TMessage } from "./message.types";
+import { messageContent } from "./resolvers/message.Message.content";
 
 export const messageResolvers = {
   Mutation: {
@@ -9,6 +10,9 @@ export const messageResolvers = {
   },
   Subscription: {
     newMessage: newMessageSubscription
+  },
+  Message: {
+    content: messageContent
   }
 };
 

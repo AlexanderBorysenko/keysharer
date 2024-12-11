@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS app_keyspace.messages (
     status TEXT,
     timestamp TIMESTAMP,
     PRIMARY KEY (chat_id, id)
-) WITH CLUSTERING ORDER BY (id DESC);
+) WITH CLUSTERING ORDER BY (id ASC);
 
 CREATE INDEX ON app_keyspace.messages (id);
 CREATE INDEX ON app_keyspace.messages (status);
