@@ -1,7 +1,7 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
-import { getChatUsersIds } from "../service/getChatUsersIds";
+import { getChatUserIds } from "../service/getChatUserIds";
 import type { types } from "cassandra-driver";
 
 export const deleteChatSubscriptionDefs = `
@@ -20,8 +20,8 @@ export const deleteChatSubscription = {
 	},
 };
 
-export const publishChatDeleted = async (usersIds: types.Uuid[], chatId: types.Uuid) => {
-	usersIds.forEach((userId) => {
+export const publishChatDeleted = async (userIds: types.Uuid[], chatId: types.Uuid) => {
+	userIds.forEach((userId) => {
 		pubsub.publish(`CHAT_DELETED_${userId.toString()}`, { chatId });
 	});
 };

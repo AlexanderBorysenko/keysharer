@@ -5,7 +5,8 @@ import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
 import type { types } from "cassandra-driver";
 import { publishChatDeleted } from "./chat.deleteChat.subscription";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
-import { getChatUsersIds } from "../service/getChatUsersIds";
+import { getChatUserIds } from "../service/getChatUserIds";
+import messageDBService from "../../message/service/messageDBService";
 
 export type DeleteUserChatInput = {
 	chatId: types.Uuid;
@@ -29,24 +30,37 @@ export const deleteUserChat = async (
 	context: AppQraphQLContext
 ): Promise<boolean> => {
 	const user = await isAuthenticatedMiddleware(context);
-	await isUserAChatMemberMiddleware(user.id, chatId);
-
-	const chatUserIds = await getChatUsersIds(chatId);
+	const chatUserIds = await getChatUserIds(chatId);
+	await isUserAChatMemberMiddleware({
+		chatId,
+		userId: user.id,
+		userIds: chatUserIds,
+	});
 
 	const queries: string[] = [];
-	const targerUsersIds = userId ? [userId] : chatUserIds;
-	targerUsersIds.forEach((userId) => {
+	const targerUserIds = userId ? [userId] : chatUserIds;
+	targerUserIds.forEach((userId) => {
 		queries.push(`DELETE FROM user_chat WHERE chat_id = ${chatId} AND user_id = ${userId}`);
 	});
-	if (chatUserIds.length === targerUsersIds.length) {
+	if (chatUserIds.length === targerUserIds.length) {
 		queries.push(`DELETE FROM chats WHERE id = ${chatId}`);
-		queries.push(`DELETE FROM messages WHERE chat_id = ${chatId}`);
 	}
 
-	try {
-		await client.batch(queries, { prepare: true });
 
-		await publishChatDeleted(targerUsersIds, chatId);
+	try {
+		await client.batch([
+			...queries,
+			...await messageDBService.deleteChatMessagesBatch({
+				chatId,
+				userIds: targerUserIds,
+			}),
+		], { prepare: true });
+		await messageDBService.deleteChatUnreadCounters({
+			chatId,
+			userIds: targerUserIds,
+		});
+
+		await publishChatDeleted(targerUserIds, chatId);
 
 		return true;
 	} catch (error) {

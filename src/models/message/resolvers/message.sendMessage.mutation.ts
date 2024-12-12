@@ -4,9 +4,11 @@ import { client } from "../../../db/client";
 import { types } from "cassandra-driver";
 import { prepareMessageTextContent } from "../../../db/utils/prepareMessageTextContent";
 import { publishMessageSent } from "./message.newMessage.subscription";
-import { mapRowIntoMessage } from "../service/mapRowIntoMessage";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 import { encrypt } from "../../../utils/cryptoUtils";
+import messageDBService from "../service/messageDBService";
+import { publishUnreadMessagesCountChange } from "./message.unreadMessagesCountChage.subscription";
+import { getChatUserIds } from "../../chat/service/getChatUserIds";
 
 export type SendMessageInput = {
 	chatId: types.Uuid;
@@ -30,7 +32,12 @@ export const sendMessageMutation = async (
 	context: AppQraphQLContext
 ): Promise<boolean> => {
 	const user = await isAuthenticatedMiddleware(context);
-	await isUserAChatMemberMiddleware(user.id, chatId);
+	const chatUserIds = await getChatUserIds(chatId);
+	await isUserAChatMemberMiddleware({
+		chatId,
+		userId: user.id,
+		userIds: chatUserIds,
+	});
 
 	// Generate a unique ID for the message
 	const messageId = types.TimeUuid.now();
@@ -40,39 +47,21 @@ export const sendMessageMutation = async (
 	content = encrypt(content);
 
 	try {
-		const queries = [
-			// Insert the message into the messages table
-			{
-				query: `INSERT INTO messages (id, chat_id, user_id, type, content, status, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-				params: [
-					messageId,
-					chatId,
-					user.id,
-					"text",
-					content,
-					"sent",
-					new Date(),
-				],
-			},
+		await messageDBService.createMessage({
+			messageId,
+			chatId,
+			userId: user.id,
+			content,
+		});
 
-			// Update the chat's updated_at field
-			{
-				query: `UPDATE chats SET updated_at = ? WHERE id = ?`,
-				params: [new Date(), chatId],
-			},
-		];
+		const message = await messageDBService.getMessage({ messageId });
 
-		await client.batch(queries, { prepare: true });
-
-		const getMessageQuery = `SELECT * FROM messages WHERE id = ?`;
-		const messageResult = await client.execute(
-			getMessageQuery,
-			[messageId],
-			{ prepare: true }
-		);
-		const message = messageResult.first();
-
-		publishMessageSent(mapRowIntoMessage(message));
+		publishMessageSent({ message, userIds: chatUserIds });
+		publishUnreadMessagesCountChange({
+			chatId,
+			userIds: chatUserIds,
+			userId: user.id
+		});
 	} catch (error) {
 		console.error(error as any);
 		throw error;

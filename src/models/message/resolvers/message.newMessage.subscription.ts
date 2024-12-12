@@ -1,10 +1,9 @@
-import type { types } from "cassandra-driver";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import type { TMessage } from "../message.types";
-import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
-import { getChatUsersIds } from "../../chat/service/getChatUsersIds";
+import { getChatUserIds } from "../../chat/service/getChatUserIds";
+import type { types } from "cassandra-driver";
 
 export const newMessageSubscriptionDefs = `
 type Subscription {
@@ -23,9 +22,9 @@ export const newMessageSubscription = {
     }
 };
 
-export const publishMessageSent = async (message: TMessage) => {
-    const chatUsersIds = await getChatUsersIds(message.chat_id);
-    chatUsersIds.forEach((userId) => {
+export const publishMessageSent = async ({ message, userIds }: { message: TMessage, userIds?: types.Uuid[] }) => {
+    userIds = userIds || await getChatUserIds(message.chat_id);
+    userIds.forEach((userId) => {
         pubsub.publish(`NEW_MESSAGE_${userId.toString()}`, message);
     });
 };

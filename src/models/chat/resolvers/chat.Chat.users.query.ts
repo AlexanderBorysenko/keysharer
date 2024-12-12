@@ -3,12 +3,12 @@ import { client } from "../../../db/client";
 import { throwUnauthenticatedError } from "../../../errors/throwUnauthenticatedError";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import type { Chat } from "../chat.types";
-import { getChatUsersIds } from "../service/getChatUsersIds";
+import { getChatUserIds } from "../service/getChatUserIds";
 
-export const chatUsers = async (chat: Chat, {}, context: AppQraphQLContext) => {
+export const chatUsers = async (chat: Chat, { }, context: AppQraphQLContext) => {
 	const authUser = await isAuthenticatedMiddleware(context);
 
-	const userIds = (await getChatUsersIds(chat.id)).map((id) => id.toString());
+	const userIds = (await getChatUserIds(chat.id)).map((id) => id.toString());
 	if (!userIds.includes(authUser.id.toString())) {
 		return throwUnauthenticatedError("You are not a member of this chat");
 	}

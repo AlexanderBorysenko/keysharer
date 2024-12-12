@@ -5,7 +5,7 @@ import { getChat } from "../service/getChat";
 import type { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
 import type { Chat } from "../chat.types";
-import { getChatUsersIds } from "../service/getChatUsersIds";
+import { getChatUserIds } from "../service/getChatUserIds";
 
 export const chatUpdatedSubscriptionDefs = `
 type Subscription {
@@ -25,7 +25,7 @@ export const chatUpdatedSubscription = {
 
 export const publishChatUpdated = async (chatId: types.Uuid) => {
     const chat = await getChat(chatId);
-    const chatUsers = await getChatUsersIds(chatId);
+    const chatUsers = await getChatUserIds(chatId);
     chatUsers.forEach((userId) => {
         pubsub.publish(`CHAT_UPDATED_${userId.toString()}`, { chatUpdated: chat });
     });

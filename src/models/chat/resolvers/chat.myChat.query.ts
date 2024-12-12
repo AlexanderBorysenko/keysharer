@@ -21,7 +21,10 @@ export const myChat = async (
     const user = await isAuthenticatedMiddleware(context);
     const chatUUID = types.Uuid.fromString(chatId);
 
-    await isUserAChatMemberMiddleware(user.id, chatUUID);
+    await isUserAChatMemberMiddleware({
+        chatId: chatUUID,
+        userId: user.id,
+    });
 
     const chat = await getChat(chatUUID);
 

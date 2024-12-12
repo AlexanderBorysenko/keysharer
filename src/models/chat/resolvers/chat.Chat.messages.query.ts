@@ -5,7 +5,7 @@ import type { Chat } from "../chat.types";
 import type { TMessage } from "../../message/message.types";
 import type { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
-import { mapRowIntoMessage } from "../../message/service/mapRowIntoMessage";
+import { rowToObject } from "../../../utils/rowToObject";
 
 export const chatMessages = async (
     chat: Chat,
@@ -13,7 +13,10 @@ export const chatMessages = async (
     context: AppQraphQLContext
 ): Promise<TMessage[]> => {
     const user = await isAuthenticatedMiddleware(context);
-    await isUserAChatMemberMiddleware(user.id, chat.id);
+    await isUserAChatMemberMiddleware({
+        chatId: chat.id,
+        userId: user.id,
+    });
 
     // Fetch messages with pagination
     const pageSize = 2;
@@ -30,7 +33,7 @@ export const chatMessages = async (
         prepare: true,
     });
 
-    const messages = messagesResult.rows.map((row) => mapRowIntoMessage(row));
+    const messages = messagesResult.rows.map((row) => rowToObject<TMessage>(row));
 
     if (!lastMessageId) {
         messages.reverse();

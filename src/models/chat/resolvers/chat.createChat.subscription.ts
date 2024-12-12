@@ -1,7 +1,7 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
-import { getChatUsersIds } from "../service/getChatUsersIds";
+import { getChatUserIds } from "../service/getChatUserIds";
 import type { types } from "cassandra-driver";
 import type { Chat } from "../chat.types";
 import { resolveChat } from "../service/resolveChat";
@@ -16,7 +16,6 @@ export const createChatSubscription = {
 	subscribe: async (_: unknown, __: unknown, context: AppQraphQLContext) => {
 		try {
 			const user = await isAuthenticatedMiddleware(context);
-			console.log(`Subscribed To CHAT_CREATED_${user.id.toString()}`)
 			return pubsub.subscribe(`CHAT_CREATED_${user.id.toString()}`);
 		} catch (err) {
 			console.error(err);
@@ -29,7 +28,7 @@ export const createChatSubscription = {
 
 export const publishChatCreated = async (chatReference: types.Uuid | Chat) => {
 	const chat = await resolveChat(chatReference);
-	const chatUsers = await getChatUsersIds(chat.id);
+	const chatUsers = await getChatUserIds(chat.id);
 
 	chatUsers.forEach((userId) => {
 		pubsub.publish(`CHAT_CREATED_${userId.toString()}`, chat);

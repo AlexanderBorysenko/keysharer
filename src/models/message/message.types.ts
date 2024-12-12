@@ -8,7 +8,6 @@ export type TMessage = {
   user_id: types.Uuid;
   type: string;
   content: string;
-  status: string;
   timestamp: Date;
   user?: User;
   chat?: Chat;
@@ -21,7 +20,6 @@ export const messageCoreDefs = `
     user_id: ID!
     type: String!
     content: String!
-    status: String!
     timestamp: String!
   }
 `;

@@ -1,6 +1,6 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
+import messageDBService from "../../message/service/messageDBService";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
-import { getUserUnreadMessagesByChat } from "../../message/service/getUserUnreadMessagesByChat";
 import type { Chat } from "../chat.types";
 
 export const chatUnreadMessagesCountDefs = `
@@ -15,5 +15,8 @@ export const chatUnreadMessagesCount = async (
     context: AppQraphQLContext
 ): Promise<number> => {
     const user = await isAuthenticatedMiddleware(context);
-    return await getUserUnreadMessagesByChat(user.id, parent.id);
+    return await messageDBService.getUnreadMessagesCount({
+        userId: user.id,
+        chatId: parent.id,
+    });
 };
