@@ -2,7 +2,6 @@ import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { client } from "../../../db/client";
 import { types } from "cassandra-driver";
-import { throwUserInputError } from "../../../errors/throwUserInputError";
 import { prepareMessageTextContent } from "../../../db/utils/prepareMessageTextContent";
 import { publishMessageSent } from "./message.newMessage.subscription";
 import { mapRowIntoMessage } from "../service/mapRowIntoMessage";
