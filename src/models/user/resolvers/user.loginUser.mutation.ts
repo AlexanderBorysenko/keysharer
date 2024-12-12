@@ -47,19 +47,18 @@ export const loginUser = async (parent: any, { input }: { input: LoginUserInput 
     // Generate JWT token
     const token = createJWTToken(user);
 
-    // send token as Authorization cookie
-    context.request.cookieStore?.set({
-        name: 'Authorization',
-        value: token,
-        httpOnly: true,
-        secure: process.env.IS_DEV ? false : true,
-        sameSite: 'strict',
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-        domain: process.env.CLIENT_URL,
-        path: '/',
-    });
+    // send RefreshToken as a cookie
+    // await context.request.cookieStore?.set({
+    //     name: 'RefreshToken',
+    //     value: token,
+    //     httpOnly: true,
+    //     sameSite: 'lax',
+    //     secure: !process.env.IS_DEV,
+    //     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+    //     domain: process.env.COOKIE_DOMAIN,
+    //     path: '/',
+    // });
 
-    // Return token and user data
     return {
         token,
         user,

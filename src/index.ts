@@ -9,6 +9,7 @@ import { makeHandler } from 'graphql-ws/lib/use/bun';
 import { type ExecutionArgs } from "@envelop/types";
 import { join } from 'path';
 import { useCookies } from '@whatwg-node/server-plugin-cookies';
+import { env } from 'process';
 
 async function startServer() {
     try {
@@ -29,6 +30,10 @@ async function startServer() {
                     user: await getContextUser(context)
                 }
             },
+            cors: {
+                credentials: true,
+                origin: [env.SERVER_URL, env.CLIENT_URL],
+            },
             landingPage: false,
             graphqlEndpoint: '/',
             plugins: [
@@ -45,7 +50,8 @@ async function startServer() {
                     ...ctx,
                     req: ctx.extra.request,
                     socket: ctx.extra.socket,
-                    params: msg.payload
+                    params: msg.payload,
+
                 })
 
                 const args = {

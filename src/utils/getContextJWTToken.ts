@@ -1,4 +1,5 @@
 import type { AppQraphQLContext } from "../../types/AppQraphQLContext";
+import { getCookieFromCookiesString } from "./getCookieFromCookiesString";
 
 function getJWTFromStr(str: string): string | null {
     if (str.startsWith('Bearer ')) {
@@ -8,16 +9,17 @@ function getJWTFromStr(str: string): string | null {
 }
 
 export function getContextJWTToken(context: AppQraphQLContext): string | null {
-    if (context.params.extensions?.headers?.Authorization) {
-        return getJWTFromStr(context.params.extensions.headers.Authorization);
+    const headerCookie = context?.request?.headers?.get('cookie');
+    if (headerCookie) {
+        const authCookie = getCookieFromCookiesString(headerCookie, 'Authorization');
+        if (authCookie) return authCookie;
     }
-    //@ts-ignore
-    if (context?.connectionParams?.authorization) return getJWTFromStr(context.connectionParams.authorization);
 
-    if (context.request) {
-        const request = context.request;
-        const authHeader = request.headers.get('Authorization');
-        if (authHeader) return getJWTFromStr(authHeader);
+    // Handle WebSocket connectionParams
+    //@ts-ignore
+    const connectionParamsAuthorization = context?.connectionParams?.authorization;
+    if (connectionParamsAuthorization) {
+        return connectionParamsAuthorization;
     }
 
     return null;
