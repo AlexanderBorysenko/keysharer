@@ -32,7 +32,9 @@ export const sendMessageMutation = async (
 	context: AppQraphQLContext
 ): Promise<boolean> => {
 	const user = await isAuthenticatedMiddleware(context);
-	const chatUserIds = await getChatUserIds(chatId);
+	const chatUserIds = await getChatUserIds({
+		chatId,
+	});
 	await isUserAChatMemberMiddleware({
 		chatId,
 		userId: user.id,
@@ -56,11 +58,11 @@ export const sendMessageMutation = async (
 
 		const message = await messageDBService.getMessage({ messageId });
 
-		publishMessageSent({ message, userIds: chatUserIds });
-		publishUnreadMessagesCountChange({
+		await publishMessageSent({ message, userIds: chatUserIds });
+		await publishUnreadMessagesCountChange({
 			chatId,
 			userIds: chatUserIds,
-			userId: user.id
+			ownerId: user.id
 		});
 	} catch (error) {
 		console.error(error as any);

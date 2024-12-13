@@ -19,7 +19,7 @@ export const chatMessages = async (
     });
 
     // Fetch messages with pagination
-    const pageSize = 2;
+    const pageSize = 20;
     const messagesQuery = lastMessageId
         ? `SELECT * FROM messages 
         WHERE chat_id = ${chat.id.toString()} 
@@ -27,7 +27,6 @@ export const chatMessages = async (
         LIMIT ${pageSize}`
         : `SELECT * FROM messages 
         WHERE chat_id = ${chat.id.toString()} 
-        ORDER BY id DESC 
         LIMIT ${pageSize}`;
     const messagesResult = await client.execute(messagesQuery, [], {
         prepare: true,
@@ -35,9 +34,5 @@ export const chatMessages = async (
 
     const messages = messagesResult.rows.map((row) => rowToObject<TMessage>(row));
 
-    if (!lastMessageId) {
-        messages.reverse();
-    }
-
-    return messages;
+    return messages.reverse();
 };

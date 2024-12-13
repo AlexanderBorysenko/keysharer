@@ -6,7 +6,10 @@ import { rowToObject } from "../../../utils/rowToObject";
 
 export const getChatUsers = async (chatId: types.Uuid, excludeUserId: types.Uuid | null = null): Promise<User[]> => {
     try {
-        const userIds = (await getChatUserIds(chatId)).filter(id => id !== excludeUserId);
+        const userIds = (await getChatUserIds({
+            chatId,
+            exclude: excludeUserId ? [excludeUserId] : [],
+        }));
         const usersQuery = 'SELECT * FROM users WHERE id IN ?';
         const usersResult = await client.execute(usersQuery, [userIds], { prepare: true });
 

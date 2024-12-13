@@ -7,6 +7,7 @@ import { publishChatDeleted } from "./chat.deleteChat.subscription";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
 import { getChatUserIds } from "../service/getChatUserIds";
 import messageDBService from "../../message/service/messageDBService";
+import { publishChatUpdated } from "./chat.chatUpdated.subscription";
 
 export type DeleteUserChatInput = {
 	chatId: types.Uuid;
@@ -30,7 +31,9 @@ export const deleteUserChat = async (
 	context: AppQraphQLContext
 ): Promise<boolean> => {
 	const user = await isAuthenticatedMiddleware(context);
-	const chatUserIds = await getChatUserIds(chatId);
+	const chatUserIds = await getChatUserIds({
+		chatId,
+	});
 	await isUserAChatMemberMiddleware({
 		chatId,
 		userId: user.id,
@@ -46,7 +49,6 @@ export const deleteUserChat = async (
 		queries.push(`DELETE FROM chats WHERE id = ${chatId}`);
 	}
 
-
 	try {
 		await client.batch([
 			...queries,
@@ -61,7 +63,9 @@ export const deleteUserChat = async (
 		});
 
 		await publishChatDeleted(targerUserIds, chatId);
-
+		if (chatUserIds.length !== targerUserIds.length) {
+			await publishChatUpdated(chatId);
+		}
 		return true;
 	} catch (error) {
 		console.error(error);

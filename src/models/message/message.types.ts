@@ -9,6 +9,7 @@ export type TMessage = {
   type: string;
   content: string;
   timestamp: Date;
+  is_read?: boolean;
   user?: User;
   chat?: Chat;
 };
@@ -19,6 +20,7 @@ export const messageCoreDefs = `
     chat_id: ID!
     user_id: ID!
     type: String!
+    is_read: Boolean
     content: String!
     timestamp: String!
   }

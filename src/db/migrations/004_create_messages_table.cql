@@ -4,9 +4,10 @@ CREATE TABLE IF NOT EXISTS app_keyspace.messages (
     user_id UUID,
     type TEXT,
     content TEXT,
+    is_read BOOLEAN,
     timestamp TIMESTAMP,
     PRIMARY KEY (chat_id, id)
-) WITH CLUSTERING ORDER BY (id ASC);
+) WITH CLUSTERING ORDER BY (id DESC);
 
 CREATE INDEX ON app_keyspace.messages (id);
 CREATE INDEX ON app_keyspace.messages (user_id);

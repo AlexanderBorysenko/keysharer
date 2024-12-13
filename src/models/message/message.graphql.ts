@@ -5,18 +5,20 @@ import { messageCoreDefs, type TMessage } from "./message.types";
 import { messageContent } from "./resolvers/message.Message.content";
 import { readMessageDefs, readMessageMutation } from "./resolvers/message.readMessage.mutation";
 import { unreadMessagesCountChangeDefs, unreadMessagesCountChangeSubscription } from "./resolvers/message.unreadMessagesCountChage.subscription";
+import { messageUpdatedSubscription, messageUpdatedSubscriptionDefs } from "./resolvers/message.messageUpdated.subscription";
 
 export const messageResolvers = {
   Mutation: {
     sendMessage: sendMessageMutation,
     readMessage: readMessageMutation
   },
+  Message: {
+    content: messageContent,
+  },
   Subscription: {
     newMessage: newMessageSubscription,
-    unreadMessagesCountChange: unreadMessagesCountChangeSubscription
-  },
-  Message: {
-    content: messageContent
+    unreadMessagesCountChange: unreadMessagesCountChangeSubscription,
+    messageUpdated: messageUpdatedSubscription
   }
 };
 
@@ -27,5 +29,6 @@ export const messageDefs = mergeTypeDefs([
   readMessageDefs,
 
   newMessageSubscriptionDefs,
+  messageUpdatedSubscriptionDefs,
   unreadMessagesCountChangeDefs
 ]);

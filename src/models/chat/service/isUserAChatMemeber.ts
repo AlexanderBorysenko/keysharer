@@ -11,7 +11,9 @@ export const isUserAChatMemberMiddleware = async ({
     chatId: types.Uuid,
     userIds?: types.Uuid[]
 }) => {
-    userIds = userIds || await getChatUserIds(chatId);
+    userIds = userIds || await getChatUserIds({
+        chatId
+    });
 
     if (!userIds.map(id => id.toString()).includes(userId.toString())) {
         throw new GraphQLError('User is not a member of this chat', {

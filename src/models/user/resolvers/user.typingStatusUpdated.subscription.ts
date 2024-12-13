@@ -37,10 +37,14 @@ export const publishTypingStatusUpdated = async ({
     userIds?: types.Uuid[];
     isTyping: boolean;
 }) => {
-    userIds = (userIds || await getChatUserIds(chatId))
-        .filter((id) => id.toString() !== userId.toString());
+    userIds = (userIds || await getChatUserIds({
+        chatId,
+        exclude: [userId]
+    }))
 
     userIds.forEach((listeningUserId) => {
+        if (listeningUserId.toString() === userId.toString()) return;
+
         pubsub.publish(`TYPING_TO_USER_${listeningUserId.toString()}`, {
             userId: userId.toString(),
             chatId: chatId.toString(),

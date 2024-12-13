@@ -28,14 +28,17 @@ export const unreadMessagesCountChangeSubscription = {
 
 export const publishUnreadMessagesCountChange = async ({
     chatId,
-    userId,
+    ownerId,
     userIds
 }: {
     chatId: types.Uuid;
-    userId: types.Uuid;
+    ownerId: types.Uuid;
     userIds?: types.Uuid[];
 }) => {
-    const recepientIds = (userIds || await getChatUserIds(chatId)).filter((id) => id.toString() !== userId.toString());
+    const recepientIds = (userIds || await getChatUserIds({
+        chatId,
+        exclude: [ownerId]
+    }));
 
     recepientIds.forEach((recepientId) => {
         const unreadCount = messageDBService.getUnreadMessagesCount({

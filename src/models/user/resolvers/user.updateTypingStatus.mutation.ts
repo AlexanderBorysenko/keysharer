@@ -17,7 +17,9 @@ export const updateTypingStatus = async (
     context: AppQraphQLContext
 ): Promise<boolean> => {
     const user = await isAuthenticatedMiddleware(context);
-    const chatUserIds = await getChatUserIds(types.Uuid.fromString(chatId));
+    const chatUserIds = await getChatUserIds({
+        chatId: types.Uuid.fromString(chatId)
+    });
     await isUserAChatMemberMiddleware({
         chatId: types.Uuid.fromString(chatId),
         userId: user.id,
@@ -25,7 +27,7 @@ export const updateTypingStatus = async (
     });
 
     try {
-        publishTypingStatusUpdated({
+        await publishTypingStatusUpdated({
             userId: user.id,
             chatId: types.Uuid.fromString(chatId),
             userIds: chatUserIds,

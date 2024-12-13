@@ -73,6 +73,7 @@ class AvatarImageStorageService {
         const buffer = Buffer.from(arrayBuffer);
 
         await sharp(buffer)
+            .rotate() // Keep original rotation
             .resize(100, 100)
             .png()
             .toFile(filePath);

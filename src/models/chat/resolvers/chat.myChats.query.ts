@@ -21,5 +21,5 @@ export const myChats = async (_: unknown, __: unknown, context: AppQraphQLContex
     const chatsQuery = 'SELECT * FROM chats WHERE id IN ?';
     const chatsResult = await client.execute(chatsQuery, [chatIds], { prepare: true });
     const chats = await Promise.all(chatsResult.rows.map(async row => rowToObject<Chat>(row)));
-    return chats;
+    return chats.sort((a, b) => b.updated_at.getTime() - a.updated_at.getTime());
 };

@@ -28,7 +28,9 @@ export const createChatSubscription = {
 
 export const publishChatCreated = async (chatReference: types.Uuid | Chat) => {
 	const chat = await resolveChat(chatReference);
-	const chatUsers = await getChatUserIds(chat.id);
+	const chatUsers = await getChatUserIds({
+		chatId: chat.id,
+	});
 
 	chatUsers.forEach((userId) => {
 		pubsub.publish(`CHAT_CREATED_${userId.toString()}`, chat);

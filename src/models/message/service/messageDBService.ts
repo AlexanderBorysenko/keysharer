@@ -3,6 +3,7 @@ import { client } from "../../../db/client";
 import type { TMessage } from "../message.types";
 import { rowToObject } from "../../../utils/rowToObject";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
+import type { Chat } from "../../chat/chat.types";
 
 type Queries = Array<string | {
     query: string;
@@ -33,7 +34,7 @@ class MessageDBService {
         type?: string;
         userIds?: types.Uuid[];
     }): Promise<void> => {
-        let recipientIds: types.Uuid[] = userIds || await getChatUserIds(chatId);
+        let recipientIds: types.Uuid[] = userIds || await getChatUserIds({ chatId });
         recipientIds = recipientIds.filter((id) => id.toString() !== userId.toString());
 
         const queries: Queries = [
@@ -65,7 +66,17 @@ class MessageDBService {
         userId: types.Uuid;
     }): Promise<void> => {
         try {
-            await client.execute(`INSERT INTO app_keyspace.message_reads (chat_id, message_id, user_id) VALUES (?, ?, ?)`, [chatId, messageId, userId], { prepare: true });
+            const queries: Queries = [
+                {
+                    query: `INSERT INTO app_keyspace.message_reads (chat_id, message_id, user_id) VALUES (?, ?, ?)`,
+                    params: [chatId, messageId, userId]
+                },
+                {
+                    query: `UPDATE messages SET is_read = true WHERE chat_id = ? AND id = ?`,
+                    params: [chatId, messageId]
+                }
+            ];
+            await client.batch(queries, { prepare: true });
             await this.decreaseUnreadCount({ chatId, userId });
         } catch (error) {
             console.error('Failed to mark message as read:', error);
@@ -73,11 +84,38 @@ class MessageDBService {
         }
     }
 
+    /**
+     * Get the users who have read a message
+     */
+    public getMessageReads = async ({
+        message,
+        targetUserIds
+    }: {
+        message: TMessage;
+        targetUserIds?: types.Uuid[];
+    }): Promise<types.Uuid[]> => {
+        targetUserIds = targetUserIds || await getChatUserIds({
+            chatId: message.chat_id,
+        });
+        const result: types.Uuid[] = [];
+        targetUserIds.forEach(async (userId) => {
+            if (userId.toString() === message.user_id.toString()) return;
+
+            const read = await client.execute(
+                `SELECT user_id FROM app_keyspace.message_reads WHERE chat_id = ? AND user_id = ? AND message_id = ?;`,
+                [message.chat_id, userId, message.id],
+                { prepare: true }
+            );
+            if (read.first()) result.push(userId);
+        });
+        return result;
+    }
+
     public deleteMessageReadsBatch = async ({ chatId, userIds }: {
         chatId: types.Uuid;
         userIds?: types.Uuid[];
     }): Promise<Queries> => {
-        userIds = userIds || await getChatUserIds(chatId);
+        userIds = userIds || await getChatUserIds({ chatId });
         return userIds.map(userId => ({
             query: `DELETE FROM app_keyspace.message_reads WHERE chat_id = ? AND user_id = ?`,
             params: [chatId, userId]
@@ -133,7 +171,9 @@ class MessageDBService {
         chatId: types.Uuid;
         userIds?: types.Uuid[];
     }): Promise<void> => {
-        userIds = userIds || await getChatUserIds(chatId);
+        userIds = userIds || await getChatUserIds({
+            chatId,
+        });
         try {
             await Promise.all(userIds.map((userId) =>
                 client.execute(`DELETE FROM app_keyspace.user_unread_count WHERE chat_id = ? AND user_id = ?`, [chatId, userId], { prepare: true })
@@ -152,7 +192,9 @@ class MessageDBService {
         chatId: types.Uuid;
         userIds?: types.Uuid[];
     }): Promise<Queries> => {
-        userIds = userIds || await getChatUserIds(chatId);
+        userIds = userIds || await getChatUserIds({
+            chatId,
+        });
         return [
             {
                 query: `DELETE FROM messages WHERE chat_id = ?`,

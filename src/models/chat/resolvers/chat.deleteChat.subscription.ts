@@ -1,7 +1,6 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
-import { getChatUserIds } from "../service/getChatUserIds";
 import type { types } from "cassandra-driver";
 
 export const deleteChatSubscriptionDefs = `
