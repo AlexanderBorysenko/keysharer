@@ -6,11 +6,11 @@ export const meQueryDefs = `
     type Query {  
         me: User!
     }
-`
+`;
 
 export const meQuery = async (_: any, __: any, context: AppQraphQLContext) => {
-    if (!context.user) {
-        return throwUnauthenticatedError('User not authenticated');
-    }
-    return context.user;
+	if (!context.user) {
+		return throwUnauthenticatedError("User not authenticated");
+	}
+	return context.user;
 };

@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql";
 
-export const throwUnauthenticatedError = (
+export const throwForbiddenError = (
 	message: string,
 	args?: {
 		messages?: { [key: string]: string };
@@ -8,8 +8,8 @@ export const throwUnauthenticatedError = (
 ) => {
 	throw new GraphQLError(message, {
 		extensions: {
-			code: "401",
-			error: "Unauthenticated",
+			code: "403",
+			error: "Forbidden",
 			messages: args?.messages,
 		},
 	});
