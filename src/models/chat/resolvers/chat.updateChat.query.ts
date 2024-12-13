@@ -31,7 +31,10 @@ export const updateChat = async (
     const chatUUID = types.Uuid.fromString(id);
 
     // Check if the user is a member of the chat
-    await isUserAChatMemberMiddleware(user.id, chatUUID);
+    await isUserAChatMemberMiddleware({
+        chatId: chatUUID,
+        userId: user.id,
+    });
 
     // Update name if provided
     if (name) {

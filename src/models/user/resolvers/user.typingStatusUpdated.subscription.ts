@@ -2,7 +2,7 @@ import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddleware";
 import { types } from "cassandra-driver";
-import { getChatUsersIds } from "../../chat/service/getChatUsersIds";
+import { getChatUserIds } from "../../chat/service/getChatUserIds";
 
 export const typingStatusUpdatedDefs = `
 type Subscription {
@@ -19,7 +19,7 @@ type UserTypingStatus {
 export const typingStatusUpdated = {
     subscribe: async (_: unknown, __: unknown, context: AppQraphQLContext) => {
         const user = await isAuthenticatedMiddleware(context);
-        return pubsub.subscribe(`TYPING_TO_USER_${user.id}`);
+        return pubsub.subscribe(`TYPING_TO_USER_${user.id.toString()}`);
     },
     resolve: (payload: { userId: string; chatId: string; isTyping: boolean }) => {
         return payload;
@@ -29,16 +29,23 @@ export const typingStatusUpdated = {
 export const publishTypingStatusUpdated = async ({
     chatId,
     userId,
-    isTyping
+    isTyping,
+    userIds
 }: {
     chatId: types.Uuid;
     userId: types.Uuid;
+    userIds?: types.Uuid[];
     isTyping: boolean;
 }) => {
-    const chatUsersIds = (await getChatUsersIds(chatId)).filter((id) => id.toString() !== userId.toString());
+    userIds = (userIds || await getChatUserIds({
+        chatId,
+        exclude: [userId]
+    }))
 
-    chatUsersIds.forEach((userId) => {
-        pubsub.publish(`TYPING_TO_USER_${userId.toString()}`, {
+    userIds.forEach((listeningUserId) => {
+        if (listeningUserId.toString() === userId.toString()) return;
+
+        pubsub.publish(`TYPING_TO_USER_${listeningUserId.toString()}`, {
             userId: userId.toString(),
             chatId: chatId.toString(),
             isTyping

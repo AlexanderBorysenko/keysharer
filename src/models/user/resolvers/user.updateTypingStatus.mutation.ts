@@ -3,6 +3,7 @@ import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddlewa
 import { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 import { publishTypingStatusUpdated } from "./user.typingStatusUpdated.subscription";
+import { getChatUserIds } from "../../chat/service/getChatUserIds";
 
 export const updateTypingStatusDefs = `
 type Mutation {
@@ -16,12 +17,20 @@ export const updateTypingStatus = async (
     context: AppQraphQLContext
 ): Promise<boolean> => {
     const user = await isAuthenticatedMiddleware(context);
-    await isUserAChatMemberMiddleware(user.id, types.Uuid.fromString(chatId));
+    const chatUserIds = await getChatUserIds({
+        chatId: types.Uuid.fromString(chatId)
+    });
+    await isUserAChatMemberMiddleware({
+        chatId: types.Uuid.fromString(chatId),
+        userId: user.id,
+        userIds: chatUserIds
+    });
 
     try {
-        publishTypingStatusUpdated({
+        await publishTypingStatusUpdated({
             userId: user.id,
             chatId: types.Uuid.fromString(chatId),
+            userIds: chatUserIds,
             isTyping
         });
 

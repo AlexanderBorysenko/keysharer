@@ -8,8 +8,8 @@ export type TMessage = {
   user_id: types.Uuid;
   type: string;
   content: string;
-  status: string;
   timestamp: Date;
+  is_read?: boolean;
   user?: User;
   chat?: Chat;
 };
@@ -20,8 +20,8 @@ export const messageCoreDefs = `
     chat_id: ID!
     user_id: ID!
     type: String!
+    is_read: Boolean
     content: String!
-    status: String!
     timestamp: String!
   }
 `;

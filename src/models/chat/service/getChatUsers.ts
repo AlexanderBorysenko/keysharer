@@ -1,12 +1,15 @@
 import type { types } from "cassandra-driver";
-import { getChatUsersIds } from "./getChatUsersIds";
+import { getChatUserIds } from "./getChatUserIds";
 import { client } from "../../../db/client";
 import type { User } from "../../user/user.types";
 import { rowToObject } from "../../../utils/rowToObject";
 
 export const getChatUsers = async (chatId: types.Uuid, excludeUserId: types.Uuid | null = null): Promise<User[]> => {
     try {
-        const userIds = (await getChatUsersIds(chatId)).filter(id => id !== excludeUserId);
+        const userIds = (await getChatUserIds({
+            chatId,
+            exclude: excludeUserId ? [excludeUserId] : [],
+        }));
         const usersQuery = 'SELECT * FROM users WHERE id IN ?';
         const usersResult = await client.execute(usersQuery, [userIds], { prepare: true });
 

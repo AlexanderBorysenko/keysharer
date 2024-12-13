@@ -3,15 +3,15 @@ import type { User } from "../user/user.types";
 import type { types } from "cassandra-driver";
 
 export interface Chat {
-	id: types.Uuid;
-	name: string;
-	avatar: string;
-	owner_id: types.Uuid;
+  id: types.Uuid;
+  name: string;
+  avatar: string;
+  owner_id: types.Uuid;
 
-	updated_at: Date;
+  updated_at: Date;
 
-	users?: User[];
-	messages?: Message[];
+  users?: User[];
+  messages?: Message[];
 }
 
 export const chatCoreDefs = `

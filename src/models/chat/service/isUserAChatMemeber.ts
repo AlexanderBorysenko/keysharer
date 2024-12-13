@@ -1,13 +1,25 @@
 import type { types } from "cassandra-driver";
-import { getChatUsersIds } from "./getChatUsersIds";
-import { throwUnauthenticatedError } from "../../../errors/throwUnauthenticatedError";
+import { getChatUserIds } from "./getChatUserIds";
+import { GraphQLError } from 'graphql';
 
-export const isUserAChatMemberMiddleware = async (
-	userId: types.Uuid,
-	chatId: types.Uuid
-) => {
-	const userIds = await getChatUsersIds(chatId);
-	if (!userIds.map((id) => id.toString()).includes(userId.toString())) {
-		return throwUnauthenticatedError("You are not a member of this chat");
-	}
-};
+export const isUserAChatMemberMiddleware = async ({
+    userId,
+    chatId,
+    userIds
+}: {
+    userId: types.Uuid,
+    chatId: types.Uuid,
+    userIds?: types.Uuid[]
+}) => {
+    userIds = userIds || await getChatUserIds({
+        chatId
+    });
+
+    if (!userIds.map(id => id.toString()).includes(userId.toString())) {
+        throw new GraphQLError('User is not a member of this chat', {
+            extensions: {
+                code: 'UNAUTHORIZED',
+            },
+        })
+    }
+}
