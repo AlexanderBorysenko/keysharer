@@ -8,40 +8,34 @@ function getJWTFromStr(str: string): string | null {
 	return null;
 }
 
-export function getContextJWTToken(context: AppQraphQLContext): string | null {
-	if (process.env.IS_DEV) {
-		if (context.params.extensions?.headers?.Authorization) {
-			return getJWTFromStr(
-				context.params.extensions.headers.Authorization
-			);
-		}
-		//@ts-ignore
-		if (context?.connectionParams?.authorization)
-			//@ts-ignore
-			return getJWTFromStr(context.connectionParams.authorization);
+export function getContextJWTToken(context: any): string | null {
+	// Get authorization from context extensions
+	if (context?.params?.extensions?.headers?.Authorization) {
+		return getJWTFromStr(
+			context.params.extensions.headers.Authorization
+		);
+	}
 
-		if (context.request) {
-			const request = context.request;
-			const authHeader = request.headers.get("Authorization");
-			if (authHeader) return getJWTFromStr(authHeader);
-		}
-	} else {
-		const headerCookie = context?.request?.headers?.get("cookie");
-		if (headerCookie) {
-			const authCookie = getCookieFromCookiesString(
-				headerCookie,
-				"Authorization"
-			);
-			if (authCookie) return authCookie;
-		}
+	// Get authorization for WS connection
+	if (context?.connectionParams?.authorization) {
+		return context.connectionParams.authorization; // receiving withot Bearer
+	}
 
-		// Handle WebSocket connectionParams
-		const connectionParamsAuthorization =
-			//@ts-ignore
-			context?.connectionParams?.authorization;
-		if (connectionParamsAuthorization) {
-			return connectionParamsAuthorization;
-		}
+	// Get from classic http request cookies
+	const headerCookie = context?.request?.headers?.get("cookie");
+	if (headerCookie) {
+		const authCookie = getCookieFromCookiesString(
+			headerCookie,
+			"Authorization"
+		);
+		if (authCookie) return authCookie;
+	}
+
+	// Get from classic http request headers
+	if (context?.request?.headers) {
+		const request = context.request;
+		const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
+		if (authHeader) return getJWTFromStr(authHeader);
 	}
 
 	return null;
