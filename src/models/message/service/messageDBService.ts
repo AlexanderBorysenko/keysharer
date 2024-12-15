@@ -3,12 +3,7 @@ import { client } from "../../../db/client";
 import type { TMessage } from "../message.types";
 import { rowToObject } from "../../../utils/rowToObject";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
-import type { Chat } from "../../chat/chat.types";
-
-type Queries = Array<string | {
-    query: string;
-    params?: ArrayOrObject;
-}>;
+import type { Queries } from "../../../../types/Queries";
 
 class MessageDBService {
     /**
@@ -66,6 +61,14 @@ class MessageDBService {
         userId: types.Uuid;
     }): Promise<void> => {
         try {
+            // check if the message is already read
+            const read = await client.execute(
+                `SELECT user_id FROM app_keyspace.message_reads WHERE chat_id = ? AND user_id = ? AND message_id = ?;`,
+                [chatId, userId, messageId],
+                { prepare: true }
+            );
+            if (read.first()) return;
+
             const queries: Queries = [
                 {
                     query: `INSERT INTO app_keyspace.message_reads (chat_id, message_id, user_id) VALUES (?, ?, ?)`,

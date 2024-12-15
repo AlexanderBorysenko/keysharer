@@ -33,5 +33,6 @@ export const userCoreDefs = `
     email: String
     emailVerified: Boolean
     chats: [Chat!]
+    isOnline: Boolean
   }
 `;

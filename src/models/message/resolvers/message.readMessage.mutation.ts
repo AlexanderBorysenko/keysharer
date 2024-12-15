@@ -44,7 +44,6 @@ export const readMessageMutation = async (
             messageId,
             userId: user.id,
         })
-
         await publishMessageUpdated({
             message: {
                 ...message,

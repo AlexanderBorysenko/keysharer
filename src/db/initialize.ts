@@ -1,4 +1,5 @@
-import { client } from './client';
+import userActiveSessionsService from '../models/user/service/userActiveSessionsService';
 
-export async function initializeDatabase() {
+export const initializeDatabase = async () => {
+    await userActiveSessionsService.resetAllUsersActiveSessionsCount();
 }

@@ -10,6 +10,7 @@ import { type ExecutionArgs } from "@envelop/types";
 import { join } from 'path';
 import { useCookies } from '@whatwg-node/server-plugin-cookies';
 import { env } from 'process';
+import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 
 async function startServer() {
     try {
@@ -45,11 +46,11 @@ async function startServer() {
             schema,
             execute: (args: ExecutionArgs) => args.rootValue.execute(args),
             subscribe: (args: ExecutionArgs) => args.rootValue.subscribe(args),
-            onSubscribe: async (ctx, msg) => {
+            onSubscribe: async (context, msg) => {
                 const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
-                    ...ctx,
-                    req: ctx.extra.request,
-                    socket: ctx.extra.socket,
+                    ...context,
+                    req: context.extra.request,
+                    socket: context.extra.socket,
                     params: msg.payload,
 
                 })
@@ -70,6 +71,20 @@ async function startServer() {
                 if (errors.length) return errors
                 return args
             },
+            onConnect: async (context) => {
+                const user = await getContextUser(context);
+                if (user) {
+                    userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+                }
+            },
+            onDisconnect: async (context, code, reason) => {
+                const user = await getContextUser(context);
+                if (!user) {
+                    console.log('Користувач не знайдений', context);
+                    return;
+                }
+                userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
+            }
         })
 
         const PUBLIC_DIR = join(process.cwd(), 'public');
