@@ -27,6 +27,7 @@ import {
 	verifyEmail,
 	verifyEmailDefs,
 } from "./resolvers/user.verifyEmail.mutation";
+import userDisplayNameResolver from "./resolvers/user.User.displayName";
 
 export const userResolvers = {
 	Query: {
@@ -44,6 +45,9 @@ export const userResolvers = {
 	Subscription: {
 		typingStatusUpdated,
 	},
+	User: {
+		displayName: userDisplayNameResolver,
+	}
 };
 
 export const userDefs = mergeTypeDefs([

@@ -9,7 +9,7 @@ export const throwUnauthenticatedError = (
 	throw new GraphQLError(message, {
 		extensions: {
 			code: "401",
-			error: "Unauthenticated",
+			error: "UNAUTHENTICATED",
 			messages: args?.messages,
 		},
 	});

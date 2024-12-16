@@ -18,3 +18,16 @@ export const getContextUser = async (context: AppQraphQLContext | Context<Record
     }
 };
 
+// Decode the user without verifying the token
+export const unsafeGetContextUser = async (context: AppQraphQLContext | Context<Record<string, unknown> | undefined, Extra & Partial<Record<PropertyKey, never>>>) => {
+    let token = getContextJWTToken(context);
+    try {
+        const decoded: any = jwt.decode(token || '');
+        const user = await findUser({ id: decoded.userId });
+
+        return user;
+    }
+    catch (err) {
+        return null;
+    }
+};

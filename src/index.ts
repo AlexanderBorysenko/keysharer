@@ -4,7 +4,7 @@ import { schema } from './graphql/schema';
 import { client } from './db/client';
 import { initializeDatabase } from './db/initialize';
 import type { AppQraphQLContext } from '../types/AppQraphQLContext';
-import { getContextUser } from './models/user/service/getContextUser';
+import { getContextUser, unsafeGetContextUser } from './models/user/service/getContextUser';
 import { makeHandler } from 'graphql-ws/lib/use/bun';
 import { type ExecutionArgs } from "@envelop/types";
 import { join } from 'path';
@@ -78,7 +78,8 @@ async function startServer() {
                 }
             },
             onDisconnect: async (context, code, reason) => {
-                const user = await getContextUser(context);
+                console.log("disconnect", code, reason)
+                const user = await unsafeGetContextUser(context);
                 if (!user) {
                     console.log('Користувач не знайдений', context);
                     return;
@@ -103,12 +104,16 @@ async function startServer() {
                     const relativePath = pathName.slice('/public/'.length);
                     const filePath = join(PUBLIC_DIR, relativePath);
 
+                    const allowedExtensions = ['.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.json'];
+                    const ext = relativePath.slice(relativePath.lastIndexOf('.'));
+                    if (!allowedExtensions.includes(ext)) {
+                        return new Response('Not Found', { status: 404 });
+                    }
+
                     try {
                         return new Response(Bun.file(filePath));
                     } catch (e) {
-                        // Якщо файл не існує, повертаємось до GraphQL
-                        //@ts-ignore
-                        return yoga.fetch(request, server);
+                        return new Response('Not Found', { status: 404 });
                     }
                 }
 

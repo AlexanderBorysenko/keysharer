@@ -21,6 +21,13 @@ class UserActiveSessionsService {
             increment: `UPDATE app_keyspace.user_active_sessions_count SET active_sessions_count = active_sessions_count + 1 WHERE user_id = ?`,
             decrement: `UPDATE app_keyspace.user_active_sessions_count SET active_sessions_count = active_sessions_count - 1 WHERE user_id = ?`,
         };
+        if (action === 'decrement') {
+            const previousCount = await this.getUsersActiveSessionsCount(userId);
+            if (previousCount === 0) {
+                console.log(`User ${userId} active sessions count is already 0`);
+                return;
+            }
+        }
 
         try {
             const previousCount = await this.getUsersActiveSessionsCount(userId);
