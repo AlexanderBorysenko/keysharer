@@ -20,14 +20,14 @@ export function getContextJWTToken(context: any): string | null {
 	}
 
 	// Get from classic http request cookies
-	const headerCookie = context?.request?.headers?.get("cookie");
-	if (headerCookie) {
-		const authCookie = getCookieFromCookiesString(
-			headerCookie,
-			"Authorization"
-		);
-		if (authCookie) return authCookie;
-	}
+	// const headerCookie = context?.request?.headers?.get("cookie");
+	// if (headerCookie) {
+	// 	const authCookie = getCookieFromCookiesString(
+	// 		headerCookie,
+	// 		"Authorization"
+	// 	);
+	// 	if (authCookie) return authCookie;
+	// }
 
 	// Get from classic http request headers
 	if (context?.request?.headers) {
