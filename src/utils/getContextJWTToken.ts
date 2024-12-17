@@ -11,9 +11,7 @@ function getJWTFromStr(str: string): string | null {
 export function getContextJWTToken(context: any): string | null {
 	// Get authorization from context extensions
 	if (context?.params?.extensions?.headers?.Authorization) {
-		return getJWTFromStr(
-			context.params.extensions.headers.Authorization
-		);
+		return getJWTFromStr(context.params.extensions.headers.Authorization);
 	}
 
 	// Get authorization for WS connection
@@ -34,7 +32,9 @@ export function getContextJWTToken(context: any): string | null {
 	// Get from classic http request headers
 	if (context?.request?.headers) {
 		const request = context.request;
-		const authHeader = request.headers.get("Authorization") || request.headers.get("authorization");
+		const authHeader =
+			request.headers.get("Authorization") ||
+			request.headers.get("authorization");
 		if (authHeader) return getJWTFromStr(authHeader);
 	}
 

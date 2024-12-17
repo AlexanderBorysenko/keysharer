@@ -3,7 +3,7 @@ import { client } from "../../../db/client";
 import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddleware";
 
 export type UserQueryInput = {
-    search?: string;
+	search?: string;
 };
 
 export const usersQueryDefs = `
@@ -16,18 +16,22 @@ type Query {
 }
 `;
 export const usersQuery = async (
-    _: any,
-    { input }: { input: UserQueryInput },
-    context: AppQraphQLContext
+	_: any,
+	{ input }: { input: UserQueryInput },
+	context: AppQraphQLContext
 ) => {
-    if (input?.search) {
-        const user = await isAuthenticatedMiddleware(context);
-        return (await client.execute(
-            'SELECT * FROM users WHERE username LIKE ? LIMIT 10',
-            [`%${input.search}%`],
-            { prepare: true }
-        )).rows.filter((row) => row.id.toString() !== user.id.toString());
-    } else {
-        return (await client.execute('SELECT * FROM users', [], { prepare: true })).rows;
-    }
+	if (input?.search) {
+		const user = await isAuthenticatedMiddleware(context);
+		return (
+			await client.execute(
+				"SELECT * FROM users WHERE username LIKE ? LIMIT 10",
+				[`%${input.search}%`],
+				{ prepare: true }
+			)
+		).rows.filter((row) => row.id.toString() !== user.id.toString());
+	} else {
+		return (
+			await client.execute("SELECT * FROM users", [], { prepare: true })
+		).rows;
+	}
 };

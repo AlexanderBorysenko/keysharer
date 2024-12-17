@@ -12,31 +12,31 @@ type Mutation {
 `;
 
 export const updateTypingStatus = async (
-    _: unknown,
-    { chatId, isTyping }: { chatId: string; isTyping: boolean },
-    context: AppQraphQLContext
+	_: unknown,
+	{ chatId, isTyping }: { chatId: string; isTyping: boolean },
+	context: AppQraphQLContext
 ): Promise<boolean> => {
-    const user = await isAuthenticatedMiddleware(context);
-    const chatUserIds = await getChatUserIds({
-        chatId: types.Uuid.fromString(chatId)
-    });
-    await isUserAChatMemberMiddleware({
-        chatId: types.Uuid.fromString(chatId),
-        userId: user.id,
-        userIds: chatUserIds
-    });
+	const user = await isAuthenticatedMiddleware(context);
+	const chatUserIds = await getChatUserIds({
+		chatId: types.Uuid.fromString(chatId),
+	});
+	await isUserAChatMemberMiddleware({
+		chatId: types.Uuid.fromString(chatId),
+		userId: user.id,
+		userIds: chatUserIds,
+	});
 
-    try {
-        await publishTypingStatusUpdated({
-            userId: user.id,
-            chatId: types.Uuid.fromString(chatId),
-            userIds: chatUserIds,
-            isTyping
-        });
+	try {
+		await publishTypingStatusUpdated({
+			userId: user.id,
+			chatId: types.Uuid.fromString(chatId),
+			userIds: chatUserIds,
+			isTyping,
+		});
 
-        return true;
-    } catch (error) {
-        console.error('Error updating typing status', error);
-        return false;
-    }
+		return true;
+	} catch (error) {
+		console.error("Error updating typing status", error);
+		return false;
+	}
 };

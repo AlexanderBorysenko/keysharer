@@ -3,6 +3,7 @@ import { pubsub } from "../../../graphql/pubSub";
 import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddleware";
 import { types } from "cassandra-driver";
 import userActiveSessionsService from "../service/userActiveSessionsService";
+import type { User } from "../user.types";
 
 export const onlineStatusChangedDefs = `
 type Subscription {
@@ -11,20 +12,24 @@ type Subscription {
 `;
 
 export const onlineStatusChangedSubscription = {
-    subscribe: async (_: unknown, { userId }: { userId: string }, context: AppQraphQLContext) => {
-        const user = await isAuthenticatedMiddleware(context);
-        return pubsub.subscribe(`ONLINE_STATUS_CHANGED_${userId}`);
-    },
-    resolve: (payload: boolean) => {
-        return payload;
-    }
+	subscribe: async (
+		_: unknown,
+		{ userId }: { userId: string },
+		context: AppQraphQLContext
+	) => {
+		const user: User = await isAuthenticatedMiddleware(context);
+		return pubsub.subscribe(`ONLINE_STATUS_CHANGED_${userId}`);
+	},
+	resolve: (payload: boolean) => {
+		return payload;
+	},
 };
 
 export const publishOnlineStatusChanged = async ({
-    userId,
+	userId,
 }: {
-    userId: types.Uuid;
+	userId: types.Uuid;
 }) => {
-    const isOnline = userActiveSessionsService.isUserOnline(userId);
-    pubsub.publish(`ONLINE_STATUS_CHANGED_${userId.toString()}`, isOnline);
+	const isOnline = userActiveSessionsService.isUserOnline(userId);
+	pubsub.publish(`ONLINE_STATUS_CHANGED_${userId.toString()}`, isOnline);
 };

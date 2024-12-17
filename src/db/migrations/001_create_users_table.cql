@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS app_keyspace.users (
   avatar text,
   email text,
   email_verified boolean,
-  active_sessions_count COUNTER
+  role TEXT,
   password text
 );
 CREATE INDEX IF NOT EXISTS ON app_keyspace.users (username) USING 'org.apache.cassandra.index.sasi.SASIIndex'

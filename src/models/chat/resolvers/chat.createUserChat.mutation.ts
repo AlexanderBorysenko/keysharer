@@ -1,10 +1,12 @@
 import { types } from "cassandra-driver";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { throwUnexpectedError } from "../../../errors/throwUnexpectedError";
-import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import type { Chat } from "../chat.types";
 import { createChat } from "../service/createChat";
 import { publishChatCreated } from "./chat.createChat.subscription";
+import { isNotGuestMiddleware } from "../../user/middleware/isNotGuestMiddleware";
+import type { User } from "../../user/user.types";
+import { isEmailVerifiedMiddleware } from "../../user/middleware/isEmailVerifiedMiddleware";
 
 export type CreateChatInput = {
 	name: string;
@@ -24,11 +26,11 @@ type Mutation {
 `;
 
 export const createUserChat = async (
-	parent: any,
+	_: any,
 	{ input: { name, avatar, userIds } }: { input: CreateChatInput },
 	context: AppQraphQLContext
 ): Promise<Chat> => {
-	const user = await isAuthenticatedMiddleware(context);
+	const user: User = await isEmailVerifiedMiddleware(context);
 
 	if (userIds.map((id) => id.toString()).includes(user.id.toString())) {
 		return throwUnexpectedError("You can't create a chat without yourself");

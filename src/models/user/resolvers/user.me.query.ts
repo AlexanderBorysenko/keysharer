@@ -1,6 +1,6 @@
-// import { getContextUserMiddleware } from "../service/getContextUserMiddleware";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
-import { throwUnauthenticatedError } from "../../../errors/throwUnauthenticatedError";
+import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddleware";
+import type { User } from "../user.types";
 
 export const meQueryDefs = `
     type Query {  
@@ -8,9 +8,11 @@ export const meQueryDefs = `
     }
 `;
 
-export const meQuery = async (_: any, __: any, context: AppQraphQLContext) => {
-	if (!context.user) {
-		return throwUnauthenticatedError("User not authenticated");
-	}
-	return context.user;
+export const meQuery = async (
+	_: any,
+	__: any,
+	context: AppQraphQLContext
+): Promise<User> => {
+	const user: User = await isAuthenticatedMiddleware(context);
+	return user;
 };
