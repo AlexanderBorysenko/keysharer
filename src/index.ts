@@ -11,6 +11,7 @@ import { join } from 'path';
 import { useCookies } from '@whatwg-node/server-plugin-cookies';
 import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
+import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
 
 async function startServer() {
     try {
@@ -52,7 +53,6 @@ async function startServer() {
                     req: context.extra.request,
                     socket: context.extra.socket,
                     params: msg.payload,
-
                 })
 
                 const args = {
@@ -74,17 +74,22 @@ async function startServer() {
             onConnect: async (context) => {
                 const user = await getContextUser(context);
                 if (user) {
-                    userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+                    await publishOnlineStatusChanged({
+                        userId: user.id,
+                    });
                 }
             },
             onDisconnect: async (context, code, reason) => {
-                console.log("disconnect", code, reason)
                 const user = await unsafeGetContextUser(context);
                 if (!user) {
                     console.log('Користувач не знайдений', context);
                     return;
                 }
-                userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
+                await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
+                await publishOnlineStatusChanged({
+                    userId: user.id,
+                });
             }
         })
 

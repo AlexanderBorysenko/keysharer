@@ -2,21 +2,21 @@ import type { types } from "cassandra-driver";
 import type { Chat } from "../chat/chat.types";
 
 export interface User {
-	id: types.Uuid;
-	username: string;
-	displayName?: string;
-	avatar?: string;
-	email?: string;
-	emailVerified?: boolean;
-	password?: string;
-	chats?: Chat[];
+  id: types.Uuid;
+  username: string;
+  displayName?: string;
+  avatar?: string;
+  email?: string;
+  emailVerified?: boolean;
+  password?: string;
+  chats?: Chat[];
 }
 
 export interface EmailVerificationCode {
-	userId: types.Uuid;
-	code: string;
-	expiresAt: Date;
-	issuedAt: Date;
+  userId: types.Uuid;
+  code: string;
+  expiresAt: Date;
+  issuedAt: Date;
 }
 
 export const userCoreDefs = `

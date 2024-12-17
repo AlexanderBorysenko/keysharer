@@ -22,7 +22,6 @@ export const sendKeySharingTransactionSuccess = async (
     { input: { transactionId, success } }: { input: SendKeySharingTransactionSuccessInput },
     context: AppQraphQLContext
 ): Promise<boolean> => {
-    console.log('sendKeySharingTransactionSuccess', transactionId, success);
     await publishKeySharingTransactionSuccess({
         transactionId,
         success,

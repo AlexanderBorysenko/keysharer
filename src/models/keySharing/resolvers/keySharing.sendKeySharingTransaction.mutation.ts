@@ -5,6 +5,7 @@ import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeb
 import userActiveSessionsService from "../../user/service/userActiveSessionsService";
 import { GraphQLError } from "graphql";
 import { publishIncomingKeySharingTransaction } from "./keySharing.onIncomingKeySharingTransaction.subscription";
+import { findUser } from "../../user/service/findUser";
 
 export type SendKeySharingTransactionInput = {
     chatId: types.Uuid;
@@ -33,7 +34,13 @@ export const sendKeySharingTransaction = async (
         userId: user.id,
     });
     if (!(await userActiveSessionsService.isUserOnline(userId))) {
-        throw new GraphQLError("Selected user is not online, please try again later");
+        const targetUser = await findUser({
+            id: userId,
+        });
+        if (!targetUser) {
+            throw new GraphQLError(`User with id ${userId} not found`);
+        }
+        throw new GraphQLError(`@${targetUser.username} is not online, please try again later`);
     }
     const id = types.TimeUuid.now();
     await publishIncomingKeySharingTransaction({
