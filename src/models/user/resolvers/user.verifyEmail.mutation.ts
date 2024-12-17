@@ -1,7 +1,8 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { throwUserInputError } from "../../../errors/throwUserInputError";
-import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddleware";
+import { isNotGuestMiddleware } from "../middleware/isNotGuestMiddleware";
 import { verifyUserEmail } from "../service/verifyUserEmail";
+import type { User } from "../user.types";
 
 export type VerifyEmailInput = {
 	code: string;
@@ -22,8 +23,7 @@ export const verifyEmail = async (
 	{ input }: { input: VerifyEmailInput },
 	context: AppQraphQLContext
 ): Promise<boolean> => {
-	const user = await isAuthenticatedMiddleware(context);
-	// TODO: check if user is not guest
+	const user: User = await isNotGuestMiddleware(context);
 
 	if (user.emailVerified) throwUserInputError("Email is already verified");
 

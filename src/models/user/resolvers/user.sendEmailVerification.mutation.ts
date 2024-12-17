@@ -1,7 +1,8 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { throwConflictError } from "../../../errors/throwConflictError";
-import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddleware";
+import { isNotGuestMiddleware } from "../middleware/isNotGuestMiddleware";
 import { sendEmailVerificationCode } from "../service/sendEmailVerificationCode";
+import type { User } from "../user.types";
 
 export const sendEmailVerificationDefs = `
 type Mutation {
@@ -13,9 +14,8 @@ export const sendEmailVerification = async (
 	_: any,
 	__: any,
 	context: AppQraphQLContext
-) => {
-	const user = await isAuthenticatedMiddleware(context);
-	// TODO: check if user is not guest
+): Promise<Boolean> => {
+	const user: User = await isNotGuestMiddleware(context);
 
 	if (user.emailVerified) throwConflictError("Email is already verified");
 

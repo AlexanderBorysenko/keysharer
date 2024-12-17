@@ -1,9 +1,9 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { throwForbiddenError } from "../../../errors/throwForbiddenError";
-import { isAuthenticatedMiddleware } from "./isAuthenticatedMiddleware";
+import { isNotGuestMiddleware } from "./isNotGuestMiddleware";
 
 export const isEmailVerifiedMiddleware = async (context: AppQraphQLContext) => {
-	const user = await isAuthenticatedMiddleware(context);
+	const user = await isNotGuestMiddleware(context);
 
 	if (!user.emailVerified) {
 		return throwForbiddenError("Email not verified");

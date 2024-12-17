@@ -9,6 +9,7 @@ import { encrypt } from "../../../utils/cryptoUtils";
 import messageDBService from "../service/messageDBService";
 import { publishUnreadMessagesCountChange } from "./message.unreadMessagesCountChage.subscription";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
+import { isEmailVerifiedMiddleware } from "../../user/middleware/isEmailVerifiedMiddleware";
 
 export type SendMessageInput = {
 	chatId: types.Uuid;
@@ -31,7 +32,7 @@ export const sendMessageMutation = async (
 	{ input: { chatId, content } }: { input: SendMessageInput },
 	context: AppQraphQLContext
 ): Promise<boolean> => {
-	const user = await isAuthenticatedMiddleware(context);
+	const user = await isEmailVerifiedMiddleware(context);
 	const chatUserIds = await getChatUserIds({
 		chatId,
 	});
@@ -62,7 +63,7 @@ export const sendMessageMutation = async (
 		await publishUnreadMessagesCountChange({
 			chatId,
 			userIds: chatUserIds,
-			ownerId: user.id
+			ownerId: user.id,
 		});
 	} catch (error) {
 		console.error(error as any);

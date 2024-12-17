@@ -3,6 +3,9 @@ import bcrypt from "bcrypt";
 import { client } from "../../../db/client";
 import { isUniqueField } from "../../../db/utils/isUniqueField";
 import { types } from "cassandra-driver";
+import { Role } from "../user.types";
+import { send } from "process";
+import { sendEmailVerification } from "./user.sendEmailVerification.mutation";
 
 type CreateUserInput = {
 	username: string;
@@ -84,9 +87,9 @@ export const createUser = async (
 	const id = types.Uuid.random();
 
 	const hashedPassword = await bcrypt.hash(password, 10);
-	const params = [id, username, email, false, hashedPassword];
+	const params = [id, username, email, false, Role.USER, hashedPassword];
 
-	const query = `INSERT INTO users (id, username, email, email_verified, password) VALUES (?, ?, ?, ?, ?)`;
+	const query = `INSERT INTO users (id, username, email, email_verified, role, password) VALUES (?, ?, ?, ?, ?, ?)`;
 
 	await client.execute(query, params, { prepare: true });
 
