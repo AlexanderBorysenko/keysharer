@@ -10,6 +10,7 @@ import messageDBService from "../service/messageDBService";
 import { publishUnreadMessagesCountChange } from "./message.unreadMessagesCountChage.subscription";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
 import { isEmailVerifiedMiddleware } from "../../user/middleware/isEmailVerifiedMiddleware";
+import { messageSendDelayMiddleware } from "../middleware/MessageSendDelayMiddleware";
 
 export type SendMessageInput = {
 	chatId: types.Uuid;
@@ -41,6 +42,9 @@ export const sendMessageMutation = async (
 		userId: user.id,
 		userIds: chatUserIds,
 	});
+
+	// Check if user is sending messages too quickly
+	await messageSendDelayMiddleware({ chatId: chatId, userId: user.id });
 
 	// Generate a unique ID for the message
 	const messageId = types.TimeUuid.now();
