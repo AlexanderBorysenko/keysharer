@@ -1,4 +1,3 @@
-import { GraphQLError } from 'graphql';
 import { throwUserInputError } from '../errors/throwUserInputError';
 
 export type ValidationRule = (value: any) => string | null | Promise<string | null>;
@@ -36,3 +35,5 @@ export class ValidationService {
         }
     }
 }
+
+export const validationService = new ValidationService();

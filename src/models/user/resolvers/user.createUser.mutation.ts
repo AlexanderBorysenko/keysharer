@@ -42,6 +42,10 @@ export const createUser = async (
 						? "Username must be at least 4 characters long"
 						: null,
 				(value: any) =>
+					value.length > 20
+						? "Username must be at most 20 characters long"
+						: null,
+				(value: any) =>
 					!/^[a-zA-Z0-9_]+$/.test(value)
 						? "Username can only contain letters, numbers, and underscores"
 						: null,
@@ -56,6 +60,10 @@ export const createUser = async (
 					!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 						? "Invalid email format"
 						: null,
+				(value: any) =>
+					value.length > 255
+						? "Email must be at most 255 characters long"
+						: null,
 				async () =>
 					(await isUniqueField("users", "email", email))
 						? null
@@ -65,9 +73,10 @@ export const createUser = async (
 				(value: any) => (!value ? "Password is required." : null),
 				(value: string) =>
 					value.length <= 8 ||
-					!/[!@#$%^&*(),.?":{}|<>+_-]/.test(value)
+						!/[!@#$%^&*(),.?":{}|<>+_-]/.test(value)
 						? "Password must be at least 8 characters long and contain at least one special character"
 						: null,
+				(value: string) => value.length >= 20 ? null : "Password must be at most 20 characters long",
 			],
 			confirm_password: [
 				(value) =>

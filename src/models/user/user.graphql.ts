@@ -30,6 +30,9 @@ import {
 import userDisplayNameResolver from "./resolvers/user.User.displayName";
 import { onlineStatusChangedDefs, onlineStatusChangedSubscription } from "./resolvers/user.onlineStatusChanged.subscription";
 import { isOnline } from "./resolvers/user.User.isOnline.query";
+import { updateUser, updateUserDefs } from "./resolvers/user.updateUser.mutation";
+import { userUpdatedSubscription, userUpdatedSubscriptionDefs } from "./resolvers/user.userUpdated.subscription";
+import userAvatarResolver from "./resolvers/user.User.avatar";
 
 export const userResolvers = {
 	Query: {
@@ -43,14 +46,17 @@ export const userResolvers = {
 		updateTypingStatus,
 		sendEmailVerification,
 		verifyEmail,
+		updateUser
 	},
 	Subscription: {
 		typingStatusUpdated,
-		onlineStatusChanged: onlineStatusChangedSubscription
+		onlineStatusChanged: onlineStatusChangedSubscription,
+		userUpdated: userUpdatedSubscription
 	},
 	User: {
 		displayName: userDisplayNameResolver,
-		isOnline
+		isOnline,
+		avatar: userAvatarResolver
 	}
 };
 
@@ -65,7 +71,9 @@ export const userDefs = mergeTypeDefs([
 	updateTypingStatusDefs,
 	sendEmailVerificationDefs,
 	verifyEmailDefs,
+	updateUserDefs,
 
 	typingStatusUpdatedDefs,
 	onlineStatusChangedDefs,
+	userUpdatedSubscriptionDefs
 ]);

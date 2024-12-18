@@ -84,6 +84,19 @@ class AvatarImageStorageService {
             fileUrl: this.getAvatarUrl(fileName),
         };
     }
+    public formatAvatarUrl = (avatar: string | null): string => {
+        if (!avatar || typeof avatar !== 'string') return '';
+
+        let serverUrl = process.env.SERVER_URL;
+        if (serverUrl && !avatar.startsWith(serverUrl)) {
+            // remove slashes from the beginning and end of the strings
+            serverUrl = serverUrl.replace(/^\/+|\/+$/g, '');
+            avatar = avatar.replace(/^\/+|\/+$/g, '');
+
+            return serverUrl + '/' + avatar;
+        }
+        return avatar;
+    }
 }
 
 export const avatarImageStorageService = new AvatarImageStorageService();
