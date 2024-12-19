@@ -15,7 +15,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      API_BASE: process.env.API_BASE,
+      severHost: process.env.SERVER_HOST || 'http://localhost:4000',
+      wsHost: process.env.WS_HOST || 'ws://localhost:4000',
     }
   },
   devServer: {

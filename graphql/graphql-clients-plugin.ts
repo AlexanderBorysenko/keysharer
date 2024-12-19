@@ -2,8 +2,9 @@ import { Chain, Subscription } from '~/graphql/zeus';
 import { v4 } from 'uuid';
 
 export default defineNuxtPlugin((nuxtApp) => {
-    const apiEndpoint = 'http://localhost:4000';
-    const wsEndpoint = 'ws://localhost:4000';
+    const config = useRuntimeConfig();
+    const apiEndpoint = config.public.severHost;
+    const wsEndpoint = config.public.wsHost;
 
     const AuthorizationToken = useCookie(
         'Authorization',
