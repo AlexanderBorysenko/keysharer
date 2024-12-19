@@ -1,0 +1,18 @@
+*::-webkit-scrollbar {
+	width: 0.25rem;
+	height: 0.25rem;
+}
+
+*::-webkit-scrollbar-track {
+	background: #333;
+}
+
+*::-webkit-scrollbar-thumb {
+	background-color: var(--purple);
+	border-radius: 0.625rem;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--purple) #333;
+}

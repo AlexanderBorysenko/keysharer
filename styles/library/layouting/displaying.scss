@@ -1,0 +1,21 @@
+@use '../../vars.scss' as *;
+
+.block {
+	display: block;
+}
+
+._desktop {
+	@media (max-width: $mobile-width) {
+		display: none !important;
+	}
+}
+
+._mobile {
+	@media (min-width: $mobile-width) {
+		display: none !important;
+	}
+}
+
+.w-full {
+	width: 100%;
+}

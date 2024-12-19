@@ -1,0 +1,104 @@
+$large-desktop-width: 1680px;
+$small-width: 1200px;
+$mobile-width: 640px;
+
+$breakpoints: (
+	'sw': $small-width,
+	'mw': $mobile-width
+);
+
+$sizes: (
+	'0-5': (
+		'default': 0.5rem
+	),
+	'0-75': (
+		'default': 0.75rem
+	),
+	'1': (
+		'default': 1rem,
+		'mw': 0.875rem
+	),
+	'17px': (
+		'default': 1.0625rem,
+		'sw': 1rem
+	),
+	'1-125': (
+		'default': 1.125rem,
+		'sw': 1rem,
+		// 'mw': 1rem
+		'mw': 0.875rem
+	),
+	'1-25': (
+		'default': 1.25rem,
+		'sw': 1.125rem,
+		'mw': 1rem
+	),
+	'1-5': (
+		'default': 1.5rem,
+		'sw': 1.25rem,
+		'mw': 1.125rem
+	),
+	'1-75': (
+		'default': 1.75rem,
+		'sw': 1.5rem,
+		'mw': 1.125rem
+	),
+	'2': (
+		'default': 2rem,
+		'sw': 1.75rem,
+		// 'mw': 1.25rem
+		'mw': 1.25rem // changed for .technology-stack-section__pre-title
+	),
+	'2-25': (
+		'default': 2.25rem,
+		'sw': 1.75rem,
+		'mw': 1.25rem
+	),
+	'2-5': (
+		'default': 2.5rem,
+		'sw': 1.75rem,
+		'mw': 1.25rem
+	),
+	'3': (
+		'default': 3rem,
+		'sw': 2rem,
+		'mw': 1.5rem
+	),
+	'3-5': (
+		'default': 3.5rem,
+		'sw': 2.5rem,
+		// 'mw': 2rem
+		'mw': 1.5rem // change for .technology-stack-section__pre-title mb
+	),
+	'4': (
+		'default': 4rem,
+		'sw': 3rem,
+		// 'mw': 2rem
+		'mw': 1.75rem // change for .technology-stack-section__title
+	),
+	'4-5': (
+		'default': 4.5rem,
+		'sw': 3.5rem,
+		'mw': 2rem
+	),
+	'5': (
+		'default': 5rem,
+		'sw': 4rem,
+		'mw': 2.25rem
+	),
+	'5-5': (
+		'default': 5.5rem,
+		'sw': 4.5rem,
+		'mw': 2.25rem
+	),
+	'6-5': (
+		'default': 6.5rem,
+		'sw': 5.5rem,
+		'mw': 2.5rem
+	),
+	'11-5': (
+		'default': 11.5rem,
+		'sw': 7rem,
+		'mw': 4rem
+	)
+);

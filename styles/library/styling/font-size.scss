@@ -1,0 +1,7 @@
+@use '../../vars.scss' as *;
+
+@each $size, $values in $sizes {
+	.fs-#{$size} {
+		font-size: var(--size-#{$size});
+	}
+}

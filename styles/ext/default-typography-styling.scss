@@ -1,0 +1,37 @@
+a {
+	text-decoration: none;
+}
+
+.text-content {
+	font-size: 1rem;
+	margin-bottom: 0.5rem;
+	& > *:not(:last-child) {
+		margin-bottom: 0.25rem;
+	}
+	code {
+		font-family: 'Courier New', Courier, monospace;
+		padding: 0.1rem 0.3rem;
+		background: rgba(0, 0, 0, 0.3);
+		border-radius: 0.2rem;
+	}
+	ul {
+		list-style-type: disc;
+		padding-left: 1rem;
+		li:not(:last-child) {
+			margin-bottom: 0.5rem;
+		}
+	}
+	@media (max-width: 640px) {
+		font-size: 0.875rem;
+	}
+}
+
+h1 {
+	font-size: var(--size-3);
+}
+h2 {
+	font-size: var(--size-2-5);
+}
+h3 {
+	font-size: var(--size-2);
+}

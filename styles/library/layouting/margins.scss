@@ -1,0 +1,22 @@
+@use '../../vars.scss' as *;
+
+@each $size, $values in $sizes {
+	.mb-#{$size} {
+		margin-bottom: var(--size-#{$size});
+	}
+	.mt-#{$size} {
+		margin-top: var(--size-#{$size});
+	}
+}
+
+@media (max-width: $mobile-width) {
+	.mb-mobile-0-25 {
+		margin-bottom: 0.25rem !important;
+	}
+	.mb-mobile-0-5 {
+		margin-bottom: 0.5rem !important;
+	}
+	.mb-mobile-1 {
+		margin-bottom: 1rem !important;
+	}
+}
