@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS app_keyspace.messages (
     type TEXT,
     content TEXT,
     is_read BOOLEAN,
+    disable_encryption BOOLEAN,
     timestamp TIMESTAMP,
     PRIMARY KEY (chat_id, id)
 ) WITH CLUSTERING ORDER BY (id DESC);

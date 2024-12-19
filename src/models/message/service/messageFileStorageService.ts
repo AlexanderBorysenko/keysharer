@@ -57,15 +57,21 @@ class MessageFileStorageService {
 
     /**
      * Creates a new file from encrypted data and returns file metadata.
-     * @param fileData - An object containing filename, mimeType, and encryptedData.
+     * @param fileData - An object containing filename, mimeType, and content.
      * @returns A promise that resolves with the file metadata: { fileName, fileSize, fileType }.
      * @throws An error if the data cannot be processed.
      */
     public async createMessageFile(fileData: UploadedEncryptedFile): Promise<StoredEncryptedFile> {
-        const { filename, mimeType, encryptedData } = fileData;
+        let { filename, mimeType, content } = fileData;
+
+        // Когда файл зашифрован, мы сохраняем его полноценный BLOB, а когда нет - только содержимое без префикса data:...,
+        if (!fileData.isEncrypted) {
+            // If the content is not encrypted, we need to save the file as is
+            content = content.split(',')[1];
+        }
 
         // Decode the base64 encrypted data into a Buffer
-        const buffer = Buffer.from(encryptedData, 'base64');
+        const buffer = Buffer.from(content, 'base64');
 
         if (!buffer || buffer.length === 0) {
             throw new Error("Invalid file data");

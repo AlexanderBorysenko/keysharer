@@ -33,6 +33,7 @@ class MessageDBService {
 		userId,
 		content,
 		type,
+		disableEncryption,
 		userIds,
 	}: {
 		messageId: types.TimeUuid;
@@ -40,6 +41,7 @@ class MessageDBService {
 		userId: types.Uuid;
 		content: string;
 		type?: string;
+		disableEncryption?: boolean;
 		userIds?: types.Uuid[];
 	}): Promise<void> => {
 		let recipientIds: types.Uuid[] =
@@ -50,8 +52,8 @@ class MessageDBService {
 
 		const queries: Queries = [
 			{
-				query: `INSERT INTO messages (id, chat_id, user_id, type, content, timestamp) VALUES (?, ?, ?, ?, ?, toTimestamp(now()))`,
-				params: [messageId, chatId, userId, type || "text", content],
+				query: `INSERT INTO messages (id, chat_id, user_id, type, content, disable_encryption, timestamp) VALUES (?, ?, ?, ?, ?, ?, toTimestamp(now()))`,
+				params: [messageId, chatId, userId, type || "text", content, disableEncryption],
 			},
 			{
 				query: `UPDATE chats SET updated_at = toTimestamp(now()) WHERE id = ?`,

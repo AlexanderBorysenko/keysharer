@@ -120,12 +120,6 @@ async function startServer() {
                     const relativePath = pathName.slice('/public/'.length);
                     const filePath = join(PUBLIC_DIR, relativePath);
 
-                    const allowedExtensions = ['.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.svg', '.ico', '.json'];
-                    const ext = relativePath.slice(relativePath.lastIndexOf('.'));
-                    if (!allowedExtensions.includes(ext)) {
-                        return new Response('Not Found', { status: 404 });
-                    }
-
                     try {
                         const file = Bun.file(filePath);
                         if (!file) {

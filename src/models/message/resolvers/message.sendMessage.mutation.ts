@@ -1,6 +1,5 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
-import { client } from "../../../db/client";
 import { types } from "cassandra-driver";
 import { prepareMessageTextContent } from "../../../db/utils/prepareMessageTextContent";
 import { publishMessageSent } from "./message.newMessage.subscription";
@@ -17,23 +16,27 @@ import { messageFileStorageService, type StoredEncryptedFile } from "../service/
 export type SendMessageInput = {
 	chatId: types.Uuid;
 	content?: string;
+	disableEncryption?: boolean;
 	files: UploadedEncryptedFile[];
 };
 export interface UploadedEncryptedFile {
 	filename: string;
 	mimeType: string;
-	encryptedData: string;
+	content: string;
+	isEncrypted?: boolean;
 }
 export const sendMessageDefs = `
 input UploadedEncryptedFileInput {
 	filename: String!
 	mimeType: String!
-	encryptedData: String!
+	content: String!
+	isEncrypted: Boolean
 }
 
 input SendMessageInput {
 	chatId: ID!
 	content: String
+	disableEncryption: Boolean
 	files: [UploadedEncryptedFileInput!]
 }
 
@@ -44,7 +47,7 @@ type Mutation {
 
 export const sendMessageMutation = async (
 	_: any,
-	{ input: { chatId, content, files } }: { input: SendMessageInput },
+	{ input: { chatId, content, files, disableEncryption } }: { input: SendMessageInput },
 	context: AppQraphQLContext
 ): Promise<boolean> => {
 	// TODO: Modify the middleware logic for production
@@ -60,9 +63,20 @@ export const sendMessageMutation = async (
 		userIds: chatUserIds,
 	});
 
-	if (!content && !files.length) {
+	const storedFiles: StoredEncryptedFile[] = [];
+	if (files.length) {
+		try {
+			const storedFilesPromises = files.map(file => messageFileStorageService.createMessageFile(file));
+			const storedFilesResults = await Promise.all(storedFilesPromises);
+			storedFiles.push(...storedFilesResults);
+		} catch (error) {
+			console.error(error as any);
+		}
+	}
+	if (!content && !storedFiles.length) {
 		throw new GraphQLError('Message content or file is required', {});
 	}
+
 	if (content && content.length > 4000) {
 		throw new GraphQLError('Message is too long', {});
 	}
@@ -76,23 +90,13 @@ export const sendMessageMutation = async (
 	content = prepareMessageTextContent(content || '');
 	content = encrypt(content);
 
-	const storedFiles: StoredEncryptedFile[] = [];
-	if (files.length) {
-		try {
-			const storedFilesPromises = files.map(file => messageFileStorageService.createMessageFile(file));
-			const storedFilesResults = await Promise.all(storedFilesPromises);
-			storedFiles.push(...storedFilesResults);
-		} catch (error) {
-			console.error(error as any);
-		}
-	}
-
 	try {
 		await messageDBService.createMessage({
 			messageId,
 			chatId,
 			userId: user.id,
 			content,
+			disableEncryption
 		});
 
 		await Promise.all(storedFiles.map(async (file) => {
