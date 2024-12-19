@@ -28,11 +28,24 @@ import {
 	verifyEmailDefs,
 } from "./resolvers/user.verifyEmail.mutation";
 import userDisplayNameResolver from "./resolvers/user.User.displayName";
-import { onlineStatusChangedDefs, onlineStatusChangedSubscription } from "./resolvers/user.onlineStatusChanged.subscription";
+import {
+	onlineStatusChangedDefs,
+	onlineStatusChangedSubscription,
+} from "./resolvers/user.onlineStatusChanged.subscription";
 import { isOnline } from "./resolvers/user.User.isOnline.query";
-import { updateUser, updateUserDefs } from "./resolvers/user.updateUser.mutation";
-import { userUpdatedSubscription, userUpdatedSubscriptionDefs } from "./resolvers/user.userUpdated.subscription";
+import {
+	updateUser,
+	updateUserDefs,
+} from "./resolvers/user.updateUser.mutation";
+import {
+	userUpdatedSubscription,
+	userUpdatedSubscriptionDefs,
+} from "./resolvers/user.userUpdated.subscription";
 import userAvatarResolver from "./resolvers/user.User.avatar";
+import {
+	refreshToken,
+	refreshTokenDefs,
+} from "./resolvers/user.refreshToken.mutation";
 
 export const userResolvers = {
 	Query: {
@@ -43,21 +56,22 @@ export const userResolvers = {
 		createUser,
 		createGuestUser,
 		loginUser,
+		refreshToken,
 		updateTypingStatus,
 		sendEmailVerification,
 		verifyEmail,
-		updateUser
+		updateUser,
 	},
 	Subscription: {
 		typingStatusUpdated,
 		onlineStatusChanged: onlineStatusChangedSubscription,
-		userUpdated: userUpdatedSubscription
+		userUpdated: userUpdatedSubscription,
 	},
 	User: {
 		displayName: userDisplayNameResolver,
 		isOnline,
-		avatar: userAvatarResolver
-	}
+		avatar: userAvatarResolver,
+	},
 };
 
 export const userDefs = mergeTypeDefs([
@@ -68,6 +82,7 @@ export const userDefs = mergeTypeDefs([
 	createUserDefs,
 	createGuestUserDefs,
 	loginUserDefs,
+	refreshTokenDefs,
 	updateTypingStatusDefs,
 	sendEmailVerificationDefs,
 	verifyEmailDefs,
@@ -75,5 +90,5 @@ export const userDefs = mergeTypeDefs([
 
 	typingStatusUpdatedDefs,
 	onlineStatusChangedDefs,
-	userUpdatedSubscriptionDefs
+	userUpdatedSubscriptionDefs,
 ]);

@@ -1,7 +1,10 @@
 import { throwUserInputError } from "../../../errors/throwUserInputError";
 import { ValidationService } from "../../../services/validationService";
 import bcrypt from "bcrypt";
-import { createUserJWTToken } from "../service/createJWTToken";
+import {
+	createUserAccessToken,
+	createUserRefreshToken,
+} from "../service/createJWTToken";
 import { findUser } from "../service/findUser";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 
@@ -55,22 +58,25 @@ export const loginUser = async (
 	if (!isPasswordValid) throwUserInputError("Invalid username or password.");
 
 	// Generate JWT token
-	const token = createUserJWTToken(user);
+	const acessToken = createUserAccessToken(user);
+
+	// Generate RefreshToken
+	const refreshToken = createUserRefreshToken(user);
 
 	// send RefreshToken as a cookie
-	// await context.request.cookieStore?.set({
-	//     name: 'RefreshToken',
-	//     value: token,
-	//     httpOnly: true,
-	//     sameSite: 'lax',
-	//     secure: !process.env.IS_DEV,
-	//     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-	//     domain: process.env.COOKIE_DOMAIN,
-	//     path: '/',
-	// });
+	await context.request.cookieStore?.set({
+		name: "httpOnly_refresh_token",
+		value: refreshToken,
+		httpOnly: true,
+		sameSite: "lax",
+		secure: !process.env.IS_DEV,
+		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+		domain: process.env.COOKIE_DOMAIN,
+		path: "/",
+	});
 
 	return {
-		token,
-		user,
+		token: acessToken,
+		user: user,
 	};
 };

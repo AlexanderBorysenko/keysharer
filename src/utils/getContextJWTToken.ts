@@ -1,4 +1,3 @@
-import type { AppQraphQLContext } from "../../types/AppQraphQLContext";
 import { getCookieFromCookiesString } from "./getCookieFromCookiesString";
 
 function getJWTFromStr(str: string): string | null {
