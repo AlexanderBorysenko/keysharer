@@ -3,6 +3,7 @@
 # Logs
 
 public/avatars/*
+public/uploads/*
 
 logs
 _.log

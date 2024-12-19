@@ -14,7 +14,27 @@ export type TMessage = {
   chat?: Chat;
 };
 
+export type TMessageFile = {
+  id: types.Uuid;
+  message_id: types.Uuid;
+  chat_id: types.Uuid;
+  file_name: string;
+  file_size: number;
+  file_type: string;
+  upload_timestamp?: Date;
+}
+
 export const messageCoreDefs = `
+  type MessageFile {
+    id: ID
+    message_id: ID
+    chat_id: ID
+    file_name: String!
+    file_size: Int!
+    file_type: String!
+    file_url: String
+    upload_timestamp: String
+  }
   type Message {
     id: ID!
     chat_id: ID!
@@ -23,5 +43,6 @@ export const messageCoreDefs = `
     is_read: Boolean
     content: String!
     timestamp: String!
+    files: [MessageFile!]
   }
 `;

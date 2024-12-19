@@ -6,6 +6,7 @@ import { types } from "cassandra-driver";
 import { Role } from "../user.types";
 import { send } from "process";
 import { sendEmailVerification } from "./user.sendEmailVerification.mutation";
+import userDBService from "../service/userDBService";
 
 type CreateUserInput = {
 	username: string;
@@ -76,7 +77,7 @@ export const createUser = async (
 						!/[!@#$%^&*(),.?":{}|<>+_-]/.test(value)
 						? "Password must be at least 8 characters long and contain at least one special character"
 						: null,
-				(value: string) => value.length >= 20 ? null : "Password must be at most 20 characters long",
+				(value: string) => value.length >= 20 ? "Password must be at most 20 characters long" : null,
 			],
 			confirm_password: [
 				(value) =>
@@ -94,13 +95,15 @@ export const createUser = async (
 	);
 
 	const id = types.Uuid.random();
-
-	const hashedPassword = await bcrypt.hash(password, 10);
-	const params = [id, username, email, false, Role.USER, hashedPassword];
-
-	const query = `INSERT INTO users (id, username, email, email_verified, role, password) VALUES (?, ?, ?, ?, ?, ?)`;
-
-	await client.execute(query, params, { prepare: true });
+	await userDBService.createUser({
+		id: types.Uuid.random(),
+		username,
+		email,
+		displayName: username,
+		password,
+		emailVerified: false,
+		role: Role.USER,
+	});
 
 	// Return the created user (without password)
 	return {

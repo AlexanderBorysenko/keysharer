@@ -28,7 +28,7 @@ class AvatarImageStorageService {
     * @param fileName - The name of the file.
     * @returns The URL for the avatar image.
     */
-    public getAvatarUrl(fileName: string): string {
+    public getAvatarPath(fileName: string): string {
         const baseName = path.basename(fileName);
         return `/${this.storagePath}/${baseName}`;
     }
@@ -57,7 +57,6 @@ class AvatarImageStorageService {
     public async createAvatarFile(file: File): Promise<{
         fileName: string;
         filePath: string;
-        fileUrl: string;
     }> {
         const validMimeTypes = ["image/jpeg", "image/png", "image/jpg"];
         if (!validMimeTypes.includes(file.type)) {
@@ -81,7 +80,6 @@ class AvatarImageStorageService {
         return {
             fileName,
             filePath,
-            fileUrl: this.getAvatarUrl(fileName),
         };
     }
     public formatAvatarUrl = (avatar: string | null): string => {

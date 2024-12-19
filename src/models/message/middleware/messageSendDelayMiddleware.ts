@@ -18,7 +18,7 @@ export const messageSendDelayMiddleware = async ({
 		const now = new Date();
 		const lastMessageTime = new Date(lastMessage.timestamp);
 		const timeDifference = now.getTime() - lastMessageTime.getTime();
-		const delay = 15000; // 15 seconds delay
+		const delay = 2000;
 
 		if (timeDifference < delay) {
 			return throwTooManyRequestsError(

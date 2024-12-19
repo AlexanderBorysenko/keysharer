@@ -5,9 +5,9 @@ import { isNotGuestMiddleware } from "./isNotGuestMiddleware";
 export const isEmailVerifiedMiddleware = async (context: AppQraphQLContext) => {
 	const user = await isNotGuestMiddleware(context);
 
-	if (!user.emailVerified) {
-		return throwForbiddenError("Email not verified");
-	}
+	// if (!user.emailVerified) {
+	// 	return throwForbiddenError("Email not verified");
+	// }
 
 	return user;
 };

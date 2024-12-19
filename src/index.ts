@@ -13,6 +13,8 @@ import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
 
+const userWSSessionsMemory = new Map<string, string>();
+
 async function startServer() {
     try {
         await client.connect();
@@ -73,23 +75,32 @@ async function startServer() {
             },
             onConnect: async (context) => {
                 const user = await getContextUser(context);
-                if (user) {
-                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+                if (!user) return;
+                const sessionIdentifier = context.connectionParams?.sessionidentifier as string;
+                if (!sessionIdentifier) { throw new Error('No sessionidentifier provided in ws connection params') }
+                if (userWSSessionsMemory.has(sessionIdentifier)) {
+                    return;
+                }
+                userWSSessionsMemory.set(sessionIdentifier, user.id.toString());
+                await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+                await publishOnlineStatusChanged({
+                    userId: user.id,
+                });
+            },
+            onDisconnect: async (context) => {
+                const user = await unsafeGetContextUser(context);
+                if (!user) {
+                    return;
+                }
+                const sessionIdentifier = context.connectionParams?.sessionidentifier as string;
+                if (!sessionIdentifier) { throw new Error('No sessionidentifier provided in ws connection params') }
+                if (userWSSessionsMemory.get(sessionIdentifier) === user.id.toString()) {
+                    userWSSessionsMemory.delete(sessionIdentifier);
+                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
                     await publishOnlineStatusChanged({
                         userId: user.id,
                     });
                 }
-            },
-            onDisconnect: async (context, code, reason) => {
-                const user = await unsafeGetContextUser(context);
-                if (!user) {
-                    console.log('Користувач не знайдений', context);
-                    return;
-                }
-                await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
-                await publishOnlineStatusChanged({
-                    userId: user.id,
-                });
             }
         })
 
@@ -116,7 +127,23 @@ async function startServer() {
                     }
 
                     try {
-                        return new Response(Bun.file(filePath));
+                        const file = Bun.file(filePath);
+                        if (!file) {
+                            return new Response('Not Found', { status: 404 });
+                        }
+
+                        const headers = new Headers();
+                        headers.set('Access-Control-Allow-Origin', env.CLIENT_URL);
+                        headers.set('Access-Control-Allow-Credentials', 'true');
+                        headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+                        headers.set('Access-Control-Allow-Headers', 'Content-Type');
+
+                        // If there's an OPTIONS request for CORS preflight:
+                        if (request.method === 'OPTIONS') {
+                            return new Response(null, { headers });
+                        }
+
+                        return new Response(file, { headers });
                     } catch (e) {
                         return new Response('Not Found', { status: 404 });
                     }
@@ -129,7 +156,7 @@ async function startServer() {
             port: 4000,
         });
 
-        console.log(`Сервер запущено на http://localhost:${server.port}`);
+        console.log(`Server started on http://localhost:${server.port}`);
     } catch (error) {
         client.shutdown();
         console.error('Помилка підключення або ініціалізації Cassandra:', error);

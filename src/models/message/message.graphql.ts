@@ -6,6 +6,8 @@ import { messageContent } from "./resolvers/message.Message.content";
 import { readMessageDefs, readMessageMutation } from "./resolvers/message.readMessage.mutation";
 import { unreadMessagesCountChangeDefs, unreadMessagesCountChangeSubscription } from "./resolvers/message.unreadMessagesCountChage.subscription";
 import { messageUpdatedSubscription, messageUpdatedSubscriptionDefs } from "./resolvers/message.messageUpdated.subscription";
+import { messageFilesResolver } from "./resolvers/message.Message.files";
+import { messageFileUrlResolver } from "./resolvers/message.MessageFile.fileUrl";
 
 export const messageResolvers = {
   Mutation: {
@@ -14,11 +16,15 @@ export const messageResolvers = {
   },
   Message: {
     content: messageContent,
+    files: messageFilesResolver
   },
   Subscription: {
     newMessage: newMessageSubscription,
     unreadMessagesCountChange: unreadMessagesCountChangeSubscription,
     messageUpdated: messageUpdatedSubscription
+  },
+  MessageFile: {
+    file_url: messageFileUrlResolver
   }
 };
 

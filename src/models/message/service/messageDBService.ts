@@ -1,6 +1,6 @@
 import { types, type ArrayOrObject } from "cassandra-driver";
 import { client } from "../../../db/client";
-import type { TMessage } from "../message.types";
+import type { TMessage, TMessageFile } from "../message.types";
 import { rowToObject } from "../../../utils/rowToObject";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
 import type { Queries } from "../../../../types/Queries";
@@ -296,6 +296,50 @@ class MessageDBService {
 		if (!result) return null;
 		return rowToObject(result);
 	};
+
+	/**
+	 * Get message files
+	 */
+	public getMessageFiles = async ({
+		messageId,
+	}: {
+		messageId: types.TimeUuid;
+	}): Promise<TMessageFile[]> => {
+		const query = `SELECT * FROM message_files WHERE message_id = ?;`;
+		const result = await client.execute(query, [messageId], { prepare: true });
+		return result.rows.map(file => rowToObject<TMessageFile>(file));
+	}
+
+	public createMessageFile = async ({
+		id,
+		messageId,
+		chatId,
+		fileName,
+		fileSize,
+		fileType,
+	}: {
+		id: types.Uuid;
+		messageId: types.Uuid;
+		chatId: types.Uuid;
+		fileName: string;
+		fileSize: number;
+		fileType: string;
+	}): Promise<void> => {
+		const query = `INSERT INTO message_files (id, message_id, chat_id, file_name, file_size, file_type, upload_timestamp) VALUES (?, ?, ?, ?, ?, ?, toTimestamp(now()))`;
+		const params = [id, messageId, chatId, fileName, fileSize, fileType];
+		try {
+			await client.execute(query, params, { prepare: true });
+		} catch (error) {
+			console.error("Failed to create message file:", error);
+			throw new Error("Failed to create message file");
+		}
+	};
+
+	public getAllFiles = async (): Promise<TMessageFile[]> => {
+		const query = `SELECT * FROM files;`;
+		const result = await client.execute(query);
+		return result.rows.map(file => rowToObject<TMessageFile>(file));
+	}
 }
 
 const messageDBService = new MessageDBService();
