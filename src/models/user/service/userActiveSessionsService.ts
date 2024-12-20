@@ -24,7 +24,6 @@ class UserActiveSessionsService {
         if (action === 'decrement') {
             const previousCount = await this.getUsersActiveSessionsCount(userId);
             if (previousCount === 0) {
-                console.log(`User ${userId} active sessions count is already 0`);
                 return;
             }
         }

@@ -18,7 +18,7 @@ async function initializeKeyspace() {
 
 initializeKeyspace().then(() => {
     client.keyspace = 'app_keyspace';
-    console.log('Keyspace created and client initialized');
+    console.info('Keyspace created and client initialized');
 }).catch(error => {
     console.error('Error initializing keyspace:', error);
 });

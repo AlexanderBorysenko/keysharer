@@ -15,28 +15,28 @@ import { messageFileStorageService, type StoredEncryptedFile } from "../service/
 
 export type SendMessageInput = {
 	chatId: types.Uuid;
-	content?: string;
-	disableEncryption?: boolean;
+	content: string;
+	disableEncryption: boolean;
 	files: UploadedEncryptedFile[];
 };
 export interface UploadedEncryptedFile {
 	filename: string;
 	mimeType: string;
 	content: string;
-	isEncrypted?: boolean;
+	isEncrypted: boolean;
 }
 export const sendMessageDefs = `
 input UploadedEncryptedFileInput {
 	filename: String!
 	mimeType: String!
 	content: String!
-	isEncrypted: Boolean
+	isEncrypted: Boolean!
 }
 
 input SendMessageInput {
 	chatId: ID!
-	content: String
-	disableEncryption: Boolean
+	content: String!
+	disableEncryption: Boolean!
 	files: [UploadedEncryptedFileInput!]
 }
 
@@ -111,6 +111,7 @@ export const sendMessageMutation = async (
 		}));
 
 		const message = await messageDBService.getMessage({ messageId });
+		const { id, ...messageWithoutId } = message;
 
 		await publishMessageSent({ message, userIds: chatUserIds });
 		await publishUnreadMessagesCountChange({

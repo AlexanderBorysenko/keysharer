@@ -36,7 +36,6 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
 
 		// Send email
 		const info = await transporter.sendMail(mailOptions);
-		console.log("Email sent:", info.messageId);
 	} catch (error) {
 		console.error("Error sending email:", error);
 		throw error; // Rethrow the error for handling by the caller

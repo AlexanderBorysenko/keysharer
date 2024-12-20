@@ -2,7 +2,7 @@ import { avatarImageStorageService } from "../../../services/avatarImageStorageS
 import type { User } from "../user.types";
 
 const userAvatarResolver = (parent: User): string | null => {
-    return parent.avatar ? avatarImageStorageService.formatAvatarUrl(parent.avatar) : null;
+    return parent.avatar ? avatarImageStorageService.avatarUrlByFilename(parent.avatar) : null;
 };
 
 export default userAvatarResolver;

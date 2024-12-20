@@ -26,11 +26,11 @@ export const runMigrations = async () => {
 
     for (const file of migrationFiles) {
         if (appliedMigrations.has(file)) {
-            console.log(`Міграція ${file} вже виконана, пропускаємо...`);
+            console.info(`Міграція ${file} вже виконана, пропускаємо...`);
             continue;
         }
 
-        console.log(`Виконується міграція: ${file}`);
+        console.info(`Виконується міграція: ${file}`);
         const filePath = path.join(migrationsDir, file);
         const fileContent = fs.readFileSync(filePath, 'utf8');
 
@@ -50,7 +50,7 @@ export const runMigrations = async () => {
                 [file],
                 { prepare: true }
             );
-            console.log(`Міграція ${file} виконана успішно`);
+            console.info(`Міграція ${file} виконана успішно`);
         } catch (error) {
             console.error(`Помилка виконання міграції ${file}:`, error);
             process.exit(1);

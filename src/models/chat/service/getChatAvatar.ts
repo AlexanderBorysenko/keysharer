@@ -10,7 +10,7 @@ export const getChatAvatar = async (chat: types.Uuid | Chat, userId: types.Uuid)
         if (!chatData) throw new Error('Chat not found');
 
         let avatar = chatData.avatar || await getDefaultAvatar(chatData.id, userId);
-        return avatarImageStorageService.formatAvatarUrl(avatar);
+        return avatarImageStorageService.avatarUrlByFilename(avatar);
     } catch (error) {
         console.error('Error getting chat avatar', error);
         throw error;

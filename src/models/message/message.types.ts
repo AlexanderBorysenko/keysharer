@@ -10,7 +10,7 @@ export type TMessage = {
   content: string;
   timestamp: Date;
   is_read?: boolean;
-  disable_encryption?: boolean;
+  disable_encryption: boolean;
   user?: User;
   chat?: Chat;
 };
@@ -44,7 +44,7 @@ export const messageCoreDefs = `
     is_read: Boolean
     content: String!
     timestamp: String!
-    disable_encryption: Boolean
+    disable_encryption: Boolean!
     files: [MessageFile!]
   }
 `;

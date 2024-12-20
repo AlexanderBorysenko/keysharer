@@ -12,13 +12,13 @@ export const updateChatAvatar = async (
         const chat: Chat = await resolveChat(chatReference);
 
         const {
-            fileUrl
+            fileName
         } = await avatarImageStorageService.createAvatarFile(file);
 
         if (chat.avatar) avatarImageStorageService.deleteAvatarFile(chat.avatar);
 
         const query = "UPDATE chats SET avatar = ? WHERE id = ?";
-        await client.execute(query, [fileUrl, chat.id], { prepare: true });
+        await client.execute(query, [fileName, chat.id], { prepare: true });
     }
     catch (error) {
         console.error("Error updating chat avatar", error);

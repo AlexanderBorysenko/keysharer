@@ -2,40 +2,40 @@ import type { types } from "cassandra-driver";
 import type { Chat } from "../chat/chat.types";
 
 export enum Role {
-	USER = "USER",
-	GUEST = "GUEST",
+  USER = "USER",
+  GUEST = "GUEST",
 }
 
 export interface User {
-	id: types.Uuid;
-	username: string;
-	displayName?: string;
-	avatar?: string;
-	email: string;
-	emailVerified: boolean;
-	role: Role;
-	password: string;
+  id: types.Uuid;
+  username: string;
+  displayName?: string;
+  avatar?: string;
+  email: string;
+  emailVerified: boolean;
+  role: Role;
+  password: string;
 
-	chats?: Chat[];
+  chats?: Chat[];
 }
 export const userDBMapping: {
-	[key in keyof User]: string;
+  [key in keyof User]: string;
 } = {
-	id: "id",
-	username: "username",
-	displayName: "display_name",
-	avatar: "avatar",
-	email: "email",
-	emailVerified: "email_verified",
-	role: "role",
-	password: "password",
+  id: "id",
+  username: "username",
+  displayName: "display_name",
+  avatar: "avatar",
+  email: "email",
+  emailVerified: "email_verified",
+  role: "role",
+  password: "password",
 };
 
 export interface EmailVerificationCode {
-	userId: types.Uuid;
-	code: string;
-	expiresAt: Date;
-	issuedAt: Date;
+  userId: types.Uuid;
+  code: string;
+  expiresAt: Date;
+  issuedAt: Date;
 }
 
 export const userCoreDefs = `
@@ -56,7 +56,7 @@ export const userCoreDefs = `
     avatar: String
     email: String
     emailVerified: Boolean
-    role: Role!
+    role: Role
     chats: [Chat!]
     isOnline: Boolean
   }

@@ -50,7 +50,7 @@ class MessageFileStorageService {
             if (err) {
                 console.error(`Error deleting file: ${err}`);
             } else {
-                console.log(`File deleted successfully: ${filePath}`);
+                console.info(`File deleted successfully: ${filePath}`);
             }
         });
     }

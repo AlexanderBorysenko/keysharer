@@ -18,10 +18,10 @@ const userWSSessionsMemory = new Map<string, string>();
 async function startServer() {
     try {
         await client.connect();
-        console.log('Підключено до Cassandra успішно');
+        console.info('Підключено до Cassandra успішно');
 
         await initializeDatabase();
-        console.log('База даних ініціалізована');
+        console.info('База даних ініціалізована');
 
         const yoga = createYoga<AppQraphQLContext>({
             schema,
@@ -150,7 +150,7 @@ async function startServer() {
             port: 4000,
         });
 
-        console.log(`Server started on http://localhost:${server.port}`);
+        console.info(`Server started on http://localhost:${server.port}`);
     } catch (error) {
         client.shutdown();
         console.error('Помилка підключення або ініціалізації Cassandra:', error);

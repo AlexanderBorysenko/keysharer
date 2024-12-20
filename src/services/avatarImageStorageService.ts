@@ -42,8 +42,6 @@ class AvatarImageStorageService {
         fs.unlink(filePath, (err) => {
             if (err) {
                 console.error(`Error deleting file: ${err}`);
-            } else {
-                console.log(`File deleted successfully: ${filePath}`);
             }
         });
     }
@@ -82,17 +80,12 @@ class AvatarImageStorageService {
             filePath,
         };
     }
-    public formatAvatarUrl = (avatar: string | null): string => {
+    public avatarUrlByFilename = (avatar: string | null): string => {
         if (!avatar || typeof avatar !== 'string') return '';
 
-        let serverUrl = process.env.SERVER_URL;
-        if (serverUrl && !avatar.startsWith(serverUrl)) {
-            // remove slashes from the beginning and end of the strings
-            serverUrl = serverUrl.replace(/^\/+|\/+$/g, '');
-            avatar = avatar.replace(/^\/+|\/+$/g, '');
+        const serverUrl = process.env.SERVER_URL;
+        avatar = `${serverUrl}/${this.storagePath}/${avatar}`;
 
-            return serverUrl + '/' + avatar;
-        }
         return avatar;
     }
 }

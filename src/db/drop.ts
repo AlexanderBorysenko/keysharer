@@ -20,7 +20,7 @@ async function refreshDatabase() {
                 //@ts-ignore
                 inAgreement = await client.metadata.checkSchemaAgreement();
                 if (!inAgreement) {
-                    console.log('Очікуємо узгодження схеми...');
+                    console.info('Очікуємо узгодження схеми...');
                     await new Promise((resolve) => setTimeout(resolve, 1000));
                 }
             }
@@ -34,7 +34,7 @@ async function refreshDatabase() {
             const indexName = row['index_name'];
             const tableName = row['table_name'];
 
-            console.log(`Видалення індексу ${indexName} на таблиці ${tableName}...`);
+            console.info(`Видалення індексу ${indexName} на таблиці ${tableName}...`);
 
             try {
                 // Перевіряємо, чи існує таблиця
@@ -46,9 +46,9 @@ async function refreshDatabase() {
 
                 if (tableExistsResult.rowLength > 0) {
                     await client.execute(`DROP INDEX IF EXISTS ${keyspace}.${indexName}`);
-                    console.log(`Індекс ${indexName} видалено.`);
+                    console.info(`Індекс ${indexName} видалено.`);
                 } else {
-                    console.log(`Таблиця ${tableName} не існує. Індекс ${indexName} пропущено.`);
+                    console.info(`Таблиця ${tableName} не існує. Індекс ${indexName} пропущено.`);
                 }
             } catch (error) {
                 console.error(`Помилка видалення індексу ${indexName}:`, error);
@@ -65,14 +65,14 @@ async function refreshDatabase() {
             const tableName = row['table_name'];
 
             if (tableName === 'migration_history') {
-                console.log('Пропускаємо видалення таблиці migration_history.');
+                console.info('Пропускаємо видалення таблиці migration_history.');
                 continue;
             }
 
-            console.log(`Видалення таблиці ${tableName}...`);
+            console.info(`Видалення таблиці ${tableName}...`);
             try {
                 await client.execute(`DROP TABLE IF EXISTS ${keyspace}.${tableName}`);
-                console.log(`Таблиця ${tableName} видалена.`);
+                console.info(`Таблиця ${tableName} видалена.`);
             } catch (error) {
                 console.error(`Помилка видалення таблиці ${tableName}:`, error);
                 // Продовжуємо виконання, навіть якщо виникла помилка
@@ -81,17 +81,17 @@ async function refreshDatabase() {
         }
 
         // Очищення таблиці `migration_history`
-        console.log('Очищення таблиці migration_history...');
+        console.info('Очищення таблиці migration_history...');
         try {
             await client.execute(`TRUNCATE ${keyspace}.migration_history`);
-            console.log('Таблиця migration_history очищена.');
+            console.info('Таблиця migration_history очищена.');
         } catch (error) {
             console.error('Помилка очищення таблиці migration_history:', error);
             // Продовжуємо виконання, навіть якщо виникла помилка
         }
         await waitForSchemaAgreement();
 
-        console.log('DROPPED.');
+        console.info('DROPPED.');
 
         // Закриваємо підключення
         await client.shutdown();

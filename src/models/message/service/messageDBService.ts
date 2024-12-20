@@ -41,7 +41,7 @@ class MessageDBService {
 		userId: types.Uuid;
 		content: string;
 		type?: string;
-		disableEncryption?: boolean;
+		disableEncryption: boolean;
 		userIds?: types.Uuid[];
 	}): Promise<void> => {
 		let recipientIds: types.Uuid[] =

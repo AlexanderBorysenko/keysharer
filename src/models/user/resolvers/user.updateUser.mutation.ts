@@ -70,9 +70,9 @@ export const updateUser = async (
     if (avatar) {
         try {
             if (user.avatar) avatarImageStorageService.deleteAvatarFile(user.avatar);
-            const { filePath } = await avatarImageStorageService.createAvatarFile(avatar);
+            const { fileName } = await avatarImageStorageService.createAvatarFile(avatar);
             queries.push("UPDATE users SET avatar = ? WHERE id = ?");
-            params.push(filePath, user.id);
+            params.push(fileName, user.id);
         } catch (err) {
             console.error("Error updating avatar", err);
             throw new Error("Error updating avatar");
@@ -85,7 +85,6 @@ export const updateUser = async (
                 queries.map((query, index) => ({ query, params: params.slice(index * 2, index * 2 + 2) })),
                 { prepare: true }
             );
-
             await publishUserUpdated(user.id);
             const userChats = await getUserChatsIds(user.id);
             userChats.forEach(chatId => publishChatUpdated(chatId));
