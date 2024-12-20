@@ -10,7 +10,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         secure: true,
         httpOnly: false,
         sameSite: 'lax',
-        domain: 'app.keysharer.com',
+        domain: (new URL(window.location.href).hostname),
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         path: "/",
     });
@@ -18,6 +18,9 @@ export default defineNuxtPlugin((nuxtApp) => {
     const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
     let closePreviousConnection: () => void = () => { };
     const initWsClient = () => {
+        console.log('Initiating WS client', {
+            AuthorizationToken: AuthorizationToken.value,
+        });
         closePreviousConnection();
         if (!AuthorizationToken.value) {
             wsClientRef.value = null;
@@ -45,7 +48,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     const apiClient = Chain(apiEndpoint, {
         headers: {
             'Content-Type': 'application/json',
-            Authorization: AuthorizationToken.value || '',
         },
         credentials: 'include',
     });

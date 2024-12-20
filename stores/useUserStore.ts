@@ -36,6 +36,7 @@ const useUserStore = defineStore('userStore', () => {
     };
 
     const login = async (data: ModelTypes['LoginUserInput']) => {
+        console.log('login', data);
         try {
             const { loginUser } = await $gqClient('mutation')({
                 loginUser: [
@@ -60,6 +61,7 @@ const useUserStore = defineStore('userStore', () => {
     }
 
     const logout = () => {
+        console.log('logout!');
         $AuthorizationToken.value = '';
         Object.assign(state, userInitialState);
 
@@ -70,12 +72,14 @@ const useUserStore = defineStore('userStore', () => {
     }
 
     const initializeUser = async () => {
+        console.log('initializing user');
         try {
             const result = await $gqClient('query')({
                 me: {
                     id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
                 },
             });
+            console.log('me', result.me);
             Object.assign(state, result.me);
         } catch (err) {
             console.error('Failed to initialize user:', err);
