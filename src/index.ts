@@ -101,7 +101,7 @@ async function startServer() {
                         userId: user.id,
                     });
                 }
-            }
+            },
         })
 
         const PUBLIC_DIR = join(process.cwd(), 'public');

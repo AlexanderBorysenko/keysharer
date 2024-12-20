@@ -6,112 +6,30 @@ import { Role } from '../models/user/user.types';
 export const initializeDatabase = async () => {
     await userActiveSessionsService.resetAllUsersActiveSessionsCount();
 
-    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'Igor',
-            email: 'elon@gmail.com',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Igor'
-        })
-    }
-    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'Yurii',
-            email: 'elon@gmail.com',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Yurii'
-        })
-    }
-    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'Alex',
-            email: 'elon@gmail.com',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Alex'
-        })
-    }
-    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'ElonMusk',
-            email: 'elon@gmail.com',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Elon Musk'
-        })
-    }
-    if (!(await userDBService.findUserByUsername('DonaldTrump'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'DonaldTrump',
-            email: 'donald@gmail.com',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Donald Trump'
-        });
-    }
-    if (!(await userDBService.findUserByUsername('BillGates'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'BillGates',
-            email: '',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Bill Gates'
-        });
-    }
-    if (!(await userDBService.findUserByUsername('JeffBezos'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'JeffBezos',
-            email: '',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Jeff Bezos'
-        });
-    }
-    if (!(await userDBService.findUserByUsername('MarkZuckerberg'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'MarkZuckerberg',
-            email: '',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Mark Zuckerberg'
-        });
-    }
-    if (!(await userDBService.findUserByUsername('WarrenBuffet'))) {
-        userDBService.createUser({
-            id: types.Uuid.random(),
-            username: 'WarrenBuffet',
-            email: '',
-            emailVerified: true,
-            password: 'Password@123',
-            role: Role.USER,
-            avatar: '',
-            displayName: 'Warren Buffet'
-        });
+    const users = [
+        { username: 'Igor', email: 'elon@gmail.com', displayName: 'Igor' },
+        { username: 'Yurii', email: 'elon@gmail.com', displayName: 'Yurii' },
+        { username: 'Alex', email: 'elon@gmail.com', displayName: 'Alex' },
+        { username: 'ElonMusk', email: 'elon@gmail.com', displayName: 'Elon Musk' },
+        { username: 'DonaldTrump', email: 'donald@gmail.com', displayName: 'Donald Trump' },
+        { username: 'BillGates', email: 'bill@gmail.com', displayName: 'Bill Gates' },
+        { username: 'JeffBezos', email: 'jeff@gmail.com', displayName: 'Jeff Bezos' },
+        { username: 'MarkZuckerberg', email: 'mark@gmail.com', displayName: 'Mark Zuckerberg' },
+        { username: 'WarrenBuffet', email: 'warren@gmail.com', displayName: 'Warren Buffet' }
+    ];
+
+    for (const user of users) {
+        if (!(await userDBService.findUserByUsername(user.username))) {
+            await userDBService.createUser({
+                id: types.Uuid.random(),
+                username: user.username,
+                email: user.email,
+                emailVerified: true,
+                password: 'Password@123',
+                role: Role.USER,
+                avatar: '',
+                displayName: user.displayName
+            });
+        }
     }
 }

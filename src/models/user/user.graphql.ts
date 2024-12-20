@@ -46,6 +46,7 @@ import {
 	refreshToken,
 	refreshTokenDefs,
 } from "./resolvers/user.refreshToken.mutation";
+import { logoutUser, logoutUserDefs } from "./resolvers/user.logoutUser.mutation";
 
 export const userResolvers = {
 	Query: {
@@ -61,6 +62,7 @@ export const userResolvers = {
 		sendEmailVerification,
 		verifyEmail,
 		updateUser,
+		logoutUser
 	},
 	Subscription: {
 		typingStatusUpdated,
@@ -87,6 +89,7 @@ export const userDefs = mergeTypeDefs([
 	sendEmailVerificationDefs,
 	verifyEmailDefs,
 	updateUserDefs,
+	logoutUserDefs,
 
 	typingStatusUpdatedDefs,
 	onlineStatusChangedDefs,
