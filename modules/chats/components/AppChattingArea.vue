@@ -5,8 +5,8 @@
 			<AppChat v-if="chatStore.chatState.id" />
 		</TransitionGroup>
 		<AppChatKeyManager v-if="chatStore.chatState.id" />
+		<AppChatCreation />
 	</div>
-	<AppChatCreation />
 </template>
 
 <script setup lang="ts">
@@ -15,7 +15,6 @@ import AppChatCreation from './AppChatCreation.vue';
 import AppChat from './AppChat.vue';
 import AppChatKeyManager from '~/modules/chats/components/AppChatKeyManager.vue';
 import { useChatStore } from '../store/useChatStore';
-import { useKeySharingStore } from '~/modules/encryption/store/useKeySharingStore';
 
 const chatStore = useChatStore();
 </script>
