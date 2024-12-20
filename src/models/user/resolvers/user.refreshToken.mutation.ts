@@ -18,6 +18,7 @@ export const refreshToken = async (
 ) => {
 	const refreshToken = getContextRefreshToken(context);
 
+	console.log("refreshToken", refreshToken);
 	if (!refreshToken) throwUnauthenticatedError("No token provided");
 
 	try {
