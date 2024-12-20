@@ -9,7 +9,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const AuthorizationToken = useCookie('Authorization', {
         secure: true,
         httpOnly: false,
-        sameSite: 'lax',
+        sameSite: 'none',
         domain: (new URL(window.location.href).hostname),
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         path: "/",
