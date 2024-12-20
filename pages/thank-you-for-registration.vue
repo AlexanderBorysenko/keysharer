@@ -17,12 +17,13 @@
 
 <script setup lang="ts">
 import BaseButton from '~/components/BaseButton.vue';
+const { screenHeightPx } = useScreenHeight();
 </script>
 
 <style scoped lang="scss">
 @use '~/styles/vars.scss' as *;
 .thank-you-for-registration {
-	height: 100vh;
+	height: v-bind(screenHeightPx);
 	display: flex;
 	flex-direction: column;
 	@media (min-width: $mobile-width) {

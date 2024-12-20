@@ -35,7 +35,6 @@ const { isUserSubscribed } = storeToRefs(userStore);
 	@media (max-width: 640px) {
 		position: fixed;
 		inset: 0;
-		height: 100vh;
 		z-index: 10;
 	}
 }

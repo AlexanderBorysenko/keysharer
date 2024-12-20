@@ -129,11 +129,12 @@ const register = async () => {
 
 	router.push('/thank-you-for-registration');
 };
+const { screenHeightPx } = useScreenHeight();
 </script>
 
 <style scoped lang="scss">
 .register {
-	height: 100vh;
+	height: v-bind(screenHeightPx);
 	overflow: auto;
 	&__inner-wrapper {
 		display: flex;

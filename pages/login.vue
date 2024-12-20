@@ -79,11 +79,13 @@ const login = async () => {
 		error.value = true;
 	}
 };
+
+const { screenHeightPx } = useScreenHeight();
 </script>
 
 <style lang="scss" scoped>
 .login {
-	height: 100vh;
+	height: v-bind(screenHeightPx);
 	overflow: auto;
 	&__inner-wrapper {
 		display: flex;

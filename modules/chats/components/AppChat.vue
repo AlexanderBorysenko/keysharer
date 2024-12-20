@@ -52,7 +52,7 @@ const onDrop = (event: DragEvent) => {
 .app-chat {
 	display: flex;
 	flex-direction: column;
-	height: 100vh !important;
+	height: 100%;
 	background: #0c111d;
 	position: relative;
 	&__messages {

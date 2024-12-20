@@ -73,7 +73,6 @@ const appSidebarStore = useAppSidebarStore();
 	@media (max-width: 640px) {
 		position: fixed;
 		inset: 0;
-		height: 100vh;
 		z-index: 100;
 		transform: translateX(-100%);
 		transition: transform 0.2s;

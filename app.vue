@@ -22,8 +22,6 @@ const userMiddleware = async () => {
 			'/thank-you-for-registration'
 		].some(path => router.currentRoute.value.path.includes(path))
 	) {
-		await userStore.refreshToken();
-
 		await userStore.initializeUser();
 
 		useKeySharingStore();

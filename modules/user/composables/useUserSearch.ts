@@ -18,6 +18,9 @@ const useUserSearch = () => {
             return;
         }
         if (search.value.length < 4) return;
+        if (search.value[0] === '@') {
+            request = request.slice(1)
+        }
 
         const response = await $gqClient('query')({
             users: [
@@ -32,6 +35,7 @@ const useUserSearch = () => {
                     email: true,
                     emailVerified: true,
                     isOnline: true,
+                    role: true,
                 }
             ]
         })
