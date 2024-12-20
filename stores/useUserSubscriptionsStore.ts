@@ -26,7 +26,13 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
     } = useSubscription({
         chatCreated: {
             id: true,
-            users: { id: true, username: true, displayName: true, avatar: true },
+            users: {
+                id: true,
+                username: true,
+                displayName: true,
+                avatar: true,
+                isOnline: true
+            },
             name: true,
             avatar: true,
             unread_messages_count: true,
@@ -45,7 +51,7 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
     } = useSubscription({
         chatUpdated: {
             id: true,
-            users: { id: true, username: true, displayName: true, avatar: true },
+            users: { id: true, username: true, displayName: true, avatar: true, isOnline: true },
             name: true,
             avatar: true,
             unread_messages_count: true,
