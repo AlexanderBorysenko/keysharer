@@ -22,6 +22,8 @@ const userMiddleware = async () => {
 			'/thank-you-for-registration'
 		].some(path => router.currentRoute.value.path.includes(path))
 	) {
+		await userStore.refreshToken();
+
 		await userStore.initializeUser();
 
 		useKeySharingStore();
@@ -32,13 +34,9 @@ router.afterEach(userMiddleware);
 
 onMounted(() => {
 	document.addEventListener('visibilitychange', async () => {
-		if (!userStore.state.id) return;
+		if (document.hidden || !userStore.state.id) return;
 		await userStore.refreshToken();
 	});
-	setInterval(async () => {
-		if (!userStore.state.id) return;
-		await userStore.refreshToken();
-	}, 1000 * 60 * 5);
 });
 
 useHead({

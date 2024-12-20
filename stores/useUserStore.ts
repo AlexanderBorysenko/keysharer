@@ -36,7 +36,6 @@ const useUserStore = defineStore('userStore', () => {
     };
 
     const login = async (data: ModelTypes['LoginUserInput']) => {
-        console.log('login', data);
         try {
             const { loginUser } = await $gqClient('mutation')({
                 loginUser: [
@@ -92,7 +91,6 @@ const useUserStore = defineStore('userStore', () => {
                     token: true,
                 },
             });
-            console.log('refreshToken', refreshToken);
             $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
             console.error('Failed to refresh token:', err);
