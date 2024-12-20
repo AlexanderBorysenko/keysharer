@@ -84,11 +84,8 @@ const login = async () => {
 <style lang="scss" scoped>
 .login {
 	overflow: auto;
-	height: 100vh;
-	padding-bottom: env(safe-area-inset-bottom, 0);
-	@supports (height: 100dvh) {
-		height: 100dvh;
-	}
+	position: fixed;
+	inset: 0;
 	&__inner-wrapper {
 		display: flex;
 		flex-direction: column;

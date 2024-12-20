@@ -27,14 +27,10 @@ const isAuthenticated = computed(() => !!userStore?.state?.id);
 	grid-template-columns: var(--header-part-height) 1fr;
 	background: var(--bg-darker);
 	color: #fff;
-	height: 100vh;
-	padding-bottom: env(safe-area-inset-bottom, 0);
-	@supports (height: 100dvh) {
-		height: 100dvh;
-	}
+	position: fixed;
+	inset: 0;
 	@media (max-width: 640px) {
 		display: block;
-		position: relative;
 	}
 }
 .app__main {
