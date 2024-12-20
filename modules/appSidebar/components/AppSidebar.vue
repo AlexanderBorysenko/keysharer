@@ -34,7 +34,11 @@ const appSidebarStore = useAppSidebarStore();
 	flex-direction: column;
 	justify-content: space-between;
 	background: var(--bg-darker);
-	flex: 1;
+	max-height: 100vh;
+	height: auto;
+	@supports (height: 100dvh) {
+		max-height: 100dvh;
+	}
 	&__head {
 		display: flex;
 		align-items: center;

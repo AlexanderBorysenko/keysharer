@@ -148,7 +148,7 @@ onUnmounted(() => {
 		color: rgba(255, 255, 255, 0.5);
 		font-size: 0.75rem;
 		line-height: 1em;
-		height: calc(1em + 1rem);
+		height: calc(1.05em);
 		overflow: hidden;
 		max-width: 100%;
 		padding: 0.5rem;

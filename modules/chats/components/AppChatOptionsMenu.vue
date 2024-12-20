@@ -14,6 +14,12 @@
 				Settings
 			</AppChatOptionsMenuItem>
 			<AppChatOptionsMenuItem
+				icon="users"
+				@click="chatSettingsStore.openSettingsModal"
+			>
+				Users
+			</AppChatOptionsMenuItem>
+			<AppChatOptionsMenuItem
 				icon="trash"
 				@click="chatDeletionStore.openChatDeletionModal"
 			>
@@ -67,6 +73,7 @@ const { elementRef } = useElementOutsideClick(() => {
 		z-index: 10;
 		border-radius: 0.5rem;
 		border: var(--ui-light-border);
+		width: min(70vw, max-content);
 		box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
 		@media (max-width: 640px) {
 			padding: 0.25rem;

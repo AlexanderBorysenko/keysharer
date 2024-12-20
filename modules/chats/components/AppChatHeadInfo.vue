@@ -11,7 +11,10 @@
 				{{ chatStore.chatState.name }}
 			</h2>
 			<p class="app-chat-head-info__subtitle">
-				<span v-if="typingUsers.length > 0">
+				<span
+					v-if="typingUsers.length > 0"
+					class="app-chat-head-info__typing"
+				>
 					{{ typingUsers.map(user => user.displayName).join(', ') }}
 					typing...
 				</span>
@@ -109,6 +112,9 @@ const typingUsers = computed(() =>
 		&._offline {
 			color: rgba(255, 255, 255, 0.7);
 		}
+	}
+	&__typing {
+		color: var(--purple);
 	}
 	@media (max-width: 640px) {
 		gap: 0.75rem;

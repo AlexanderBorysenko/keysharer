@@ -77,6 +77,11 @@ const chatStore = useChatStore();
 	flex-direction: column;
 	--horizontal-padding: 2rem;
 	--vertical-padding: 1.5rem;
+	max-height: 100vh;
+	height: auto;
+	@supports (height: 100dvh) {
+		max-height: 100dvh;
+	}
 	&__head {
 		height: var(--header-part-height);
 		border-bottom: var(--header-part-border);
