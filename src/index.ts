@@ -143,10 +143,6 @@ async function startServer() {
                     }
                 }
 
-                request.headers.set('Access-Control-Allow-Origin', env.CLIENT_URL);
-                request.headers.set('Access-Control-Allow-Credentials', 'true');
-                request.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-                request.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
                 //@ts-ignore
                 return yoga.fetch(request, server);
             },
