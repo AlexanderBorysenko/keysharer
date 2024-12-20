@@ -1,5 +1,5 @@
 <template>
-	<SvgIcon icon="refresh" class="refreshing-spinner" />
+	<SvgIcon icon="spinner" class="refreshing-spinner" />
 </template>
 
 <script setup lang="ts"></script>
@@ -10,7 +10,7 @@
 		transform: rotate(0deg);
 	}
 	100% {
-		transform: rotate(360deg);
+		transform: rotate(-360deg);
 	}
 }
 .refreshing-spinner {

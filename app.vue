@@ -25,7 +25,6 @@ const userMiddleware = async () => {
 	) {
 		await userStore.initializeUser();
 		useKeySharingStore();
-		requestPermission();
 	}
 };
 onMounted(userMiddleware);
@@ -36,6 +35,10 @@ onMounted(() => {
 		if (!userStore.state.id) return;
 		userStore.refreshToken();
 	});
+	setInterval(() => {
+		if (!userStore.state.id) return;
+		userStore.refreshToken();
+	}, 1000 * 60 * 5);
 });
 
 useHead({

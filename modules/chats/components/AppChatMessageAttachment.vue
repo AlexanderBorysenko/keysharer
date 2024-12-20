@@ -1,17 +1,54 @@
 <template>
 	<div class="attachment">
-		<div class="attachment-file-body" v-if="!fileUrl">
-			<div class="attachment-file-body__icon">
-				<SvgIcon icon="file" class="icon" />
+		<div
+			class="attachment-image-view"
+			v-if="fileUrl && fileType === 'image'"
+		>
+			<img
+				:src="fileUrl"
+				alt="Attachment"
+				class="attachment-image-view__image"
+			/>
+		</div>
+		<div class="attachment-file-body" v-else>
+			<div class="attachment-file-body__icon" v-if="!fileUrl">
+				<img
+					src="/assets/images/attachment-file-icon.svg"
+					v-if="!decryptionInProgress"
+				/>
+				<RefreshingSpinner v-else />
 			</div>
+			<a class="attachment-file-body__icon" v-else :href="fileUrl">
+				<img src="/assets/images/attachment-file-download-icon.svg" />
+			</a>
 			<div class="attachment-file-body__main">
-				<p class="attachment-file-body__title">
-					{{ file.file_type }}
-				</p>
+				<div class="attachment-file-body__title">
+					<div class="attachment-file-body__ext">
+						{{ fileExtension }}
+					</div>
+					<div
+						class="attachment-file-body__decryption-error"
+						v-if="decryptionError && !decryptionInProgress"
+					>
+						<SvgIcon
+							icon="warning"
+							class="attachment-file-body__decryption-error-icon"
+						/>
+						Decryption failed
+					</div>
+				</div>
 				<p class="attachment-file-body__sub-title">
 					File is encrypted. {{ formatFileSize(file.file_size) }}
 				</p>
 			</div>
+			<BaseButton
+				v-if="!fileUrl"
+				type="primary"
+				@click="decryptFile"
+				class="attachment-file-body__decrypt-button"
+			>
+				Decrypt
+			</BaseButton>
 		</div>
 		<!-- <div class="" v-if="fileUrl">
 			<div
@@ -38,6 +75,7 @@
 
 <script setup lang="ts">
 import BaseButton from '~/components/BaseButton.vue';
+import RefreshingSpinner from '~/components/RefreshingSpinner.vue';
 import SvgIcon from '~/components/SvgIcon.vue';
 import type { ModelTypes } from '~/graphql/zeus';
 import chatEncryptionService from '~/modules/encryption/service/chatEncryptionService';
@@ -54,6 +92,8 @@ const fileType: 'image' | 'video' | 'file' = (() => {
 	if (props.file.file_type.startsWith('video')) return 'video';
 	return 'file';
 })();
+
+const fileExtension = props.file.file_url?.split('.').pop();
 
 const decryptionInProgress = ref(false);
 const decryptionError = ref<string | null>(null);
@@ -96,9 +136,6 @@ watch(
 .attachment {
 	display: flex;
 	align-items: center;
-	background: rgba($color: #000, $alpha: 0.2);
-	padding: 0.5rem;
-	border-radius: 0.5rem;
 	&__image-container {
 		width: 100%;
 		max-width: 300px;
@@ -111,7 +148,10 @@ watch(
 .attachment-file-body {
 	display: flex;
 	align-items: center;
-	gap: 0.75rem;
+	gap: 0.5rem;
+	background: rgba($color: #000, $alpha: 0.2);
+	padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+	border-radius: 0.5rem;
 	&__icon {
 		display: flex;
 		justify-content: center;
@@ -127,12 +167,42 @@ watch(
 		font-weight: 400;
 		font-size: 1.125rem;
 		line-height: 150%;
+		display: flex;
+		gap: 0.5rem;
+		align-items: flex-end;
+		margin-bottom: 0.125rem;
+	}
+	&__ext {
+		text-transform: uppercase;
 	}
 	&__sub-title {
 		font-size: 0.875rem;
 		line-height: 140%;
 		letter-spacing: -0.01em;
 		color: rgba(255, 255, 255, 0.7);
+	}
+	&__decrypt-button {
+		margin-left: 2rem;
+	}
+	&__decryption-error {
+		color: var(--danger);
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.875rem;
+		line-height: 140%;
+		&-icon {
+			width: 1rem;
+			height: 1rem;
+		}
+	}
+}
+.attachment-image-view {
+	width: 100%;
+	&__image {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
 	}
 }
 </style>

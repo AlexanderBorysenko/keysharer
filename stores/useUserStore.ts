@@ -74,8 +74,6 @@ const useUserStore = defineStore('userStore', () => {
 
     const initializeUser = async () => {
         try {
-            await refreshToken();
-
             const result = await $gqClient('query')({
                 me: {
                     id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
