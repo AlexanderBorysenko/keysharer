@@ -5,13 +5,12 @@ export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const apiEndpoint = config.public.severHost;
     const wsEndpoint = config.public.wsHost;
-    const apiDomain = new URL(apiEndpoint).hostname;
 
     const AuthorizationToken = useCookie('Authorization', {
         secure: true,
         httpOnly: false,
         sameSite: 'lax',
-        domain: apiDomain,
+        domain: 'app.keysharer.com',
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         path: "/",
     });
