@@ -4,7 +4,7 @@
 			v-for="emoji in emojis"
 			:key="emoji"
 			class="emoji-item"
-			@click="selectEmoji(emoji)"
+			@click="() => selectEmoji(emoji)"
 		>
 			{{ emoji }}
 		</span>

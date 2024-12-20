@@ -14,9 +14,9 @@
 		>
 			<img :src="previewUrl || previousImageUrl" alt="Image preview" />
 		</div>
-		<span class="base-image-input__label" @click="inputRef?.click()">
+		<button class="base-image-input__label" @click="inputRef?.click()">
 			Select Image
-		</span>
+		</button>
 	</div>
 </template>
 

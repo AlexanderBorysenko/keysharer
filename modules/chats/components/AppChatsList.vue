@@ -10,7 +10,7 @@
 			:key="chatCard.id"
 			:chat="chatCard"
 			:isActive="chatStore.chatState.id === chatCard.id"
-			@click="chatStore.setChat(chatCard.id)"
+			@click="() => chatStore.setChat(chatCard.id)"
 		/>
 	</div>
 </template>
@@ -46,7 +46,8 @@ try {
 				username: true,
 				displayName: true,
 				avatar: true,
-				isOnline: true
+				isOnline: true,
+				role: true
 			},
 			avatar: true,
 			updated_at: true,

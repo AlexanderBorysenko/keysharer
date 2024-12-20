@@ -11,9 +11,7 @@
 		]"
 		@click="appSidebarStore.close"
 	>
-		<div class="app-navigation-item__icon-wrapper">
-			<SvgIcon :icon="icon" class="app-navigation-item__icon" />
-		</div>
+		<SvgIcon :icon="icon" class="app-navigation-item__icon" />
 		<span class="app-navigation-item__title">{{ title }}</span>
 	</nuxt-link>
 </template>
@@ -61,7 +59,7 @@ defineProps<{
 		background: rgba(255, 255, 255, 0.04);
 		color: rgba(255, 255, 255, 1);
 	}
-	&__icon-wrapper {
+	&__icon {
 		width: 1.5rem;
 		height: 1.5rem;
 		@media (max-width: 640px) {

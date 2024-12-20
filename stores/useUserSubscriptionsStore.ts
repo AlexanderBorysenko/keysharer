@@ -67,6 +67,7 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
             user_id: true,
             type: true,
             content: true,
+            is_read: true,
             timestamp: true,
             disable_encryption: true,
             files: {
@@ -92,7 +93,14 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
             type: true,
             content: true,
             is_read: true,
-            timestamp: true
+            timestamp: true,
+            disable_encryption: true,
+            files: {
+                file_url: true,
+                file_name: true,
+                file_size: true,
+                file_type: true,
+            },
         }
     });
 

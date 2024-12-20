@@ -1058,12 +1058,12 @@ messages?: [{	lastMessageId?: string | undefined | null | Variable<any, string>}
 	filename: string | Variable<any, string>,
 	mimeType: string | Variable<any, string>,
 	content: string | Variable<any, string>,
-	isEncrypted?: boolean | undefined | null | Variable<any, string>
+	isEncrypted: boolean | Variable<any, string>
 };
 	["SendMessageInput"]: {
 	chatId: string | Variable<any, string>,
-	content?: string | undefined | null | Variable<any, string>,
-	disableEncryption?: boolean | undefined | null | Variable<any, string>,
+	content: string | Variable<any, string>,
+	disableEncryption: boolean | Variable<any, string>,
 	files?: Array<ValueTypes["UploadedEncryptedFileInput"]> | undefined | null | Variable<any, string>
 };
 	["UnreadMessagesCount"]: AliasType<{
@@ -1243,12 +1243,12 @@ messages?: [{	lastMessageId?: string | undefined | null},ResolverInputTypes["Mes
 	filename: string,
 	mimeType: string,
 	content: string,
-	isEncrypted?: boolean | undefined | null
+	isEncrypted: boolean
 };
 	["SendMessageInput"]: {
 	chatId: string,
-	content?: string | undefined | null,
-	disableEncryption?: boolean | undefined | null,
+	content: string,
+	disableEncryption: boolean,
 	files?: Array<ResolverInputTypes["UploadedEncryptedFileInput"]> | undefined | null
 };
 	["UnreadMessagesCount"]: AliasType<{
@@ -1418,19 +1418,19 @@ export type ModelTypes = {
 	is_read?: boolean | undefined | null,
 	content: string,
 	timestamp: string,
-	disable_encryption?: boolean | undefined | null,
+	disable_encryption: boolean,
 	files?: Array<ModelTypes["MessageFile"]> | undefined | null
 };
 	["UploadedEncryptedFileInput"]: {
 	filename: string,
 	mimeType: string,
 	content: string,
-	isEncrypted?: boolean | undefined | null
+	isEncrypted: boolean
 };
 	["SendMessageInput"]: {
 	chatId: string,
-	content?: string | undefined | null,
-	disableEncryption?: boolean | undefined | null,
+	content: string,
+	disableEncryption: boolean,
 	files?: Array<ModelTypes["UploadedEncryptedFileInput"]> | undefined | null
 };
 	["UnreadMessagesCount"]: {
@@ -1606,19 +1606,19 @@ export type GraphQLTypes = {
 	is_read?: boolean | undefined | null,
 	content: string,
 	timestamp: string,
-	disable_encryption?: boolean | undefined | null,
+	disable_encryption: boolean,
 	files?: Array<GraphQLTypes["MessageFile"]> | undefined | null
 };
 	["UploadedEncryptedFileInput"]: {
 		filename: string,
 	mimeType: string,
 	content: string,
-	isEncrypted?: boolean | undefined | null
+	isEncrypted: boolean
 };
 	["SendMessageInput"]: {
 		chatId: string,
-	content?: string | undefined | null,
-	disableEncryption?: boolean | undefined | null,
+	content: string,
+	disableEncryption: boolean,
 	files?: Array<GraphQLTypes["UploadedEncryptedFileInput"]> | undefined | null
 };
 	["UnreadMessagesCount"]: {

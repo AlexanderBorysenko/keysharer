@@ -139,7 +139,6 @@ export const useKeySharingStore = defineStore('keySharingStore', () => {
             })
             onKeySharingTransactionSuccess(() => {
                 const index = getOutgoingTransactionIndex(transactionId);
-                console.log('success', index);
                 if (index === -1) return;
                 if (outgoingTransactions.value[index].status !== 'accepted') return;
                 outgoingTransactions.value[index].status = 'success';

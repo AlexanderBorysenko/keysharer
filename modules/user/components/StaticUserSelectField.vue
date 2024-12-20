@@ -9,8 +9,8 @@
 			<div class="user-select-field__search-results">
 				<UserSelectFieldSearchResultItem
 					v-for="user in filteredUsers"
-					@click="selectItem(user.id)"
-					@offline="deselectItem(user.id)"
+					@click="() => selectItem(user.id)"
+					@offline="() => deselectItem(user.id)"
 					:key="user.id"
 					:user="user"
 					:selected="model.includes(user.id)"

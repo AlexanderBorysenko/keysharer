@@ -57,7 +57,7 @@ export const useChatStore = defineStore('chat', () => {
         if (user) user.isTyping = typing.isTyping;
     };
 
-    const updateMessage = (messageUpdated: any) => {
+    const updateMessage = (messageUpdated: ModelTypes['Message']) => {
         if (messageUpdated.chat_id !== chatState.id) return;
         const index = chatState.messages.findIndex(message => message.id === messageUpdated.id);
         if (index !== -1) chatState.messages[index] = messageUpdated;

@@ -9,7 +9,7 @@
 			<div class="user-select-field__search-results">
 				<UserSelectFieldSearchResultItem
 					v-for="user in result"
-					@click="selectItem(user.id)"
+					@click="() => selectItem(user.id)"
 					:key="user.id"
 					:user="user"
 					:selected="user.id === model"

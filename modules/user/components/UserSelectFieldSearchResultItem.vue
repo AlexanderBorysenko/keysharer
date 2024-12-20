@@ -2,7 +2,7 @@
 	<div
 		class="user-select-field-search-result-item"
 		:class="{ _active: selected, _offline: onOffline && !isOnline }"
-		@click="onClick()"
+		@click="onClick"
 		:title="
 			!isOnline ? 'The user if offline so you can not select him' : ''
 		"

@@ -3,7 +3,7 @@
 		<div class="base-context-modal__body">
 			<button
 				class="base-context-modal__close-button"
-				@click="emit('close')"
+				@click="() => emit('close')"
 			>
 				<SvgIcon icon="cross" class="base-context-modal__close-icon" />
 			</button>

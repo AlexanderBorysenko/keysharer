@@ -19,7 +19,7 @@
 				</div>
 			</div>
 			<button @click="removeFile(file)" class="attachment__remove">
-				<SvgIcon icon="cross" class="icon" />
+				<SvgIcon icon="cross" class="attachment__remove-icon" />
 			</button>
 		</div>
 	</div>
@@ -61,16 +61,22 @@ const createObjectURL = (file: File) => URL.createObjectURL(file);
 	padding: 0.25rem;
 	gap: 0.5rem;
 	&__remove {
-		padding: 0.5rem;
 		width: 2rem;
 		height: 2rem;
 		flex: 0 0 2rem;
 		margin-left: auto;
 		transition: background 0.2s, color 0.2s;
 		border-radius: 0.625rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		&:hover {
 			background: rgba(255, 255, 255, 0.1);
 			color: #fff;
+		}
+		&-icon {
+			width: 1.5rem;
+			height: 1.5rem;
 		}
 	}
 	&__meta {

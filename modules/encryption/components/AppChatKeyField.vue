@@ -59,10 +59,7 @@
 				Save key
 			</BaseButton>
 		</div>
-		<AppChatIncomingKeySharingTransactions
-			v-if="!isCurrentKeyEditing"
-			class="mt-1"
-		/>
+		<AppChatIncomingKeySharingTransactions class="mt-1" />
 	</div>
 </template>
 

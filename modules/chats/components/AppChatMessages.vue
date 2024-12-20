@@ -51,7 +51,6 @@ onMounted(() => {
 			)
 				return;
 			if (wrapperRect.top < innerRect.top) {
-				console.log('TRIGGER LOAD MORE');
 				loadMoreMessages();
 			}
 		});

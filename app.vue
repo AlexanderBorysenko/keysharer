@@ -30,11 +30,10 @@ const userMiddleware = async () => {
 	}
 };
 onMounted(userMiddleware);
-router.afterEach(userMiddleware);
 
-onMounted(() => {
+onMounted(async () => {
 	document.addEventListener('visibilitychange', async () => {
-		if (document.hidden || !userStore.state.id) return;
+		if (document.hidden) return;
 		await userStore.refreshToken();
 	});
 });

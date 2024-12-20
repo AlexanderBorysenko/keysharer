@@ -60,7 +60,6 @@ const useUserStore = defineStore('userStore', () => {
     }
 
     const logout = () => {
-        console.log('logout!');
         $AuthorizationToken.value = '';
         Object.assign(state, userInitialState);
 
@@ -72,6 +71,7 @@ const useUserStore = defineStore('userStore', () => {
 
     const initializeUser = async () => {
         try {
+            await refreshToken();
             const result = await $gqClient('query')({
                 me: {
                     id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
@@ -94,7 +94,6 @@ const useUserStore = defineStore('userStore', () => {
             $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
             console.error('Failed to refresh token:', err);
-            logout();
         }
     }
 
@@ -104,7 +103,6 @@ const useUserStore = defineStore('userStore', () => {
         }
     })
     onUserUpdated((user) => {
-        console.log('user updated', user);
         if (user.id === state.id) {
             Object.assign(state, user);
         }

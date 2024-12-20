@@ -36,7 +36,6 @@ export const useOnlineStatusesStore = defineStore('onlineStatusesStore', () => {
             }, true]
         })
         on((isOnline) => {
-            console.log('user online status changed', userId, isOnline);
             const listenerIndex = getUserListenerIndex(userId);
             if (listenerIndex === -1) return;
             listeners.value[listenerIndex].isOnline = isOnline;

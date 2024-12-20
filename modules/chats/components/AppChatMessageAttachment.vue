@@ -9,6 +9,15 @@
 				alt="Attachment"
 				class="attachment-image-view__image"
 			/>
+			<a :href="fileUrl" download class="attachment-image-view__download">
+				<img
+					class="attachment-image-view__download-icon"
+					src="/assets/images/attachment-file-download-icon.svg"
+				/>
+				<span class="attachment-image-view__download-size">
+					{{ formatFileSize(file.file_size) }}
+				</span>
+			</a>
 		</div>
 		<div class="attachment-file-body" v-else>
 			<div class="attachment-file-body__icon" v-if="!fileUrl">
@@ -55,26 +64,6 @@
 				Decrypt
 			</BaseButton>
 		</div>
-		<!-- <div class="" v-if="fileUrl">
-			<div
-				class="attachment__image-container"
-				v-if="file.file_type.startsWith('image')"
-			>
-				<img
-					:src="fileUrl"
-					alt="Wrong Encryption Key"
-					class="attachment__image"
-				/>
-			</div>
-			<div v-else>
-				<a :href="fileUrl" target="_blank">{{ file.file_name }}</a>
-			</div>
-		</div>
-		<div>Type: {{ file.file_type }}</div>
-		<div class="">Size: {{ formatFileSize(file.file_size) }}</div>
-		<BaseButton type="primary" @click="decryptFile"> Decrypt </BaseButton>
-		{{ decryptionInProgress ? 'Decrypting...' : '' }}
-		{{ decryptionError }} -->
 	</div>
 </template>
 
@@ -89,7 +78,7 @@ const keyStore = useEncryptionKeysStore();
 
 const props = defineProps<{
 	file: ModelTypes['MessageFile'];
-	disableEncryption: boolean | null | undefined;
+	disableEncryption: boolean;
 }>();
 
 const fileType: 'image' | 'video' | 'file' = (() => {
@@ -203,11 +192,34 @@ watch(
 	}
 }
 .attachment-image-view {
+	position: relative;
 	width: 100%;
+	aspect-ratio: 1/1;
 	&__image {
 		width: 100%;
 		height: 100%;
-		object-fit: contain;
+		object-fit: cover;
+		position: absolute;
+	}
+	&__download {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 0.875rem;
+		line-height: 140%;
+		letter-spacing: -0.01em;
+		background: rgba(0, 0, 0, 0.2);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.5rem;
+		position: absolute;
+		bottom: 0.5rem;
+		backdrop-filter: blur(10px);
+		right: 0.5rem;
+		&-icon {
+			width: 1.5rem;
+			height: 1.5rem;
+		}
 	}
 }
 </style>

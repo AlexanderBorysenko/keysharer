@@ -119,6 +119,11 @@ onMounted(() => {
 	--message-side-space: 0.625rem;
 	border-radius: 0.625rem;
 	max-width: min(42.125rem, calc(100% - 2rem));
+	width: fit-content;
+	&__attachments {
+		border-radius: 0.625rem;
+		overflow: hidden;
+	}
 	&__main {
 		padding: 0.5rem 1rem;
 		width: 100%;

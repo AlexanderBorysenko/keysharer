@@ -2,7 +2,7 @@
 	<button
 		class="user-account-nav-button"
 		:class="{ active: isActiveMenuItem }"
-		@click="router.push({ name: 'account' })"
+		@click="() => router.push({ name: 'account' })"
 	>
 		<div class="user-account-nav-button__avatar-container">
 			<UserAvatarImage

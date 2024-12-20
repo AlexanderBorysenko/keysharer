@@ -12,7 +12,5 @@ defineProps<{
 
 <style scoped lang="scss">
 .svg-icon {
-	width: 100%;
-	height: 100%;
 }
 </style>

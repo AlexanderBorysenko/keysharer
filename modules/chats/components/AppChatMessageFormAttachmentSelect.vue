@@ -8,14 +8,13 @@
 			style="display: none"
 			multiple
 		/>
-		<button class="attachment-button" @click="triggerFileInput()">
+		<button class="attachment-button" @click="triggerFileInput">
 			<SvgIcon icon="attachment" class="icon" />
 		</button>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { useEncryptionKeysStore } from '~/modules/encryption/store/useEncryptionKeysStore';
 import { useMessageFormStore } from '../store/useMessageFormStore';
 const messageFormStore = useMessageFormStore();
 const fileInput = ref<HTMLInputElement | null>(null);
