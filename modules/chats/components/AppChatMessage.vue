@@ -72,9 +72,11 @@ const props = defineProps<{
 }>();
 
 const content = computed(() => {
+	let content = '';
 	if (props.message.type !== 'text' || props.message.disable_encryption)
-		return props.message.content;
-	const content = chatEncryption.decryptTextMessage(props.message.content);
+		content = props.message.content;
+	else content = chatEncryption.decryptTextMessage(props.message.content);
+
 	return md.render(content);
 });
 
