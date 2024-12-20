@@ -63,7 +63,7 @@ export const loginUser = async (
 	// Generate RefreshToken
 	const refreshToken = createUserRefreshToken(user);
 
-	// send RefreshToken as a cookie
+	// send RefreshToken as a	 cookie
 	await context.request.cookieStore?.set({
 		name: "httpOnly_refresh_token",
 		value: refreshToken,

@@ -30,9 +30,7 @@ class UserActiveSessionsService {
         }
 
         try {
-            const previousCount = await this.getUsersActiveSessionsCount(userId);
             await client.execute(actionQueries[action], [userId], { prepare: true });
-            console.log(`User ${userId} active sessions count updated to: ${await this.getUsersActiveSessionsCount(userId)} from ${previousCount}`);
         } catch (error) {
             console.error(`Failed to update active sessions count for user ${userId}:`, error);
         }
