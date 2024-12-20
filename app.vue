@@ -12,7 +12,6 @@ import { useKeySharingStore } from './modules/encryption/store/useKeySharingStor
 
 const router = useRouter();
 const userStore = useUserStore();
-const { requestPermission } = useSystemNotifications();
 
 const userMiddleware = async () => {
 	if (
@@ -24,22 +23,19 @@ const userMiddleware = async () => {
 		].some(path => router.currentRoute.value.path.includes(path))
 	) {
 		await userStore.initializeUser();
+
 		useKeySharingStore();
 	}
 };
 onMounted(userMiddleware);
 router.afterEach(userMiddleware);
 
-onMounted(() => {
-	document.addEventListener('visibilitychange', () => {
-		if (!userStore.state.id) return;
-		userStore.refreshToken();
-	});
-	setInterval(() => {
-		if (!userStore.state.id) return;
-		userStore.refreshToken();
-	}, 1000 * 60 * 5);
-});
+// onMounted(() => {
+// 	document.addEventListener('visibilitychange', () => {
+// 		if (!userStore.state.id) return;
+// 		userStore.refreshToken();
+// 	});
+// });
 
 useHead({
 	title: 'KeySharer',

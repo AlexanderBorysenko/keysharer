@@ -72,14 +72,12 @@ const useUserStore = defineStore('userStore', () => {
     }
 
     const initializeUser = async () => {
-        console.log('initializing user');
         try {
             const result = await $gqClient('query')({
                 me: {
                     id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
                 },
             });
-            console.log('me', result.me);
             Object.assign(state, result.me);
         } catch (err) {
             console.error('Failed to initialize user:', err);
