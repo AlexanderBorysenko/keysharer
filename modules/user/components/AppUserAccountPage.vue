@@ -1,10 +1,10 @@
 <template>
-	<div class="app-chat-key-settings">
-		<div class="app-chat-key-settings__head">
+	<div class="app-user-account-page">
+		<div class="app-user-account-page__head">
 			<BackButton class="_mobile" @click="openSidebar" />
-			<h2 class="app-chat-key-settings__head-title">Account Settings</h2>
+			<h2 class="app-user-account-page__head-title">Account Settings</h2>
 		</div>
-		<div class="app-chat-key-settings__main">
+		<div class="app-user-account-page__main">
 			<h1 class="mb-2 fs-2">
 				<CopyButton :clipboard="userStore.state.username">
 					{{ userStore.state.username }}
@@ -28,13 +28,14 @@ const { open: openSidebar } = useAppSidebarStore();
 </script>
 
 <style scoped lang="scss">
-.app-chat-key-settings {
+.app-user-account-page {
 	background: #161b26;
 	display: flex;
 	flex-direction: column;
 	--horizontal-padding: 2rem;
 	--vertical-padding: 1.5rem;
-	height: 100%;
+	overflow: auto;
+	max-height: 100dvh;
 	&__head {
 		height: var(--header-part-height);
 		border-bottom: var(--header-part-border);
