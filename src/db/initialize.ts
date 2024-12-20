@@ -9,12 +9,48 @@ export const initializeDatabase = async () => {
     if (!(await userDBService.findUserByUsername('ElonMusk'))) {
         userDBService.createUser({
             id: types.Uuid.random(),
+            username: 'Igor',
+            email: 'elon@gmail.com',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Igor'
+        })
+    }
+    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
+            username: 'Yurii',
+            email: 'elon@gmail.com',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Yurii'
+        })
+    }
+    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
+            username: 'Alex',
+            email: 'elon@gmail.com',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Alex'
+        })
+    }
+    if (!(await userDBService.findUserByUsername('ElonMusk'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
             username: 'ElonMusk',
             email: 'elon@gmail.com',
             emailVerified: true,
             password: 'Password@123',
             role: Role.USER,
-            avatar: '/public/avatars/6b0ba444-1f03-41b8-b424-999546739827.png',
+            avatar: '',
             displayName: 'Elon Musk'
         })
     }
@@ -26,8 +62,20 @@ export const initializeDatabase = async () => {
             emailVerified: true,
             password: 'Password@123',
             role: Role.USER,
-            avatar: '/public/avatars/a5032379-cf87-4b98-9e47-8770db9b5f66.png',
+            avatar: '',
             displayName: 'Donald Trump'
+        });
+    }
+    if (!(await userDBService.findUserByUsername('BillGates'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
+            username: 'BillGates',
+            email: '',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Bill Gates'
         });
     }
 }
