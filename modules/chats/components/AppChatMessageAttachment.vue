@@ -195,6 +195,7 @@ watch(
 	position: relative;
 	width: 100%;
 	aspect-ratio: 1/1;
+	min-width: 20rem;
 	&__image {
 		width: 100%;
 		height: 100%;
