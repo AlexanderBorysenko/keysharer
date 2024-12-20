@@ -7,15 +7,19 @@ export function useScreenHeight() {
     }
 
     const updateHeight = () => {
-        screenHeight.value = window.innerHeight;
+        const height = window.visualViewport?.height || window.innerHeight;
+        screenHeight.value = height;
     };
 
     onMounted(() => {
-        window.addEventListener('resize', updateHeight);
+        updateHeight(); // Set the height on initial load
+        window.visualViewport?.addEventListener("resize", updateHeight);
+        window.addEventListener("resize", updateHeight); // Fallback for unsupported browsers
     });
 
     onUnmounted(() => {
-        window.removeEventListener('resize', updateHeight);
+        window.visualViewport?.removeEventListener("resize", updateHeight);
+        window.removeEventListener("resize", updateHeight); // Fallback for unsupported
     });
 
     const screenHeightPx = computed(() => `${screenHeight.value}px`);
