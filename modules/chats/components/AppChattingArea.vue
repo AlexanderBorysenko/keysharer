@@ -28,10 +28,8 @@ const chatStore = useChatStore();
 	grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
 	position: relative;
 	gap: 0.0625rem;
+
 	height: 100%;
-	& > :deep(*) {
-		height: 100%;
-	}
 	@media (max-width: 1200px) {
 		--sidebar-width: 20rem;
 	}
