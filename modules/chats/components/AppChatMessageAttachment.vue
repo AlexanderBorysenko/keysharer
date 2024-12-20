@@ -127,6 +127,7 @@ watch(
 </script>
 
 <style scoped lang="scss">
+@use '/styles/vars.scss' as *;
 .attachment {
 	display: flex;
 	align-items: center;
@@ -146,6 +147,9 @@ watch(
 	background: rgba($color: #000, $alpha: 0.2);
 	padding: 0.25rem 0.5rem 0.25rem 0.25rem;
 	border-radius: 0.5rem;
+	@media (max-width: $mobile-width) {
+		flex-wrap: wrap;
+	}
 	&__icon {
 		display: flex;
 		justify-content: center;
@@ -177,6 +181,10 @@ watch(
 	}
 	&__decrypt-button {
 		margin-left: 2rem;
+		@media (max-width: $mobile-width) {
+			margin: 0;
+			width: 100%;
+		}
 	}
 	&__decryption-error {
 		color: var(--danger);
