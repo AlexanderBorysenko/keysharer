@@ -1,3 +1,4 @@
+import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticatedError";
 import { Role, type ModelTypes, type ValueTypes } from "~/graphql/zeus";
 import { useChatStore } from "~/modules/chats/store/useChatStore";
 
@@ -93,7 +94,7 @@ const useUserStore = defineStore('userStore', () => {
             });
             $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
-            console.error('Failed to refresh token:', err);
+            handleUnauthenticatedError(err);
         }
     }
 
