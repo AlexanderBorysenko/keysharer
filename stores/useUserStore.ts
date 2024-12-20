@@ -92,6 +92,7 @@ const useUserStore = defineStore('userStore', () => {
                     token: true,
                 },
             });
+            console.log('refreshToken', refreshToken);
             $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
             console.error('Failed to refresh token:', err);
