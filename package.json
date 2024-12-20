@@ -13,6 +13,7 @@
   "dependencies": {
     "@graphql-tools/merge": "^9.0.11",
     "@graphql-tools/schema": "^10.0.10",
+    "@napi-rs/canvas": "^0.1.65",
     "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/markdown-it": "^14.1.2",

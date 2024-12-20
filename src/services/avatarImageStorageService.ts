@@ -88,6 +88,19 @@ class AvatarImageStorageService {
 
         return avatar;
     }
+
+    public async putAvatarToStorageFromBuffer(buffer: Buffer, fileName: string): Promise<string> {
+        const filePath = this.getFilePath(fileName);
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+
+        await sharp(buffer)
+            .rotate() // Keep original rotation
+            .resize(100, 100)
+            .png()
+            .toFile(filePath);
+
+        return fileName;
+    }
 }
 
 export const avatarImageStorageService = new AvatarImageStorageService();

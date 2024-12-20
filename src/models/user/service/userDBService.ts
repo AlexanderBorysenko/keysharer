@@ -3,6 +3,8 @@ import { types } from "cassandra-driver";
 import { userDBMapping, type User } from "../user.types";
 import { mapRowIntoUser } from "./mapRowIntoUser";
 import bcrypt from "bcrypt";
+import { generateAvatar } from "../../../utils/generateAvatar";
+import { avatarImageStorageService } from "../../../services/avatarImageStorageService";
 
 class UserDBService {
     async findUserById(id: types.Uuid): Promise<User | undefined> {
@@ -24,6 +26,11 @@ class UserDBService {
     }
 
     async createUser(user: User): Promise<void> {
+        if (!user.avatar) {
+            const avatarBuffer = generateAvatar();
+            user.avatar = types.Uuid.random().toString() + '.png';
+            await avatarImageStorageService.putAvatarToStorageFromBuffer(avatarBuffer, user.avatar);
+        }
         const fields = Object.keys(userDBMapping).filter(key => user[key as keyof User] !== undefined) as (keyof User)[];
         const columns = fields.map(field => userDBMapping[field as keyof typeof userDBMapping]);
         const placeholders = fields.map(() => '?');
