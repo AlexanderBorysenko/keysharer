@@ -78,4 +78,40 @@ export const initializeDatabase = async () => {
             displayName: 'Bill Gates'
         });
     }
+    if (!(await userDBService.findUserByUsername('JeffBezos'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
+            username: 'JeffBezos',
+            email: '',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Jeff Bezos'
+        });
+    }
+    if (!(await userDBService.findUserByUsername('MarkZuckerberg'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
+            username: 'MarkZuckerberg',
+            email: '',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Mark Zuckerberg'
+        });
+    }
+    if (!(await userDBService.findUserByUsername('WarrenBuffet'))) {
+        userDBService.createUser({
+            id: types.Uuid.random(),
+            username: 'WarrenBuffet',
+            email: '',
+            emailVerified: true,
+            password: 'Password@123',
+            role: Role.USER,
+            avatar: '',
+            displayName: 'Warren Buffet'
+        });
+    }
 }
