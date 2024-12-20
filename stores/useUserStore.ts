@@ -60,11 +60,13 @@ const useUserStore = defineStore('userStore', () => {
         }
     }
 
-    const logout = () => {
+    const logout = async () => {
         $AuthorizationToken.value = '';
         Object.assign(state, userInitialState);
-
         chatStore.setChat(null);
+        await $gqClient('mutation')({
+            logoutUser: true,
+        });
         if (!router.currentRoute.value.path.includes('login')) {
             router.push('/login');
         }
@@ -81,7 +83,7 @@ const useUserStore = defineStore('userStore', () => {
             Object.assign(state, result.me);
         } catch (err) {
             console.error('Failed to initialize user:', err);
-            logout();
+            await logout();
         }
     }
 

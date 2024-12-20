@@ -971,6 +971,7 @@ updateTypingStatus?: [{	chatId: string | Variable<any, string>,	isTyping: boolea
 	sendEmailVerification?:boolean | `@${string}`,
 verifyEmail?: [{	input: ValueTypes["VerifyEmailInput"] | Variable<any, string>},boolean | `@${string}`],
 updateUser?: [{	input: ValueTypes["UpdateUserInput"] | Variable<any, string>},boolean | `@${string}`],
+	logoutUser?:boolean | `@${string}`,
 createUserChat?: [{	input: ValueTypes["CreateChatInput"] | Variable<any, string>},ValueTypes["Chat"]],
 deleteUserChat?: [{	input: ValueTypes["DeleteUserChatInput"] | Variable<any, string>},boolean | `@${string}`],
 updateChat?: [{	input: ValueTypes["UpdateChatInput"] | Variable<any, string>},boolean | `@${string}`],
@@ -1156,6 +1157,7 @@ updateTypingStatus?: [{	chatId: string,	isTyping: boolean},boolean | `@${string}
 	sendEmailVerification?:boolean | `@${string}`,
 verifyEmail?: [{	input: ResolverInputTypes["VerifyEmailInput"]},boolean | `@${string}`],
 updateUser?: [{	input: ResolverInputTypes["UpdateUserInput"]},boolean | `@${string}`],
+	logoutUser?:boolean | `@${string}`,
 createUserChat?: [{	input: ResolverInputTypes["CreateChatInput"]},ResolverInputTypes["Chat"]],
 deleteUserChat?: [{	input: ResolverInputTypes["DeleteUserChatInput"]},boolean | `@${string}`],
 updateChat?: [{	input: ResolverInputTypes["UpdateChatInput"]},boolean | `@${string}`],
@@ -1315,7 +1317,7 @@ export type ModelTypes = {
 	avatar?: string | undefined | null,
 	email?: string | undefined | null,
 	emailVerified?: boolean | undefined | null,
-	role: ModelTypes["Role"],
+	role?: ModelTypes["Role"] | undefined | null,
 	chats?: Array<ModelTypes["Chat"]> | undefined | null,
 	isOnline?: boolean | undefined | null
 };
@@ -1343,6 +1345,7 @@ export type ModelTypes = {
 	sendEmailVerification: boolean,
 	verifyEmail: boolean,
 	updateUser: boolean,
+	logoutUser: boolean,
 	createUserChat: ModelTypes["Chat"],
 	deleteUserChat: boolean,
 	updateChat: boolean,
@@ -1497,7 +1500,7 @@ export type GraphQLTypes = {
 	avatar?: string | undefined | null,
 	email?: string | undefined | null,
 	emailVerified?: boolean | undefined | null,
-	role: GraphQLTypes["Role"],
+	role?: GraphQLTypes["Role"] | undefined | null,
 	chats?: Array<GraphQLTypes["Chat"]> | undefined | null,
 	isOnline?: boolean | undefined | null
 };
@@ -1527,6 +1530,7 @@ export type GraphQLTypes = {
 	sendEmailVerification: boolean,
 	verifyEmail: boolean,
 	updateUser: boolean,
+	logoutUser: boolean,
 	createUserChat: GraphQLTypes["Chat"],
 	deleteUserChat: boolean,
 	updateChat: boolean,

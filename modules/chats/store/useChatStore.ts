@@ -70,7 +70,11 @@ export const useChatStore = defineStore('chat', () => {
     onMessageUpdated(updateMessage);
 
     const setChat = async (chatId: string | null) => {
-        if (!chatId) return;
+        if (!chatId) {
+            Object.assign(chatState, initialState);
+            close();
+            return;
+        }
         isLoadingChat.value = true;
         isOpened.value = true;
         isLastPage.value = false;

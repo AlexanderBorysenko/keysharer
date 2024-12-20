@@ -1,5 +1,8 @@
 <template>
-	<div class="attachment" :class="{ _image: fileType === 'image' }">
+	<div
+		class="attachment"
+		:class="{ _image: fileType === 'image' && fileUrl }"
+	>
 		<div
 			class="attachment-image-view"
 			v-if="fileUrl && fileType === 'image'"

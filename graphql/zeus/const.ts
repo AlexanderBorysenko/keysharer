@@ -172,6 +172,7 @@ export const ReturnTypes: Record<string,any> = {
 		sendEmailVerification:"Boolean",
 		verifyEmail:"Boolean",
 		updateUser:"Boolean",
+		logoutUser:"Boolean",
 		createUserChat:"Chat",
 		deleteUserChat:"Boolean",
 		updateChat:"Boolean",
