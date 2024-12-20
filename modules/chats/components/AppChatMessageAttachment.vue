@@ -1,5 +1,5 @@
 <template>
-	<div class="attachment">
+	<div class="attachment" :class="{ _image: fileType === 'image' }">
 		<div
 			class="attachment-image-view"
 			v-if="fileUrl && fileType === 'image'"
@@ -131,12 +131,16 @@ watch(
 .attachment {
 	display: flex;
 	align-items: center;
+	padding: 0.25rem 0.25rem 0 0.25rem;
 	&__image-container {
 		width: 100%;
-		max-width: 300px;
+		max-width: 18.75rem;
 	}
 	&__image {
 		width: 100%;
+	}
+	&._image {
+		padding: 0;
 	}
 }
 
@@ -147,6 +151,7 @@ watch(
 	background: rgba($color: #000, $alpha: 0.2);
 	padding: 0.25rem 0.5rem 0.25rem 0.25rem;
 	border-radius: 0.5rem;
+	width: 100%;
 	@media (max-width: $mobile-width) {
 		flex-wrap: wrap;
 	}
@@ -160,6 +165,9 @@ watch(
 		background: rgba(255, 255, 255, 0.04);
 		border: 0.0625rem solid rgba(255, 255, 255, 0.08);
 		border-radius: 0.5rem;
+	}
+	&__main {
+		margin-right: auto;
 	}
 	&__title {
 		font-weight: 400;
