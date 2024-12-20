@@ -15,16 +15,13 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      severHost: process.env.SERVER_HOST || 'http://localhost:4000',
-      wsHost: process.env.WS_HOST || 'ws://localhost:4000',
+      severHost: process.env.SERVER_HOST,
+      wsHost: process.env.WS_HOST,
     }
   },
   devServer: {
     host: '0.0.0.0', // Слушать на всех сетевых интерфейсах
     port: 3000       // Замените на желаемый порт
   },
-  css: ['~/styles/main.scss',
-
-    '~/styles/vars.scss'
-  ],
+  css: ['~/styles/main.scss', '~/styles/vars.scss'],
 })
