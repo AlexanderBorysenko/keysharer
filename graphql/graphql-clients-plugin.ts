@@ -16,32 +16,32 @@ export default defineNuxtPlugin((nuxtApp) => {
         path: "/",
     });
 
-    const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
-    let closePreviousConnection: () => void = () => { };
-    const initWsClient = () => {
-        closePreviousConnection();
-        if (!AuthorizationToken.value) {
-            wsClientRef.value = null;
-            return;
-        }
-        wsClientRef.value = Subscription(wsEndpoint, {
-            get headers() {
-                return {
-                    'Content-Type': 'application/json',
-                    Authorization: AuthorizationToken.value || '',
-                    'sessionIdentifier': v4().toString(),
-                };
-            },
-        });
-        const connection = wsClientRef.value('subscription')({
-            wsConnectionInitial: true,
-        });
-        closePreviousConnection = () => connection.ws.close();
-    }
-    watch(() => AuthorizationToken.value, () => {
-        if (!import.meta.client) return;
-        initWsClient();
-    }, { immediate: true });
+    // const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
+    // let closePreviousConnection: () => void = () => { };
+    // const initWsClient = () => {
+    //     closePreviousConnection();
+    //     if (!AuthorizationToken.value) {
+    //         wsClientRef.value = null;
+    //         return;
+    //     }
+    //     wsClientRef.value = Subscription(wsEndpoint, {
+    //         get headers() {
+    //             return {
+    //                 'Content-Type': 'application/json',
+    //                 Authorization: AuthorizationToken.value || '',
+    //                 'sessionIdentifier': v4().toString(),
+    //             };
+    //         },
+    //     });
+    //     const connection = wsClientRef.value('subscription')({
+    //         wsConnectionInitial: true,
+    //     });
+    //     closePreviousConnection = () => connection.ws.close();
+    // }
+    // watch(() => AuthorizationToken.value, () => {
+    //     if (!import.meta.client) return;
+    //     initWsClient();
+    // }, { immediate: true });
 
     const apiClient = Chain(apiEndpoint, {
         headers: {
@@ -107,7 +107,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     return {
         provide: {
             gqClient: apiClient,
-            wsClient: wsClientRef,
+            // wsClient: wsClientRef,
             postGQFormDataRequest,
             AuthorizationToken
         },

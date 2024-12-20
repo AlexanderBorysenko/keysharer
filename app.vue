@@ -30,10 +30,12 @@ const userMiddleware = async () => {
 onMounted(userMiddleware);
 
 onMounted(async () => {
-	document.addEventListener('visibilitychange', async () => {
-		if (document.hidden) return;
-		await userStore.refreshToken();
-	});
+	setTimeout(() => {
+		document.addEventListener('visibilitychange', async () => {
+			if (document.hidden) return;
+			await userStore.refreshToken();
+		});
+	}, 2000);
 });
 
 useHead({

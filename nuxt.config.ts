@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   ],
   plugins: [
     '~/graphql/graphql-clients-plugin',
+    '~/graphql/graphqlWebsoketPlugin',
   ],
   typescript: {
     tsConfig: {
