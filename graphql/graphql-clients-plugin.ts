@@ -19,9 +19,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
     let closePreviousConnection: () => void = () => { };
     const initWsClient = () => {
-        console.log('Initiating WS client', {
-            AuthorizationToken: AuthorizationToken.value,
-        });
         closePreviousConnection();
         if (!AuthorizationToken.value) {
             wsClientRef.value = null;

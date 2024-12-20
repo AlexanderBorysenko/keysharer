@@ -30,12 +30,16 @@ const userMiddleware = async () => {
 onMounted(userMiddleware);
 router.afterEach(userMiddleware);
 
-// onMounted(() => {
-// 	document.addEventListener('visibilitychange', () => {
-// 		if (!userStore.state.id) return;
-// 		userStore.refreshToken();
-// 	});
-// });
+onMounted(() => {
+	document.addEventListener('visibilitychange', async () => {
+		if (!userStore.state.id) return;
+		await userStore.refreshToken();
+	});
+	setInterval(async () => {
+		if (!userStore.state.id) return;
+		await userStore.refreshToken();
+	}, 1000 * 60 * 5);
+});
 
 useHead({
 	title: 'KeySharer',
