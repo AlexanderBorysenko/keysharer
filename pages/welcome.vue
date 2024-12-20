@@ -27,7 +27,6 @@
 <script setup lang="ts">
 import BaseButton from '~/components/BaseButton.vue';
 import SvgIcon from '~/components/SvgIcon.vue';
-const { screenHeightPx } = useScreenHeight();
 </script>
 
 <style scoped lang="scss">
@@ -36,8 +35,12 @@ const { screenHeightPx } = useScreenHeight();
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	height: v-bind(screenHeightPx);
 	overflow: auto;
+	height: 100vh;
+	padding-bottom: env(safe-area-inset-bottom, 0);
+	@supports (height: 100dvh) {
+		height: 100dvh;
+	}
 	&__main {
 		flex: 1;
 		display: flex;

@@ -19,16 +19,19 @@ import AppNotificationsDisplayer from '~/components/AppNotificationsDisplayer.vu
 
 const userStore = useUserStore();
 const isAuthenticated = computed(() => !!userStore?.state?.id);
-const { screenHeightPx } = useScreenHeight();
 </script>
 
 <style scoped lang="scss">
 .app {
-	height: v-bind(screenHeightPx);
 	display: grid;
 	grid-template-columns: var(--header-part-height) 1fr;
 	background: var(--bg-darker);
 	color: #fff;
+	height: 100vh;
+	padding-bottom: env(safe-area-inset-bottom, 0);
+	@supports (height: 100dvh) {
+		height: 100dvh;
+	}
 	@media (max-width: 640px) {
 		display: block;
 		position: relative;

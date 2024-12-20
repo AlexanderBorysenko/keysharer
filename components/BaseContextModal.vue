@@ -38,7 +38,7 @@ const emit = defineEmits<{
 <style scoped lang="scss">
 .base-context-modal {
 	position: absolute;
-	inset: 0;
+	inset: 0 !important;
 	z-index: 10;
 	display: flex;
 	flex-direction: row;
