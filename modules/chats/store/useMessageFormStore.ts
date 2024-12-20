@@ -4,6 +4,7 @@ import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticate
 import { getGQErrorMessage } from "~/graphql/utils/getGQErrorMessage";
 import type { ModelTypes } from "~/graphql/zeus";
 import { useEncryptionKeysStore } from "~/modules/encryption/store/useEncryptionKeysStore";
+import MarkdownIt from "markdown-it";
 
 export const useMessageFormStore = defineStore('messageFormStore', () => {
     const appNotificationsStore = useAppNotificationsStore();
@@ -27,10 +28,12 @@ export const useMessageFormStore = defineStore('messageFormStore', () => {
             messageForms.value[chatStore.chatState.id].content = value;
         }
     })
+    const processedContent = computed(() => {
+        return MarkdownIt().render(content.value);
+    })
     const encryptedContent = computed(() => {
-        const content = messageForms.value[chatStore.chatState.id || ''].content;
-        if (!content) return '';
-        return chatEncryptionService.encryptTextMessage(content.trim());
+        if (!content.value) return '';
+        return chatEncryptionService.encryptTextMessage(processedContent.value.trim());
     })
     const files = computed({
         get: () => messageForms.value[chatStore.chatState.id || '']?.files,
@@ -61,20 +64,17 @@ export const useMessageFormStore = defineStore('messageFormStore', () => {
         if (!chatId || isSendingMessage.value) return;
         isSendingMessage.value = true;
 
-        const messageSourceContent = messageForms.value[chatId].content;
-        const files = messageForms.value[chatId].files;
-
-        if (!messageSourceContent.trim().length && !files.length) {
+        if (!processedContent.value.trim().length && !files.value.length) {
             isSendingMessage.value = false;
             return;
         }
 
         const messageContent = encryptionKeys.isEncryptionEnabled ?
             encryptedContent.value :
-            messageSourceContent;
+            processedContent.value.trim();
 
         const encryptedFiles: ModelTypes['UploadedEncryptedFileInput'][] = [];
-        for (const file of files) {
+        for (const file of files.value) {
             let content = '';
             if (encryptionKeys.isEncryptionEnabled) {
                 content = await chatEncryptionService.encryptFile(file);
