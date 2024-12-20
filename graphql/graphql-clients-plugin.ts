@@ -1,14 +1,20 @@
 import { Chain, Subscription } from '~/graphql/zeus';
 import { v4 } from 'uuid';
-
 export default defineNuxtPlugin((nuxtApp) => {
+
     const config = useRuntimeConfig();
     const apiEndpoint = config.public.severHost;
     const wsEndpoint = config.public.wsHost;
+    const apiDomain = new URL(apiEndpoint).hostname;
 
-    const AuthorizationToken = useCookie(
-        'Authorization',
-    );
+    const AuthorizationToken = useCookie('Authorization', {
+        secure: true,
+        httpOnly: false,
+        sameSite: 'lax',
+        domain: apiDomain,
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+        path: "/",
+    });
 
     const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
     let closePreviousConnection: () => void = () => { };
@@ -40,6 +46,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const apiClient = Chain(apiEndpoint, {
         headers: {
             'Content-Type': 'application/json',
+            Authorization: AuthorizationToken.value || '',
         },
         credentials: 'include',
     });
@@ -102,7 +109,8 @@ export default defineNuxtPlugin((nuxtApp) => {
         provide: {
             gqClient: apiClient,
             wsClient: wsClientRef,
-            postGQFormDataRequest
+            postGQFormDataRequest,
+            AuthorizationToken
         },
     };
 });

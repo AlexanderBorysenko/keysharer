@@ -18,7 +18,12 @@
 				/>
 				<RefreshingSpinner v-else />
 			</div>
-			<a class="attachment-file-body__icon" v-else :href="fileUrl">
+			<a
+				class="attachment-file-body__icon"
+				v-else
+				:href="fileUrl"
+				target="_blank"
+			>
 				<img src="/assets/images/attachment-file-download-icon.svg" />
 			</a>
 			<div class="attachment-file-body__main">

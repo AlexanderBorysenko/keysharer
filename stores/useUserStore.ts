@@ -3,15 +3,12 @@ import { useChatStore } from "~/modules/chats/store/useChatStore";
 
 const useUserStore = defineStore('userStore', () => {
     const {
-        $gqClient
+        $gqClient,
+        $AuthorizationToken
     } = useNuxtApp();
     const chatStore = useChatStore();
 
     const router = useRouter();
-
-    const AuthorizationToken = useCookie(
-        'Authorization',
-    );
 
     const userInitialState: ModelTypes['User'] = {
         id: '',
@@ -52,7 +49,7 @@ const useUserStore = defineStore('userStore', () => {
                 ],
             });
 
-            AuthorizationToken.value = loginUser.token;
+            $AuthorizationToken.value = loginUser.token;
             Object.assign(state, loginUser.user);
 
             return true;
@@ -63,7 +60,7 @@ const useUserStore = defineStore('userStore', () => {
     }
 
     const logout = () => {
-        AuthorizationToken.value = '';
+        $AuthorizationToken.value = '';
         Object.assign(state, userInitialState);
 
         chatStore.setChat(null);
@@ -93,7 +90,7 @@ const useUserStore = defineStore('userStore', () => {
                     token: true,
                 },
             });
-            AuthorizationToken.value = refreshToken.token;
+            $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
             console.error('Failed to refresh token:', err);
             logout();
@@ -113,7 +110,6 @@ const useUserStore = defineStore('userStore', () => {
     });
 
     return {
-        AuthorizationToken,
         state,
         isUserSubscribed,
         logout,
