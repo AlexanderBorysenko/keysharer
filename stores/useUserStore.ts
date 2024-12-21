@@ -70,7 +70,7 @@ const useUserStore = defineStore('userStore', () => {
             logoutUser: true,
         });
         if (!router.currentRoute.value.path.includes('login')) {
-            router.push('/login');
+            location.href = '/login';
         }
     }
 

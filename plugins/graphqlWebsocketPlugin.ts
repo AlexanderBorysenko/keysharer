@@ -33,32 +33,40 @@ export function createWsClient(options: WsClientOptions) {
     });
 
     const connection = client('subscription')({ wsConnectionInitial: true });
+
     connection.on(() => {
         console.info('WebSocket connection opened.');
         if (onOpen) onOpen();
     })
-    connection.error(({
-        data, errors
-    }) => {
-        if (!data && !errors) return;
-        console.error('<<<<< WebSocket encountered an error >>>>>', errors, data);
-        if (onError) onError(new Event('WebSocket encountered an error'));
-    });
-    connection.off(({
-        code, data, message, reason
-    }) => {
-        console.info('<<<<< WebSocket connection closed >>>>>', code, data, message, reason);
-        if (onClose) onClose();
-        if (code !== 1000) {
-            console.error('WebSocket connection closed with error:', code, data, message, reason);
-            if (onError) onError(new Event('WebSocket connection closed with error'));
-        }
-    });
+    // connection.error(({
+    //     data, errors
+    // }) => {
+    //     console.error('<<<<< WebSocket encountered an error >>>>>', errors, data);
+    //     if (onError) onError(new Event('WebSocket encountered an error'));
+    // });
+    // connection.off(({
+    //     code, data, message, reason
+    // }) => {
+    //     console.info('<<<<< WebSocket connection closed >>>>>', code, data, message, reason);
+    //     if (onClose) onClose();
+    //     if (code !== 1000) {
+    //         console.error('WebSocket connection closed with error:', code, data, message, reason);
+    //         if (onError) onError(new Event('WebSocket connection closed with error'));
+    //     }
+    // });
+    // connection.ws.onclose = () => {
+    //     console.info('!!!!!!! WebSocket connection closed. !!!!!!!');
+    //     if (onClose) onClose();
+    // }
+    // connection.ws.onerror = (error) => {
+    //     console.error('!!!!!!! WebSocket encountered an error. !!!!!!!', error);
+    //     if (onError) onError(error);
+    // }
 
-    const close = () => {
-        console.info('Closing WebSocket connection.');
-        connection.ws.close();
-    };
+    // const close = () => {
+    //     console.info('Closing WebSocket connection.');
+    //     connection.ws.close();
+    // };
 
     return { client, close };
 }

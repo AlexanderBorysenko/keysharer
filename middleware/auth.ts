@@ -10,11 +10,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         $onAppVisible
     } = useNuxtApp();
     const userStore = useUserStore();
+    console.log('Auth middleware', to.path, from.path, userStore.state.id);
     if (from.path.includes('login') && userStore.state.id) return;
     await userStore.initializeUser();
 
     if (import.meta.client) {
-        console.info('Client-side auth middleware executed.');
         // Handle visibility change
         if (!window.__VISIBILITY_LISTENER__) {
             window.__VISIBILITY_LISTENER__ = true;
@@ -32,4 +32,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
             }, 1000 * 60 * 5); // 5 minutes
         }
     }
+
+    return;
 });
