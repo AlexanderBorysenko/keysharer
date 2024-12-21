@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   ],
   plugins: [
     '~/plugins/onAppVisiblePlugin',
+    '~/plugins/onOnlinePlugin',
     '~/plugins/globalStatesPlugin',
     '~/plugins/graphqlClientPlugin',
     '~/plugins/graphqlWebsocketPlugin',

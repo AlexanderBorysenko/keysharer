@@ -45,44 +45,16 @@ export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const wsEndpoint = config.public.wsHost;
 
-    const { $AuthorizationToken, $isUserInitialized, $onAppVisible, $callOnAppVisible } = useNuxtApp();
+    const { $AuthorizationToken, $isUserInitialized, $onAppVisible, $onOffline, $onOnline } = useNuxtApp();
 
     const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
     watch(() => wsClientRef.value, (client) => {
         console.info('WebSocket client changed:', client);
     })
+
     let closePreviousConnection = () => { };
 
-    let reconnectTimeout: number | null = null;
-    let reconnectAttempts = 0;
-
-    function clearReconnect() {
-        if (reconnectTimeout) {
-            console.info('Clearing reconnect timeout.');
-            clearTimeout(reconnectTimeout);
-            reconnectTimeout = null;
-        }
-    }
-
-    function attemptReconnect() {
-        clearReconnect();
-        if (!$AuthorizationToken.value) {
-            console.info('No token available. Will not attempt to reconnect.');
-            return; // If no token, no reconnect
-        }
-
-        reconnectAttempts++;
-        console.info(`Attempting to reconnect (${reconnectAttempts}).`);
-
-        const delay = Math.min(1000 * reconnectAttempts, 10000);
-        reconnectTimeout = window.setTimeout(() => {
-            initWsClient();
-        }, delay);
-    }
-
     function initWsClient() {
-        clearReconnect();
-
         console.info('Closing previous connection if any and setting new WebSocket client.');
         closePreviousConnection();
 
@@ -101,6 +73,14 @@ export default defineNuxtPlugin((nuxtApp) => {
         closePreviousConnection = close;
         wsClientRef.value = client;
     }
+    $onOffline(() => {
+        console.info('Offline. Closing WebSocket connection.');
+        closePreviousConnection();
+    })
+    $onOnline(() => {
+        console.info('Online. Re-initializing WebSocket client.');
+        initWsClient();
+    })
 
     // Re-initialize on token change
     watch(
