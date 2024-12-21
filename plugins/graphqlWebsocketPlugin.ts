@@ -12,7 +12,7 @@ interface WsClientOptions {
 }
 
 export function createWsClient(options: WsClientOptions) {
-    const { wsEndpoint, token, onOpen, onClose, onError } = options;
+    const { wsEndpoint, token } = options;
 
     // If no token, no client should be created
     if (!token) {
@@ -34,39 +34,9 @@ export function createWsClient(options: WsClientOptions) {
 
     const connection = client('subscription')({ wsConnectionInitial: true });
 
-    connection.on(() => {
-        console.info('WebSocket connection opened.');
-        if (onOpen) onOpen();
-    })
-    // connection.error(({
-    //     data, errors
-    // }) => {
-    //     console.error('<<<<< WebSocket encountered an error >>>>>', errors, data);
-    //     if (onError) onError(new Event('WebSocket encountered an error'));
-    // });
-    // connection.off(({
-    //     code, data, message, reason
-    // }) => {
-    //     console.info('<<<<< WebSocket connection closed >>>>>', code, data, message, reason);
-    //     if (onClose) onClose();
-    //     if (code !== 1000) {
-    //         console.error('WebSocket connection closed with error:', code, data, message, reason);
-    //         if (onError) onError(new Event('WebSocket connection closed with error'));
-    //     }
-    // });
-    // connection.ws.onclose = () => {
-    //     console.info('!!!!!!! WebSocket connection closed. !!!!!!!');
-    //     if (onClose) onClose();
-    // }
-    // connection.ws.onerror = (error) => {
-    //     console.error('!!!!!!! WebSocket encountered an error. !!!!!!!', error);
-    //     if (onError) onError(error);
-    // }
-
-    // const close = () => {
-    //     console.info('Closing WebSocket connection.');
-    //     connection.ws.close();
-    // };
+    const close = () => {
+        connection.ws.close();
+    }
 
     return { client, close };
 }
@@ -126,28 +96,6 @@ export default defineNuxtPlugin((nuxtApp) => {
         const { client, close } = createWsClient({
             wsEndpoint,
             token: $AuthorizationToken.value,
-            onOpen: () => {
-                console.info('WebSocket connection established.');
-                if (reconnectAttempts > 0) {
-                    // If reconnected, call onAppVisible to sync data
-                    $callOnAppVisible();
-                }
-                reconnectAttempts = 0;
-            },
-            onClose: () => {
-                console.info('WebSocket connection closed.');
-                // If token is still present, attempt reconnection
-                if ($AuthorizationToken.value) {
-                    attemptReconnect();
-                }
-            },
-            onError: (error) => {
-                console.info('WebSocket encountered an error:', error);
-                // On error, try to reconnect if still authorized
-                if ($AuthorizationToken.value) {
-                    attemptReconnect();
-                }
-            },
         });
 
         closePreviousConnection = close;

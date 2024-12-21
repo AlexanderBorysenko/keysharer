@@ -1,5 +1,4 @@
 import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticatedError";
-import type { ModelTypes } from "~/graphql/zeus";
 
 export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', () => {
     const { $gqClient } = useNuxtApp();
