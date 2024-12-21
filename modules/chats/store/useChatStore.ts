@@ -89,6 +89,14 @@ export const useChatStore = defineStore('chat', () => {
             isLoadingChat.value = false
         }
     };
+    if (import.meta.client) {
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && chatState.id) {
+                // reload chat when user returns to the page
+                setChat(chatState.id);
+            }
+        })
+    }
 
     const getChatUser = (userId: string) => {
         return chatState.users.find(user => user.id === userId);

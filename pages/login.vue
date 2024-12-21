@@ -61,6 +61,10 @@ import BasePasswordInput from '~/components/BasePasswordInput.vue';
 import SeparatorLine from '~/components/SeparatorLine.vue';
 import type { ModelTypes } from '~/graphql/zeus';
 
+definePageMeta({
+	middleware: ['is-already-authenticated']
+});
+
 const form = reactive<ModelTypes['LoginUserInput']>({
 	username: '',
 	password: ''

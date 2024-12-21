@@ -97,6 +97,10 @@ import { getResponseUserInputErrors } from '~/graphql/utils/getResponseUserInput
 import type { ModelTypes } from '~/graphql/zeus';
 const router = useRouter();
 
+definePageMeta({
+	middleware: ['is-already-authenticated']
+});
+
 const { registerRequest } = useUserStore();
 
 const form = reactive<ModelTypes['CreateUserInput']>({

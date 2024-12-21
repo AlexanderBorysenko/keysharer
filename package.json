@@ -11,6 +11,7 @@
     "generate-types": "npx zeus http://localhost:4000 ./graphql --subscriptions graphql-ws"
   },
   "dependencies": {
+    "@graphql-codegen/typed-document-node": "^5.0.12",
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@pinia/nuxt": "^0.7.0",
     "bcrypt": "^5.1.1",

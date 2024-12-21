@@ -1,50 +1,13 @@
-import { Chain, Subscription } from '~/graphql/zeus';
-import { v4 } from 'uuid';
-export default defineNuxtPlugin((nuxtApp) => {
+import { Chain } from '~/graphql/zeus';
 
+export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const apiEndpoint = config.public.severHost;
-    const wsEndpoint = config.public.wsHost;
-    const isLocalhost = config.public.severHost.includes('localhost');
 
-    const AuthorizationToken = useCookie('Authorization', {
-        secure: true,
-        httpOnly: false,
-        sameSite: 'lax',
-        domain: isLocalhost ? 'localhost' : '.keysharer.com',
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-        path: "/",
-    });
-
-    // const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
-    // let closePreviousConnection: () => void = () => { };
-    // const initWsClient = () => {
-    //     closePreviousConnection();
-    //     if (!AuthorizationToken.value) {
-    //         wsClientRef.value = null;
-    //         return;
-    //     }
-    //     wsClientRef.value = Subscription(wsEndpoint, {
-    //         get headers() {
-    //             return {
-    //                 'Content-Type': 'application/json',
-    //                 Authorization: AuthorizationToken.value || '',
-    //                 'sessionIdentifier': v4().toString(),
-    //             };
-    //         },
-    //     });
-    //     const connection = wsClientRef.value('subscription')({
-    //         wsConnectionInitial: true,
-    //     });
-    //     closePreviousConnection = () => connection.ws.close();
-    // }
-    // watch(() => AuthorizationToken.value, () => {
-    //     if (!import.meta.client) return;
-    //     initWsClient();
-    // }, { immediate: true });
-
+    const headers = import.meta.server ? useRequestHeaders(['cookie']) : {};
     const apiClient = Chain(apiEndpoint, {
         headers: {
+            ...headers,
             'Content-Type': 'application/json',
         },
         credentials: 'include',
@@ -109,7 +72,6 @@ export default defineNuxtPlugin((nuxtApp) => {
             gqClient: apiClient,
             // wsClient: wsClientRef,
             postGQFormDataRequest,
-            AuthorizationToken
         },
     };
 });

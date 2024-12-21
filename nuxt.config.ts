@@ -6,8 +6,10 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
   ],
   plugins: [
-    '~/graphql/graphql-clients-plugin',
-    '~/graphql/graphqlWebsoketPlugin',
+    '~/plugins/onAppVisiblePlugin',
+    '~/plugins/globalStatesPlugin',
+    '~/plugins/graphqlClientPlugin',
+    '~/plugins/graphqlWebsocketPlugin',
   ],
   typescript: {
     tsConfig: {

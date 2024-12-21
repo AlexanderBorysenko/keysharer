@@ -33,22 +33,20 @@ export function createWsClient(options: WsClientOptions) {
     });
 
     const connection = client('subscription')({ wsConnectionInitial: true });
-
-    // Check if ws property exists and attach event handlers if possible
-    if (connection.ws) {
-        if (onOpen) connection.ws.onopen = () => {
-            console.info('WebSocket connection opened.');
-            onOpen();
-        };
-        if (onClose) connection.ws.onclose = () => {
-            console.info('WebSocket connection closed.');
-            onClose();
-        };
-        if (onError) connection.ws.onerror = (error) => {
-            console.info('WebSocket error occurred:', error);
-            onError(error);
-        };
-    }
+    connection.on(() => {
+        console.info('WebSocket connection opened.');
+        if (onOpen) onOpen();
+    })
+    connection.off(({
+        code, data, message, reason
+    }) => {
+        console.info('<<<<< WebSocket connection closed >>>>>', code, data, message, reason);
+        if (onClose) onClose();
+        if (code !== 1000) {
+            console.error('WebSocket connection closed with error:', code, data, message, reason);
+            if (onError) onError(new Event('WebSocket connection closed with error'));
+        }
+    });
 
     const close = () => {
         console.info('Closing WebSocket connection.');
@@ -62,14 +60,16 @@ export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const wsEndpoint = config.public.wsHost;
 
-    const { $AuthorizationToken } = useNuxtApp();
+    const { $AuthorizationToken, $isUserInitialized, $onAppVisible, $callOnAppVisible } = useNuxtApp();
 
     const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
+    watch(() => wsClientRef.value, (client) => {
+        console.info('WebSocket client changed:', client);
+    })
     let closePreviousConnection = () => { };
 
     let reconnectTimeout: number | null = null;
     let reconnectAttempts = 0;
-    const maxAttempts = 5; // Adjust as needed
 
     function clearReconnect() {
         if (reconnectTimeout) {
@@ -87,9 +87,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         }
 
         reconnectAttempts++;
-        console.info(`Attempting to reconnect (${reconnectAttempts}/${maxAttempts}).`);
+        console.info(`Attempting to reconnect (${reconnectAttempts}).`);
 
-        const delay = Math.min(1000 * reconnectAttempts, 15000);
+        const delay = Math.min(1000 * reconnectAttempts, 10000);
         reconnectTimeout = window.setTimeout(() => {
             initWsClient();
         }, delay);
@@ -98,10 +98,12 @@ export default defineNuxtPlugin((nuxtApp) => {
     function initWsClient() {
         clearReconnect();
 
+        console.info('Closing previous connection if any and setting new WebSocket client.');
+        closePreviousConnection();
+
         if (!$AuthorizationToken.value) {
             // No token: close and nullify
             console.info('No token found. Closing previous connection if any.');
-            closePreviousConnection();
             wsClientRef.value = null;
             return;
         }
@@ -111,6 +113,10 @@ export default defineNuxtPlugin((nuxtApp) => {
             token: $AuthorizationToken.value,
             onOpen: () => {
                 console.info('WebSocket connection established.');
+                if (reconnectAttempts > 0) {
+                    // If reconnected, call onAppVisible to sync data
+                    $callOnAppVisible();
+                }
                 reconnectAttempts = 0;
             },
             onClose: () => {
@@ -129,18 +135,15 @@ export default defineNuxtPlugin((nuxtApp) => {
             },
         });
 
-        console.info('Closing previous connection if any and setting new WebSocket client.');
-        closePreviousConnection();
         closePreviousConnection = close;
         wsClientRef.value = client;
     }
 
     // Re-initialize on token change
     watch(
-        () => $AuthorizationToken.value,
+        [() => $AuthorizationToken.value, () => $isUserInitialized.value],
         () => {
-            if (!import.meta.client) return;
-            console.info('Authorization token changed. Re-initializing WebSocket client.');
+            if (!import.meta.client || !$isUserInitialized.value) return;
             initWsClient();
         },
         { immediate: true }
@@ -151,6 +154,12 @@ export default defineNuxtPlugin((nuxtApp) => {
         window.addEventListener('beforeunload', () => {
             console.info('Page unloading. Closing WebSocket connection.');
             closePreviousConnection();
+        });
+        // add listener for visibility change
+        $onAppVisible(() => {
+            if (!$isUserInitialized.value) return
+            console.info('Page visibility restored. Re-initializing WebSocket client.');
+            initWsClient();
         });
     }
 

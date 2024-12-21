@@ -22,7 +22,14 @@ export const useOnlineStatusesStore = defineStore('onlineStatusesStore', () => {
 
     const listenToUser = (userId: string, isOnline: boolean) => {
         // If already listening to user, return
-        if (getUserListenerIndex(userId) !== -1) return;
+        const userIndex = getUserListenerIndex(userId);
+        if (userIndex !== -1) {
+            listeners.value[userIndex].isOnline = isOnline;
+            listeners.value[userIndex].callbacks.forEach(cb => cb(
+                isOnline
+            ));
+            return;
+        }
 
         listeners.value.push({
             id: userId,

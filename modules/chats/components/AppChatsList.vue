@@ -23,7 +23,7 @@ import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticate
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
 const chatStore = useChatStore();
 const userStore = useUserStore();
-const { $gqClient } = useNuxtApp();
+const { $gqClient, $onAppVisible, $removeOnAppVisible } = useNuxtApp();
 
 const chatCards = ref<ModelTypes['Chat'][]>([]);
 const {
@@ -36,31 +36,40 @@ const {
 	onUnreadMessagesCountChange,
 	offUnreadMessagesCountChange
 } = useUserSubscriptionsStore();
-
-try {
-	const response = await $gqClient('query')({
-		myChats: {
-			id: true,
-			users: {
+const fetchChats = async () => {
+	try {
+		const response = await $gqClient('query')({
+			myChats: {
 				id: true,
-				username: true,
-				displayName: true,
+				users: {
+					id: true,
+					username: true,
+					displayName: true,
+					avatar: true,
+					isOnline: true,
+					role: true
+				},
 				avatar: true,
-				isOnline: true,
-				role: true
-			},
-			avatar: true,
-			updated_at: true,
-			name: true,
-			owner_id: true,
-			unread_messages_count: true
-		}
+				updated_at: true,
+				name: true,
+				owner_id: true,
+				unread_messages_count: true
+			}
+		});
+		chatCards.value = response.myChats;
+	} catch (e: any) {
+		handleUnauthenticatedError(e);
+		console.error(e);
+	}
+};
+
+await fetchChats();
+onMounted(() => {
+	$onAppVisible(fetchChats);
+	onUnmounted(() => {
+		$removeOnAppVisible(fetchChats);
 	});
-	chatCards.value = response.myChats;
-} catch (e: any) {
-	handleUnauthenticatedError(e);
-	console.error(e);
-}
+});
 
 const moveChatToTop = (chatUpdated: ModelTypes['Chat']) => {
 	const chatIndex = chatCards.value.findIndex(

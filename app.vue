@@ -6,38 +6,6 @@
 </template>
 
 <script setup lang="ts">
-import useUserStore from '~/stores/useUserStore';
-import { onMounted } from 'vue';
-import { useKeySharingStore } from './modules/encryption/store/useKeySharingStore';
-
-const router = useRouter();
-const userStore = useUserStore();
-
-const userMiddleware = async () => {
-	if (
-		![
-			'/login',
-			'/register',
-			'/forgot-password',
-			'/thank-you-for-registration'
-		].some(path => router.currentRoute.value.path.includes(path))
-	) {
-		await userStore.initializeUser();
-
-		useKeySharingStore();
-	}
-};
-onMounted(userMiddleware);
-
-onMounted(async () => {
-	setTimeout(() => {
-		document.addEventListener('visibilitychange', async () => {
-			if (document.hidden) return;
-			await userStore.refreshToken();
-		});
-	}, 2000);
-});
-
 useHead({
 	title: 'KeySharer',
 	link: [

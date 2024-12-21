@@ -5,7 +5,8 @@ import { useChatStore } from "~/modules/chats/store/useChatStore";
 const useUserStore = defineStore('userStore', () => {
     const {
         $gqClient,
-        $AuthorizationToken
+        $AuthorizationToken,
+        $isUserInitialized
     } = useNuxtApp();
     const chatStore = useChatStore();
 
@@ -37,6 +38,7 @@ const useUserStore = defineStore('userStore', () => {
     };
 
     const login = async (data: ModelTypes['LoginUserInput']) => {
+        $isUserInitialized.value = false;
         try {
             const { loginUser } = await $gqClient('mutation')({
                 loginUser: [
@@ -52,7 +54,7 @@ const useUserStore = defineStore('userStore', () => {
 
             $AuthorizationToken.value = loginUser.token;
             Object.assign(state, loginUser.user);
-
+            $isUserInitialized.value = true;
             return true;
         } catch (err) {
             console.error('Failed to login:', err);
@@ -73,7 +75,9 @@ const useUserStore = defineStore('userStore', () => {
     }
 
     const initializeUser = async () => {
+        $isUserInitialized.value = false;
         try {
+            if (!$AuthorizationToken.value) throw new Error('No token');
             await refreshToken();
             const result = await $gqClient('query')({
                 me: {
@@ -81,14 +85,16 @@ const useUserStore = defineStore('userStore', () => {
                 },
             });
             Object.assign(state, result.me);
+            $isUserInitialized.value = true;
         } catch (err) {
-            console.error('Failed to initialize user:', err);
             await logout();
         }
     }
 
     const refreshToken = async () => {
+        console.log('Execute refresh token');
         try {
+            if (!$AuthorizationToken.value) return;
             const { refreshToken } = await $gqClient('mutation')({
                 refreshToken: {
                     token: true,
@@ -96,6 +102,7 @@ const useUserStore = defineStore('userStore', () => {
             });
             $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
+            console.error('Failed to refresh token:', err);
             handleUnauthenticatedError(err);
         }
     }
