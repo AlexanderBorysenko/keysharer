@@ -37,6 +37,13 @@ export function createWsClient(options: WsClientOptions) {
         console.info('WebSocket connection opened.');
         if (onOpen) onOpen();
     })
+    connection.error(({
+        data, errors
+    }) => {
+        if (!data && !errors) return;
+        console.error('<<<<< WebSocket encountered an error >>>>>', errors, data);
+        if (onError) onError(new Event('WebSocket encountered an error'));
+    });
     connection.off(({
         code, data, message, reason
     }) => {
