@@ -88,7 +88,7 @@ async function startServer() {
                     console.log('===============================\n');
                 });
             },
-            onComplete: async (context) => {
+            onClose: async (context) => {
                 const user = await unsafeGetContextUser(context);
                 console.log('Disconnection Detected');
                 if (!user) {
