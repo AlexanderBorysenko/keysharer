@@ -109,6 +109,7 @@ async function startServer() {
             },
             onError: async (context) => {
                 const user = await getContextUser(context);
+                console.log('Error Detected', context);
                 if (!user) return;
                 queueUserAction(user.username, async () => {
                     console.log('\n===============================');
