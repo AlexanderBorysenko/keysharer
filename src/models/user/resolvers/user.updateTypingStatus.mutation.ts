@@ -4,7 +4,7 @@ import { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 import { publishTypingStatusUpdated } from "./user.typingStatusUpdated.subscription";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
-import queueUserAction from "../../../services/userQueueActions";
+import queueUserAction from "../../../services/queueUserAction";
 
 export const updateTypingStatusDefs = `
 type Mutation {

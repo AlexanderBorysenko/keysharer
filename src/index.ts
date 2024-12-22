@@ -12,7 +12,7 @@ import { useCookies } from '@whatwg-node/server-plugin-cookies';
 import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
-import queueUserAction from './services/userQueueActions';
+import queueUserAction from './services/queueUserAction';
 
 const userWSSessionsMemory = new Map<string, string>();
 
