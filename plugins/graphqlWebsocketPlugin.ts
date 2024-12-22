@@ -1,20 +1,18 @@
 import { ref, watch } from 'vue';
-// utils/wsClient.ts
 import { Subscription } from '~/graphql/zeus';
-import { v4 } from 'uuid';
 
 interface WsClientOptions {
     wsEndpoint: string;
     token: string | null;
-    onOpen?: () => void;
-    onClose?: () => void;
-    onError?: (error: Event) => void;
+    onError?: () => void;
 }
 
-export function createWsClient(options: WsClientOptions) {
-    const { wsEndpoint, token } = options;
+let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // If no token, no client should be created
+export function createWsClient(options: WsClientOptions) {
+    const { wsEndpoint, token, onError } = options;
+
+    // Якщо немає токена, не створюємо WebSocket-клієнт
     if (!token) {
         console.info('No token provided. WebSocket client will not be created.');
         return { client: null, close: () => { } };
@@ -27,16 +25,25 @@ export function createWsClient(options: WsClientOptions) {
             return {
                 'Content-Type': 'application/json',
                 Authorization: token || '',
-                'sessionIdentifier': v4().toString(),
             };
         },
     });
 
     const connection = client('subscription')({ wsConnectionInitial: true });
 
+    // Відловлюємо помилку
+    connection.error(({ data, errors }) => {
+        console.log('WebSocket error:', data, errors);
+
+        // Викликаємо onError, якщо передано
+        if (onError) {
+            onError();
+        }
+    });
+
     const close = () => {
         connection.ws.close();
-    }
+    };
 
     return { client, close };
 }
@@ -45,44 +52,64 @@ export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const wsEndpoint = config.public.wsHost;
 
-    const { $AuthorizationToken, $isUserInitialized, $onAppVisible, $onOffline, $onOnline } = useNuxtApp();
+    const {
+        $AuthorizationToken,
+        $isUserInitialized,
+    } = useNuxtApp();
 
+    // Поточний WebSocket-клієнт
     const wsClientRef = ref<ReturnType<typeof Subscription> | null>(null);
+
     watch(() => wsClientRef.value, (client) => {
         console.info('WebSocket client changed:', client);
-    })
+    });
 
+    // Закриває попереднє з’єднання (змінюватимемо це при кожному initWsClient())
     let closePreviousConnection = () => { };
 
+    /**
+     * Головна функція ініціалізації (або перевідкриття) WebSocket:
+     * - закриває попередній клієнт;
+     * - створює новий;
+     * - скидає лічильник перепідключення, якщо він був запущений.
+     */
     function initWsClient() {
         console.info('Closing previous connection if any and setting new WebSocket client.');
         closePreviousConnection();
 
+        // Скидаємо можливий таймер перепідключення
+        if (reconnectTimer) {
+            clearTimeout(reconnectTimer);
+            reconnectTimer = null;
+        }
+
         if (!$AuthorizationToken.value) {
-            // No token: close and nullify
+            // Немає токена — вимикаємо клієнт
             console.info('No token found. Closing previous connection if any.');
             wsClientRef.value = null;
             return;
         }
 
+        // Створюємо новий WebSocket-клієнт
         const { client, close } = createWsClient({
             wsEndpoint,
             token: $AuthorizationToken.value,
+            onError: () => {
+                // Якщо виникла помилка, ставимо перепідключення через 5 секунд (тільки один раз!)
+                if (!reconnectTimer) {
+                    reconnectTimer = setTimeout(() => {
+                        reconnectTimer = null;
+                        initWsClient(); // повторна спроба
+                    }, 5000);
+                }
+            }
         });
 
         closePreviousConnection = close;
         wsClientRef.value = client;
     }
-    $onOffline(() => {
-        console.info('Offline. Closing WebSocket connection.');
-        closePreviousConnection();
-    })
-    $onOnline(() => {
-        console.info('Online. Re-initializing WebSocket client.');
-        initWsClient();
-    })
 
-    // Re-initialize on token change
+    // Ініціалізуємо WS при зміні токена та після ініціалізації юзера
     watch(
         [() => $AuthorizationToken.value, () => $isUserInitialized.value],
         () => {
@@ -92,17 +119,22 @@ export default defineNuxtPlugin((nuxtApp) => {
         { immediate: true }
     );
 
-    // Close on page unload
     if (import.meta.client) {
+        // Закриваємо при вивантаженні сторінки
         window.addEventListener('beforeunload', () => {
             console.info('Page unloading. Closing WebSocket connection.');
             closePreviousConnection();
         });
-        // add listener for visibility change
-        $onAppVisible(() => {
-            if (!$isUserInitialized.value) return
-            console.info('Page visibility restored. Re-initializing WebSocket client.');
+
+        // При відновленні інтернету одразу перепідключаємось
+        window.addEventListener('online', () => {
+            console.info('Browser is online. Attempting to reconnect WebSocket.');
             initWsClient();
+        });
+        // offline
+        window.addEventListener('offline', () => {
+            console.info('Browser is offline. Closing WebSocket connection.');
+            closePreviousConnection();
         });
     }
 

@@ -69,7 +69,7 @@ const useUserStore = defineStore('userStore', () => {
         await $gqClient('mutation')({
             logoutUser: true,
         });
-        if (!router.currentRoute.value.path.includes('login')) {
+        if (!router.currentRoute.value.path.includes('login') && location) {
             location.href = '/login';
         }
     }

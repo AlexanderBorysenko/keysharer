@@ -4,7 +4,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const apiEndpoint = config.public.severHost;
 
-    const headers = import.meta.server ? useRequestHeaders(['cookie']) : {};
+    const headers = import.meta.server ? (useRequestHeaders(['cookie']) || {}) : {};
     const apiClient = Chain(apiEndpoint, {
         headers: {
             ...headers,
