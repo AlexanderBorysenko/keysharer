@@ -107,6 +107,20 @@ async function startServer() {
                     console.log('===============================\n');
                 });
             },
+            onError: async (context) => {
+                const user = await getContextUser(context);
+                if (!user) return;
+                queueUserAction(user.username, async () => {
+                    console.log('\n===============================');
+                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
+                    await publishOnlineStatusChanged({ userId: user.id });
+
+                    const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
+                    console.log('Active Sessions:', activeSessionsCount);
+                    console.log('User disconnected:', user.username);
+                    console.log('===============================\n');
+                });
+            }
         })
 
         const PUBLIC_DIR = join(process.cwd(), 'public');
