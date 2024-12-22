@@ -23,7 +23,6 @@ function queueUserAction(userId: string, action: () => Promise<any>) {
     // Оновлюємо ланцюжок у Map
     userPromiseChain.set(userId, newChain);
 
-    console.log('User promise chain:', newChain);
     return newChain;
 }
 

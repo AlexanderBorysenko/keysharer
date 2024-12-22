@@ -77,14 +77,14 @@ async function startServer() {
             onConnect: async (context) => {
                 const user = await getContextUser(context);
                 if (!user) return;
-                queueUserAction(user.id.toString(), async () => {
+                queueUserAction(user.username, async () => {
                     console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
                     await publishOnlineStatusChanged({ userId: user.id });
 
                     const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
                     console.log('Active Sessions:', activeSessionsCount);
-                    console.log('User connected:', user.id.toString());
+                    console.log('User connected:', user.username);
                     console.log('===============================\n');
                 });
             },
@@ -94,7 +94,7 @@ async function startServer() {
                     console.log('\n! ON DISCONNECT: No user found in context\n');
                     return;
                 }
-                queueUserAction(user.id.toString(), async () => {
+                queueUserAction(user.username, async () => {
                     console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
                     await publishOnlineStatusChanged({ userId: user.id });
@@ -102,7 +102,7 @@ async function startServer() {
                     const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
                     console.log('Active Sessions:', activeSessionsCount);
 
-                    console.log('User disconnected:', user.id.toString());
+                    console.log('User disconnected:', user.username);
                     console.log('===============================\n');
                 });
             },
