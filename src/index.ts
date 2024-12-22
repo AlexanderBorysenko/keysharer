@@ -88,7 +88,7 @@ async function startServer() {
                     console.log('===============================\n');
                 });
             },
-            onDisconnect: async (context) => {
+            onComplete: async (context) => {
                 const user = await unsafeGetContextUser(context);
                 console.log('Disconnection Detected');
                 if (!user) {
@@ -107,21 +107,6 @@ async function startServer() {
                     console.log('===============================\n');
                 });
             },
-            onError: async (context) => {
-                const user = await getContextUser(context);
-                console.log('Error Detected', context);
-                if (!user) return;
-                queueUserAction(user.username, async () => {
-                    console.log('\n===============================');
-                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
-                    await publishOnlineStatusChanged({ userId: user.id });
-
-                    const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
-                    console.log('Active Sessions:', activeSessionsCount);
-                    console.log('User disconnected:', user.username);
-                    console.log('===============================\n');
-                });
-            }
         })
 
         const PUBLIC_DIR = join(process.cwd(), 'public');
