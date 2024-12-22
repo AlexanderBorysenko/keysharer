@@ -1,20 +1,29 @@
 const userPromiseChain = new Map();
+
 function queueUserAction(userId: string, action: () => Promise<any>) {
-    // If no existing chain, initialize with a resolved promise.
+    // Якщо немає ланцюжка для цього користувача, створюємо "порожній" Promise
     if (!userPromiseChain.has(userId)) {
         userPromiseChain.set(userId, Promise.resolve());
     }
 
-    // Get the last promise chain for the user
+    // Забираємо поточний ланцюжок для користувача
     const chain = userPromiseChain.get(userId);
 
-    // Chain the new action
-    const newChain = chain.then(action);
+    // Додаємо нашу дію до ланцюжка
+    const newChain = chain
+        .then(() => action())
+        .finally(() => {
+            // Якщо в Map досі зберігається саме цей ланцюжок (не з’явилися нові)
+            // — видаляємо запис, щоб він не займав пам’ять
+            if (userPromiseChain.get(userId) === newChain) {
+                userPromiseChain.delete(userId);
+            }
+        });
 
-    // Update the chain in the Map
+    // Оновлюємо ланцюжок у Map
     userPromiseChain.set(userId, newChain);
 
-    // Return the new chain in case you want to .then() on it
+    console.log('User promise chain:', newChain);
     return newChain;
 }
 
