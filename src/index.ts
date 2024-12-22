@@ -90,6 +90,7 @@ async function startServer() {
             },
             onDisconnect: async (context) => {
                 const user = await unsafeGetContextUser(context);
+                console.log('Disconnection Detected');
                 if (!user) {
                     console.log('\n! ON DISCONNECT: No user found in context\n');
                     return;
