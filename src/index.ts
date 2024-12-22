@@ -12,6 +12,7 @@ import { useCookies } from '@whatwg-node/server-plugin-cookies';
 import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
+import queueUserAction from './services/userQueueActions';
 
 const userWSSessionsMemory = new Map<string, string>();
 
@@ -76,31 +77,34 @@ async function startServer() {
             onConnect: async (context) => {
                 const user = await getContextUser(context);
                 if (!user) return;
-                const sessionIdentifier = context.connectionParams?.sessionidentifier as string;
-                if (!sessionIdentifier) { throw new Error('No sessionidentifier provided in ws connection params') }
-                if (userWSSessionsMemory.has(sessionIdentifier)) {
-                    return;
-                }
-                userWSSessionsMemory.set(sessionIdentifier, user.id.toString());
-                await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
-                await publishOnlineStatusChanged({
-                    userId: user.id,
+                queueUserAction(user.id.toString(), async () => {
+                    console.log('\n===============================');
+                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+                    await publishOnlineStatusChanged({ userId: user.id });
+
+                    const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
+                    console.log('Active Sessions:', activeSessionsCount);
+                    console.log('User connected:', user.id.toString());
+                    console.log('===============================\n');
                 });
             },
             onDisconnect: async (context) => {
                 const user = await unsafeGetContextUser(context);
                 if (!user) {
+                    console.log('\n! ON DISCONNECT: No user found in context\n');
                     return;
                 }
-                const sessionIdentifier = context.connectionParams?.sessionidentifier as string;
-                if (!sessionIdentifier) { throw new Error('No sessionidentifier provided in ws connection params') }
-                if (userWSSessionsMemory.get(sessionIdentifier) === user.id.toString()) {
-                    userWSSessionsMemory.delete(sessionIdentifier);
+                queueUserAction(user.id.toString(), async () => {
+                    console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
-                    await publishOnlineStatusChanged({
-                        userId: user.id,
-                    });
-                }
+                    await publishOnlineStatusChanged({ userId: user.id });
+
+                    const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
+                    console.log('Active Sessions:', activeSessionsCount);
+
+                    console.log('User disconnected:', user.id.toString());
+                    console.log('===============================\n');
+                });
             },
         })
 

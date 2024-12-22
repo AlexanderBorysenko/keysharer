@@ -4,6 +4,7 @@ import { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../../chat/service/isUserAChatMemeber";
 import { publishTypingStatusUpdated } from "./user.typingStatusUpdated.subscription";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
+import queueUserAction from "../../../services/userQueueActions";
 
 export const updateTypingStatusDefs = `
 type Mutation {
@@ -27,12 +28,14 @@ export const updateTypingStatus = async (
 	});
 
 	try {
-		await publishTypingStatusUpdated({
-			userId: user.id,
-			chatId: types.Uuid.fromString(chatId),
-			userIds: chatUserIds,
-			isTyping,
-		});
+		queueUserAction(user.id.toString(), async () => {
+			await publishTypingStatusUpdated({
+				userId: user.id,
+				chatId: types.Uuid.fromString(chatId),
+				userIds: chatUserIds,
+				isTyping,
+			});
+		})
 
 		return true;
 	} catch (error) {

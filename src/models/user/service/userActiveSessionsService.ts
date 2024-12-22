@@ -22,7 +22,7 @@ class UserActiveSessionsService {
             decrement: `UPDATE app_keyspace.user_active_sessions_count SET active_sessions_count = active_sessions_count - 1 WHERE user_id = ?`,
         };
         if (action === 'decrement') {
-            const previousCount = await this.getUsersActiveSessionsCount(userId);
+            const previousCount = await this.getUserActiveSessionsCount(userId);
             if (previousCount === 0) {
                 return;
             }
@@ -45,14 +45,14 @@ class UserActiveSessionsService {
     /**
      * Get the active sessions count for a user
      */
-    getUsersActiveSessionsCount = async (userId: types.Uuid): Promise<number> => {
+    getUserActiveSessionsCount = async (userId: types.Uuid): Promise<number> => {
         const query = `SELECT active_sessions_count FROM app_keyspace.user_active_sessions_count WHERE user_id = ?`;
         const result = await client.execute(query, [userId], { prepare: true });
-        return result.rows[0]?.active_sessions_count || 0;
+        return result.rows[0]?.active_sessions_count.toNumber() || 0;
     }
 
     isUserOnline = async (userId: types.Uuid): Promise<boolean> => {
-        return (await this.getUsersActiveSessionsCount(userId)) > 0;
+        return (await this.getUserActiveSessionsCount(userId)) > 0;
     }
 }
 

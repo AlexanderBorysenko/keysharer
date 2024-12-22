@@ -30,6 +30,10 @@ export const publishOnlineStatusChanged = async ({
 }: {
 	userId: types.Uuid;
 }) => {
-	const isOnline = userActiveSessionsService.isUserOnline(userId);
+	const isOnline = await userActiveSessionsService.isUserOnline(userId);
+	console.log(`USER ${userId} isOnline: ${isOnline}`);
 	pubsub.publish(`ONLINE_STATUS_CHANGED_${userId.toString()}`, isOnline);
 };
+
+
+
