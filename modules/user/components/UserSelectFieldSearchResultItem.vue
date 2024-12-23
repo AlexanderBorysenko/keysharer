@@ -18,6 +18,7 @@
 			<p class="user-select-field-search-result-item__username">
 				{{ user.displayName }}
 				<OnlineMark
+					v-if="showUserOnlineStatus"
 					:users="[user]"
 					class="user-select-field-search-result-item__online-mark"
 				/>
@@ -42,6 +43,7 @@ import { useOnlineStatusesStore } from '../store/onlineStatusesStore';
 
 const props = defineProps<{
 	user: ModelTypes['User'];
+	showUserOnlineStatus: boolean;
 	selected: boolean;
 	onClick: () => void;
 	onOffline?: () => void;

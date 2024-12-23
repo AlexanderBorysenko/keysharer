@@ -13,6 +13,7 @@
 					@offline="() => deselectItem(user.id)"
 					:key="user.id"
 					:user="user"
+					:show-user-online-status="true"
 					:selected="model.includes(user.id)"
 				/>
 			</div>

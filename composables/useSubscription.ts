@@ -1,4 +1,6 @@
-import { type GenericOperation, type ModelTypes, type ScalarDefinition, type ValueTypes } from "~/graphql/zeus";
+import { ref, watch } from 'vue';
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
+import { type GenericOperation, type ModelTypes, type ValueTypes } from "~/graphql/zeus";
 
 export const useSubscription = <
     R extends keyof ValueTypes = GenericOperation<"subscription">,
@@ -6,11 +8,9 @@ export const useSubscription = <
 >(
     subscription: { [P in SubscriptionKey]: ValueTypes[R][P] }
 ) => {
-    const { $wsClient } = useNuxtApp();
+    const { $apollo } = useNuxtApp();
 
-    const callbacks: Array<(payload:
-        ValueTypes[R][SubscriptionKey]
-    ) => void> = [];
+    const callbacks: Array<(payload: ValueTypes[R][SubscriptionKey]) => void> = [];
     const on = (callback: (payload: ModelTypes[R][SubscriptionKey]) => void) => {
         callbacks.push(callback);
     };
@@ -25,29 +25,34 @@ export const useSubscription = <
     const stopSubscription = () => {
         stop.value = true;
         callbacks.splice(0, callbacks.length);
-    }
+    };
 
     watch(
-        () => $wsClient.value,
+        [() => $apollo.value],
         () => {
-            if (stop.value) return;
-            if (!$wsClient.value) return;
-            const subscriptionInstance = $wsClient.value("subscription")(
-                subscription
+            if (!$apollo.value) return;
+            const query = typedGql('subscription')(subscription as any);
+
+            const subscriptionInstance = $apollo.value.subscribe(
+                {
+                    query,
+                }
             );
-            // @ts-ignore
-            subscriptionInstance.on((payload) => {
-                // payload is an object with a single key
-                const subscriptionKey = Object.keys(subscription)[0];
-                // @ts-ignore
-                callbacks.forEach((cb) => cb(payload[subscriptionKey]));
+            subscriptionInstance.subscribe({
+                next: (payload) => {
+                    if (stop.value) return;
+                    const subscriptionKey = Object.keys(subscription)[0];
+                    // @ts-ignore
+                    callbacks.forEach((cb) => cb(payload.data[subscriptionKey]));
+                },
             });
-        }, { immediate: true }
+        },
+        { immediate: true }
     );
 
     return {
         on,
         off,
-        stopSubscription
+        stopSubscription,
     };
 };

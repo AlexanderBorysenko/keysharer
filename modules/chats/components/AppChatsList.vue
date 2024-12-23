@@ -23,13 +23,8 @@ import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticate
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
 const chatStore = useChatStore();
 const userStore = useUserStore();
-const {
-	$gqClient,
-	$onAppVisible,
-	$removeOnAppVisible,
-	$onOnline,
-	$removeOnOnline
-} = useNuxtApp();
+const { $gqClient, $onWsErrorResolved, $removeOnWsErrorResolved } =
+	useNuxtApp();
 
 const chatCards = ref<ModelTypes['Chat'][]>([]);
 const {
@@ -71,11 +66,9 @@ const fetchChats = async () => {
 
 await fetchChats();
 onMounted(() => {
-	$onAppVisible(fetchChats);
-	$onOnline(fetchChats);
+	$onWsErrorResolved(fetchChats);
 	onUnmounted(() => {
-		$removeOnAppVisible(fetchChats);
-		$removeOnOnline(fetchChats);
+		$removeOnWsErrorResolved(fetchChats);
 	});
 });
 

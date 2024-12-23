@@ -12,6 +12,7 @@
 					@click="() => selectItem(user.id)"
 					:key="user.id"
 					:user="user"
+					:showUserOnlineStatus="false"
 					:selected="user.id === model"
 				/>
 			</div>

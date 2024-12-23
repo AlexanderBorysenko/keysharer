@@ -86,7 +86,7 @@ onUnmounted(() => {
 const status = computed(() => {
 	if (typingStatus.value) return typingStatus.value;
 	if (props.chat.unread_messages_count! > 0) return 'New private messages';
-	return 'No private messages';
+	return 'No new messages';
 });
 
 const keySharingStore = useKeySharingStore();

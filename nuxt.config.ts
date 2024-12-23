@@ -10,7 +10,8 @@ export default defineNuxtConfig({
     '~/plugins/onOnlinePlugin',
     '~/plugins/globalStatesPlugin',
     '~/plugins/graphqlClientPlugin',
-    '~/plugins/graphqlWebsocketPlugin',
+    // '~/plugins/graphqlWebsocketPlugin',
+    '~/plugins/apollo',
   ],
   typescript: {
     tsConfig: {

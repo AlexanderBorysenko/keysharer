@@ -8,8 +8,7 @@ export const useChatStore = defineStore('chat', () => {
         onChatDeleted, onChatUpdated, onNewMessage, onTyping, onMessageUpdated,
     } = useUserSubscriptionsStore();
     const {
-        $onAppVisible,
-        $onOnline
+        $onWsErrorResolved
     } = useNuxtApp();
 
     const initialState: TChatState = {
@@ -93,11 +92,7 @@ export const useChatStore = defineStore('chat', () => {
             isLoadingChat.value = false
         }
     };
-    $onAppVisible(() => {
-        if (chatState.id)
-            setChat(chatState.id);
-    });
-    $onOnline(() => {
+    $onWsErrorResolved(() => {
         if (chatState.id)
             setChat(chatState.id);
     });
