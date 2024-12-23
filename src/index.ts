@@ -13,6 +13,9 @@ import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
 import queueUserAction from './services/queueUserAction';
+import { types } from 'cassandra-driver';
+import { publishOnlineServerPing } from './models/user/resolvers/user.onlineServerPing.subscription';
+import { usersOnlinePingPongIterationIdsStorage, usersOnlinePingPongIterationIntervalsStorage } from './models/user/storage/usersOnlinePingPongStorage';
 
 const userWSSessionsMemory = new Map<string, string>();
 
@@ -50,6 +53,7 @@ async function startServer() {
             schema,
             execute: (args: ExecutionArgs) => args.rootValue.execute(args),
             subscribe: (args: ExecutionArgs) => args.rootValue.subscribe(args),
+
             onSubscribe: async (context, msg) => {
                 const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
                     ...context,
@@ -77,6 +81,9 @@ async function startServer() {
             onConnect: async (context) => {
                 const user = await getContextUser(context);
                 if (!user) return;
+                const pingPongId: string = context.connectionParams?.pingpongid as string;
+                if (!pingPongId) throw new Error('No pingPongId provided');
+
                 queueUserAction(user.username, async () => {
                     console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
@@ -87,14 +94,32 @@ async function startServer() {
                     console.log('User connected:', user.username);
                     console.log('===============================\n');
                 });
+
+                usersOnlinePingPongIterationIdsStorage.set(pingPongId, '');
+                usersOnlinePingPongIterationIntervalsStorage.set(pingPongId, setInterval(async () => {
+                    const pingPongIterationId = types.TimeUuid.now().toString();
+                    await publishOnlineServerPing({
+                        pingPongIterationId: types.Uuid.fromString(pingPongIterationId),
+                        userId: user.id,
+                        pingPongId: types.Uuid.fromString(pingPongId)
+                    });
+                    setTimeout(() => {
+                        if (usersOnlinePingPongIterationIdsStorage.get(pingPongId) !== pingPongIterationId) {
+                            context.extra.socket.close();
+                        }
+                    }, 2500)
+                }, 5000));
             },
-            onDisconnect: async (context) => {
+            onClose: async (context) => {
                 const user = await unsafeGetContextUser(context);
-                console.log('Disconnection Detected');
-                if (!user) {
-                    console.log('\n! ON DISCONNECT: No user found in context\n');
-                    return;
-                }
+                if (!user) return;
+                const pingPongId: string = context.connectionParams?.pingpongid as string;
+                if (!pingPongId) throw new Error('No pingPongId provided');
+
+                clearInterval(usersOnlinePingPongIterationIntervalsStorage.get(pingPongId));
+                usersOnlinePingPongIterationIntervalsStorage.delete(pingPongId);
+                usersOnlinePingPongIterationIdsStorage.delete(pingPongId);
+
                 queueUserAction(user.username, async () => {
                     console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');

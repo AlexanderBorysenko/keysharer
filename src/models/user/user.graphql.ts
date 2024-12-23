@@ -47,6 +47,8 @@ import {
 	refreshTokenDefs,
 } from "./resolvers/user.refreshToken.mutation";
 import { logoutUser, logoutUserDefs } from "./resolvers/user.logoutUser.mutation";
+import { onlineServerPingDefs, onlineServerPingSubscription } from "./resolvers/user.onlineServerPing.subscription";
+import { onlineServerPong, onlineServerPongDefs } from "./resolvers/user.onlineSeverPong.mutation";
 
 export const userResolvers = {
 	Query: {
@@ -62,11 +64,13 @@ export const userResolvers = {
 		sendEmailVerification,
 		verifyEmail,
 		updateUser,
-		logoutUser
+		logoutUser,
+		onlineServerPong
 	},
 	Subscription: {
 		typingStatusUpdated,
 		onlineStatusChanged: onlineStatusChangedSubscription,
+		onlineServerPing: onlineServerPingSubscription,
 		userUpdated: userUpdatedSubscription,
 	},
 	User: {
@@ -90,8 +94,10 @@ export const userDefs = mergeTypeDefs([
 	verifyEmailDefs,
 	updateUserDefs,
 	logoutUserDefs,
+	onlineServerPongDefs,
 
 	typingStatusUpdatedDefs,
 	onlineStatusChangedDefs,
 	userUpdatedSubscriptionDefs,
+	onlineServerPingDefs,
 ]);
