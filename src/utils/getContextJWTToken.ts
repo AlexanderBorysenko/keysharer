@@ -17,6 +17,9 @@ export function getContextJWTToken(context: any): string | null {
 	if (context?.connectionParams?.authorization) {
 		return context.connectionParams.authorization; // receiving withot Bearer
 	}
+	if (context?.connectionParams?.Authorization) {
+		return context?.connectionParams?.Authorization;
+	}
 
 	// Get from classic http request cookies
 	const headerCookie = context?.request?.headers?.get("cookie");

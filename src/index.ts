@@ -80,9 +80,15 @@ async function startServer() {
             },
             onConnect: async (context) => {
                 const user = await getContextUser(context);
-                if (!user) return;
-                const pingPongId: string = context.connectionParams?.pingpongid as string;
-                if (!pingPongId) throw new Error('No pingPongId provided');
+                if (!user) {
+                    console.log('\nUser not found in onConnect\n');
+                    return;
+                }
+                const pingPongId: string = context.connectionParams?.pingPongId as string;
+                if (!pingPongId) {
+                    console.log('\nPingPongId not found in onConnect\n');
+                    return;
+                }
 
                 queueUserAction(user.username, async () => {
                     console.log('\n===============================');
@@ -94,7 +100,6 @@ async function startServer() {
                     console.log('User connected:', user.username);
                     console.log('===============================\n');
                 });
-
                 usersOnlinePingPongIterationIdsStorage.set(pingPongId, '');
                 usersOnlinePingPongIterationIntervalsStorage.set(pingPongId, setInterval(async () => {
                     const pingPongIterationId = types.TimeUuid.now().toString();
@@ -112,9 +117,15 @@ async function startServer() {
             },
             onClose: async (context) => {
                 const user = await unsafeGetContextUser(context);
-                if (!user) return;
-                const pingPongId: string = context.connectionParams?.pingpongid as string;
-                if (!pingPongId) throw new Error('No pingPongId provided');
+                if (!user) {
+                    console.log('\nUser not found in onClose\n');
+                    return;
+                }
+                const pingPongId: string = context.connectionParams?.pingPongId as string;
+                if (!pingPongId) {
+                    console.log('\nPingPongId not found in onClose\n');
+                    return;
+                }
 
                 clearInterval(usersOnlinePingPongIterationIntervalsStorage.get(pingPongId));
                 usersOnlinePingPongIterationIntervalsStorage.delete(pingPongId);
