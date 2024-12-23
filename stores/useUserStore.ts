@@ -6,9 +6,28 @@ const useUserStore = defineStore('userStore', () => {
     const {
         $gqClient,
         $AuthorizationToken,
-        $isUserInitialized
+        $isUserInitialized,
+        $pingPongId
     } = useNuxtApp();
     const chatStore = useChatStore();
+
+    const {
+        on: onPing,
+    } = useSubscription({
+        onlineServerPing: [{
+            pingPongId: $pingPongId.value
+        }, true]
+    });
+    onPing((pingPongIterationId: string) => {
+        $gqClient('mutation')({
+            onlineServerPong: [{
+                input: {
+                    pingPongId: $pingPongId.value,
+                    pingPongIterationId
+                }
+            }, true]
+        })
+    })
 
     const router = useRouter();
 

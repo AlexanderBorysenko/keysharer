@@ -15,15 +15,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     await userStore.initializeUser();
 
     if (import.meta.client) {
-        // Handle visibility change
-        if (!window.__VISIBILITY_LISTENER__) {
-            window.__VISIBILITY_LISTENER__ = true;
-            $onAppVisible(async () => {
-                if (!userStore.state.id) return;
-                await userStore.refreshToken();
-            });
-        }
-
         // Handle token refresh interval
         if (!window.__TOKEN_REFRESH_INTERVAL__) {
             window.__TOKEN_REFRESH_INTERVAL__ = setInterval(async () => {

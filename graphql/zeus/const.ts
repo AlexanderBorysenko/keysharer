@@ -5,6 +5,9 @@ export const AllTypesProps: Record<string,any> = {
 		onlineStatusChanged:{
 
 		},
+		onlineServerPing:{
+
+		},
 		onReceivedKeySharingTransactionPublicKey:{
 
 		},
@@ -46,6 +49,9 @@ export const AllTypesProps: Record<string,any> = {
 		updateUser:{
 			input:"UpdateUserInput"
 		},
+		onlineServerPong:{
+			input:"OnlineServerPongInput"
+		},
 		createUserChat:{
 			input:"CreateChatInput"
 		},
@@ -86,6 +92,9 @@ export const AllTypesProps: Record<string,any> = {
 	File: `scalar.File` as const,
 	UpdateUserInput:{
 		avatar:"File"
+	},
+	OnlineServerPongInput:{
+
 	},
 	DateTime: `scalar.DateTime` as const,
 	Chat:{
@@ -131,6 +140,7 @@ export const ReturnTypes: Record<string,any> = {
 		typingStatusUpdated:"UserTypingStatus",
 		onlineStatusChanged:"Boolean",
 		userUpdated:"User",
+		onlineServerPing:"String",
 		chatUpdated:"Chat",
 		chatCreated:"Chat",
 		chatDeleted:"ID",
@@ -173,6 +183,7 @@ export const ReturnTypes: Record<string,any> = {
 		verifyEmail:"Boolean",
 		updateUser:"Boolean",
 		logoutUser:"Boolean",
+		onlineServerPong:"Boolean",
 		createUserChat:"Chat",
 		deleteUserChat:"Boolean",
 		updateChat:"Boolean",
