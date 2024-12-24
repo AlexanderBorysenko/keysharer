@@ -21,8 +21,8 @@ export const useOnlineStatusesStore = defineStore('onlineStatusesStore', () => {
     }
 
     const listenToUser = (userId: string, isOnline: boolean) => {
-        // If already listening to user, return
         const userIndex = getUserListenerIndex(userId);
+
         if (userIndex !== -1) {
             listeners.value[userIndex].isOnline = isOnline;
             listeners.value[userIndex].callbacks.forEach(cb => cb(
@@ -31,20 +31,20 @@ export const useOnlineStatusesStore = defineStore('onlineStatusesStore', () => {
             return;
         }
 
+        console.log('Start listening to user', userId, isOnline);
         listeners.value.push({
             id: userId,
             isOnline,
             callbacks: [],
         });
-
         const { on } = useSubscription({
             onlineStatusChanged: [{
                 userId,
             }, true]
         })
         on((isOnline) => {
+            console.log(`User Online Change Event ${userId}`, isOnline ? '🟢' : '🔴');
             const listenerIndex = getUserListenerIndex(userId);
-            if (listenerIndex === -1) return;
             listeners.value[listenerIndex].isOnline = isOnline;
             listeners.value[listenerIndex].callbacks.forEach(cb => cb(
                 isOnline

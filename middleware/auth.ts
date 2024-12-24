@@ -7,7 +7,7 @@ declare global {
 
 export default defineNuxtRouteMiddleware(async (to, from) => {
     const {
-        $onAppVisible
+        $onOnline
     } = useNuxtApp();
     const userStore = useUserStore();
     console.log('Auth middleware', to.path, from.path, userStore.state.id);
@@ -22,6 +22,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
                 await userStore.refreshToken();
             }, 1000 * 60 * 5); // 5 minutes
         }
+        $onOnline(() => {
+            if (!userStore.state.id) return;
+            userStore.refreshToken();
+        });
     }
 
     return;

@@ -48,26 +48,25 @@ export default defineNuxtPlugin(() => {
         return new GraphQLWsLink(createClient({
             url: config.public.wsHost,
             disablePong: true,
-            retryAttempts: 9999999999999,
-            shouldRetry(errOrCloseEvent) {
-                console.log('Retrying WebSocket connection...')
-                return true
-            },
+            retryAttempts: Infinity,
+            shouldRetry: () => true,
             connectionParams: {
                 Authorization: token,
                 pingPongId: pingPongId.value,
             },
+            retryWait: async () => {
+                await new Promise(resolve => setTimeout(resolve, 2500));
+                return;
+            },
             on: {
                 error: () => {
-                    console.log('>>>>> WebSocket error occurred.')
-                    wsErrorOccurred.value = true
+                    wsErrorOccurred.value = true;
                 },
                 opened: () => {
-                    console.log('<<<<<< WebSocket connection established.')
-                    resolveWsError()
+                    resolveWsError();
                 },
-            }
-        }))
+            },
+        }));
     }
 
     function initApollo(token: string) {
