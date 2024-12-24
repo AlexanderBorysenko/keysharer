@@ -112,8 +112,8 @@ async function startServer() {
                         if (usersOnlinePingPongIterationIdsStorage.get(pingPongId) !== pingPongIterationId) {
                             context.extra.socket.close();
                         }
-                    }, 2500)
-                }, 5000));
+                    }, 5000)
+                }, 10000));
             },
             onClose: async (context) => {
                 const user = await unsafeGetContextUser(context);
