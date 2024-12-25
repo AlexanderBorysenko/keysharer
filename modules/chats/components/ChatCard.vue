@@ -151,6 +151,7 @@ const incomingKeysCount = computed(
 		font-size: 1.125rem;
 		line-height: 150%;
 		margin-right: auto;
+		gap: 0.25rem;
 		// max 1 line, eclipse with ...
 		&-text {
 			overflow: hidden;
