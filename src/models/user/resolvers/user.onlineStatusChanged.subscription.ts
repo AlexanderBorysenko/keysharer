@@ -4,6 +4,7 @@ import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddlewa
 import { types } from "cassandra-driver";
 import userActiveSessionsService from "../service/userActiveSessionsService";
 import type { User } from "../user.types";
+import { findUser } from "../service/findUser";
 
 export const onlineStatusChangedDefs = `
 type Subscription {

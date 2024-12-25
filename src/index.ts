@@ -17,8 +17,6 @@ import { types } from 'cassandra-driver';
 import { publishOnlineServerPing } from './models/user/resolvers/user.onlineServerPing.subscription';
 import { usersOnlinePingPongIterationIdsStorage, usersOnlinePingPongIterationIntervalsStorage } from './models/user/storage/usersOnlinePingPongStorage';
 
-const userWSSessionsMemory = new Map<string, string>();
-
 async function startServer() {
     try {
         await client.connect();
