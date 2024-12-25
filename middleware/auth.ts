@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
             window.__TOKEN_REFRESH_INTERVAL__ = setInterval(async () => {
                 if (!userStore.state.id) return;
                 await userStore.refreshToken();
-            }, 1000 * 60 * 5); // 5 minutes
+            }, 1000 * 60 * 10); // 5 minutes
         }
         $onOnline(() => {
             if (!userStore.state.id) return;

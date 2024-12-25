@@ -17,11 +17,13 @@
 		<div class="user-select-field-search-result-item__info">
 			<p class="user-select-field-search-result-item__username">
 				{{ user.displayName }}
-				<OnlineMark
-					v-if="showUserOnlineStatus"
-					:users="[user]"
-					class="user-select-field-search-result-item__online-mark"
-				/>
+				<ClientOnly>
+					<OnlineMark
+						v-if="showUserOnlineStatus"
+						:users="[user]"
+						class="user-select-field-search-result-item__online-mark"
+					/>
+				</ClientOnly>
 			</p>
 			<p class="user-select-field-search-result-item__display-name">
 				@{{ user.username }}

@@ -16,7 +16,9 @@
 			<div class="chat-card__head">
 				<h3 class="chat-card__title">
 					{{ chat.name }}
-					<OnlineMark :users="chat.users || []" />
+					<ClientOnly>
+						<OnlineMark :users="chat.users || []" />
+					</ClientOnly>
 				</h3>
 			</div>
 			<p class="chat-card__messages-status">
