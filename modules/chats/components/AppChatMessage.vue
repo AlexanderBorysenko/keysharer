@@ -6,44 +6,56 @@
 			'is-mine': isMine
 		}"
 	>
-		<div
-			class="message__attachments"
-			:class="{
-				'_no-margin-bottom': !content.length
-			}"
-			v-if="message.files && message.files.length > 0"
-		>
-			<AppChatMessageAttachment
-				v-for="file in message.files"
-				:key="file.file_name"
-				:disableEncryption="message.disable_encryption"
-				:file="file"
+		<div class="message__avatar" v-if="!isMine">
+			<UserAvatarImage
+				:image="messageUser?.avatar || ''"
+				class="message__avatar-image"
+				:title="messageUser?.displayName"
 			/>
+			<p class="message__avatar-name" v-if="messageUser">
+				{{ messageUser?.displayName }}
+			</p>
 		</div>
-		<div class="message__main">
+		<div class="message__body">
 			<div
-				v-if="content"
-				class="message__text-content text-content"
-				v-html="content"
-			></div>
-			<SvgIcon
-				v-if="message.type === 'text'"
-				icon="message-tail"
-				class="message__tail"
-			/>
-			<div class="message__meta" v-if="message.type === 'text'">
-				<small
-					v-if="message.disable_encryption"
-					class="message-warning"
-				>
-					<SvgIcon icon="warning" class="message-warning__icon" />
-					Not Encrypted
-				</small>
-				<MessageTime :time="message.timestamp" />
-				<MessageStatusIcon
-					:isRead="message.is_read || false"
-					v-if="isMine"
+				class="message__attachments"
+				:class="{
+					'_no-margin-bottom': !content.length
+				}"
+				v-if="message.files && message.files.length > 0"
+			>
+				<AppChatMessageAttachment
+					v-for="file in message.files"
+					:key="file.file_name"
+					:disableEncryption="message.disable_encryption"
+					:file="file"
 				/>
+			</div>
+			<div class="message__main">
+				<div
+					v-if="content"
+					class="message__text-content text-content"
+					v-html="content"
+				></div>
+				<SvgIcon
+					v-if="message.type === 'text'"
+					icon="message-tail"
+					class="message__tail"
+				/>
+				<div class="message__meta" v-if="message.type === 'text'">
+					<small
+						v-if="message.disable_encryption"
+						class="message-warning"
+					>
+						<SvgIcon icon="warning" class="message-warning__icon" />
+						Not Encrypted
+					</small>
+					<MessageTime :time="message.timestamp" />
+					<MessageStatusIcon
+						:isRead="message.is_read || false"
+						v-if="isMine"
+					/>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -58,6 +70,8 @@ import MarkdownIt from 'markdown-it';
 import type { ModelTypes } from '~/graphql/zeus';
 import { getGQErrorMessage } from '~/graphql/utils/getGQErrorMessage';
 import AppChatMessageAttachment from './AppChatMessageAttachment.vue';
+import { useChatStore } from '../store/useChatStore';
+import UserAvatarImage from '~/modules/user/components/UserAvatarImage.vue';
 const md = new MarkdownIt();
 const { $gqClient } = useNuxtApp();
 const { addNotification } = useAppNotificationsStore();
@@ -65,7 +79,12 @@ const { addNotification } = useAppNotificationsStore();
 const messageElementRef = ref<HTMLElement | null>(null);
 
 const userStore = useUserStore();
+const chatStore = useChatStore();
 const isMine = computed(() => userStore.state.id === props.message.user_id);
+const messageUser = computed(() => {
+	if (isMine.value) return null;
+	return chatStore.chatState.users?.find(u => u.id === props.message.user_id);
+});
 
 const props = defineProps<{
 	message: ModelTypes['Message'];
@@ -116,12 +135,39 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .message {
-	position: relative;
-	color: #fff;
-	--message-side-space: 0.625rem;
-	border-radius: 0.625rem;
-	max-width: min(42.125rem, calc(100% - 2rem));
-	width: fit-content;
+	display: flex;
+	align-items: flex-end;
+	gap: 0.5rem;
+	&__avatar {
+		position: relative;
+		&-image {
+			width: 2rem;
+			height: 2rem;
+			border-radius: 50%;
+			overflow: hidden;
+			pointer-events: all;
+		}
+		&-name {
+			position: absolute;
+			bottom: calc(100% + 0.25rem);
+			background: #232c3d;
+			padding: 0.25rem 0.5rem;
+			z-index: 10;
+			border-radius: 0.5rem;
+			display: none;
+		}
+		&-image:hover + &-name {
+			display: block;
+		}
+	}
+	&__body {
+		position: relative;
+		color: #fff;
+		--message-side-space: 0.625rem;
+		border-radius: 0.625rem;
+		max-width: min(42.125rem, calc(100% - 2rem));
+		width: fit-content;
+	}
 	&__attachments {
 		border-radius: 0.625rem;
 		overflow: hidden;
@@ -172,7 +218,9 @@ onMounted(() => {
 	}
 	&:not(.is-mine) {
 		margin-left: var(--message-side-space);
-		background: #161b26;
+		.message__body {
+			background: #161b26;
+		}
 	}
 	&:not(.is-mine) &__tail {
 		color: #161b26;
@@ -183,7 +231,9 @@ onMounted(() => {
 	&.is-mine {
 		margin-right: var(--message-side-space);
 		margin-left: auto;
-		background: #232c3d;
+		.message__body {
+			background: #232c3d;
+		}
 	}
 	&.is-mine &__tail {
 		color: #232c3d;

@@ -23,7 +23,7 @@
 					<span class="fs-1-125 mb-0-5 block"> Chat Image </span>
 					<BaseImageInput
 						v-model="chatSettingsStore.chatUpdateForm.avatar"
-						:previous-image-url="chatStore.chatState?.avatar"
+						:previous-image-url="chatStore.chatState?.avatar || ''"
 						class="mb-1"
 					/>
 				</label>

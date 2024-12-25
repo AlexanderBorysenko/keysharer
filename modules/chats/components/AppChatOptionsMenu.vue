@@ -15,15 +15,19 @@
 			</AppChatOptionsMenuItem>
 			<AppChatOptionsMenuItem
 				icon="users"
-				@click="chatSettingsStore.openSettingsModal"
+				@click="chatUsersManagerStore.openChatUsersManagerModal"
 			>
-				Users
+				Members
 			</AppChatOptionsMenuItem>
 			<AppChatOptionsMenuItem
 				icon="trash"
+				v-if="chatStore.chatState.iAmAdmin"
 				@click="chatDeletionStore.openChatDeletionModal"
 			>
 				Delete
+			</AppChatOptionsMenuItem>
+			<AppChatOptionsMenuItem icon="logout" @click="onLeave" v-else>
+				Leave
 			</AppChatOptionsMenuItem>
 		</div>
 	</button>
@@ -34,14 +38,23 @@ import SvgIcon from '~/components/SvgIcon.vue';
 import { useChatSettingsStore } from '../store/useChatSettingsStore';
 import AppChatOptionsMenuItem from './AppChatOptionsMenuItem.vue';
 import { useChatDeletionStore } from '../store/useChatDeletionStore';
+import { useChatStore } from '../store/useChatStore';
+import { useChatUsersManagerStore } from '../store/useChatUsersManagerStore';
 const chatSettingsStore = useChatSettingsStore();
 const chatDeletionStore = useChatDeletionStore();
+const chatStore = useChatStore();
+const chatUsersManagerStore = useChatUsersManagerStore();
 
 const isOptionsOpen = ref(false);
 
 const { elementRef } = useElementOutsideClick(() => {
 	isOptionsOpen.value = false;
 });
+
+const onLeave = () => {
+	chatStore.leaveChat();
+	isOptionsOpen.value = false;
+};
 </script>
 
 <style lang="scss">

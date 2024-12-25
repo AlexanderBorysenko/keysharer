@@ -14,12 +14,6 @@
 				<label class="mb-1 block">
 					<span class="fs-1-125 mb-0-5 block">Delete Chat?</span>
 				</label>
-				<BaseCheckbox
-					v-model="chatDeletionStore.deleteOnlyForMe"
-					class="mb-1"
-				>
-					Delete only for me
-				</BaseCheckbox>
 				<p
 					class="text-danger mb-0-5"
 					v-for="error in chatDeletionStore.errors"
@@ -51,7 +45,6 @@
 </template>
 
 <script setup lang="ts">
-import BaseCheckbox from '~/components/BaseCheckbox.vue';
 import { useChatDeletionStore } from '../store/useChatDeletionStore';
 
 const chatDeletionStore = useChatDeletionStore();

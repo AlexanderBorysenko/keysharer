@@ -33,7 +33,7 @@ const messageFormStore = useMessageFormStore();
 const { files } = storeToRefs(messageFormStore);
 
 const removeFile = (file: File) => {
-	const newFiles = files.value.filter(f => f !== file);
+	const newFiles = files.value?.filter(f => f !== file);
 	files.value = newFiles;
 };
 

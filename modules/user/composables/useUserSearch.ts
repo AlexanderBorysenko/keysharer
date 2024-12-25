@@ -1,7 +1,10 @@
 import type { ModelTypes } from "~/graphql/zeus";
-import type { TUser } from "~/modules/user/types/TUser"
 
-const useUserSearch = () => {
+const useUserSearch = ({
+    exclude
+}: {
+    exclude?: string[]
+} = {}) => {
     const {
         $gqClient
     } = useNuxtApp();
@@ -25,7 +28,10 @@ const useUserSearch = () => {
         const response = await $gqClient('query')({
             users: [
                 {
-                    input: { search: request }
+                    input: {
+                        search: request,
+                        excludeUserIds: exclude || []
+                    }
                 },
                 {
                     id: true,

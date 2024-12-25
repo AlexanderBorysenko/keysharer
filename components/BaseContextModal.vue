@@ -57,6 +57,7 @@ const emit = defineEmits<{
 		border-radius: 0.75rem;
 		width: min(25rem, calc(100% - 2rem));
 		position: relative;
+		overflow: auto;
 	}
 	&__close-button {
 		display: flex;

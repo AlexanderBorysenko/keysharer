@@ -148,16 +148,17 @@ onUnmounted(() => {
 		color: rgba(255, 255, 255, 0.5);
 		font-size: 0.75rem;
 		line-height: 1em;
-		height: 2.3em;
 		overflow: hidden;
 		max-width: 100%;
-		padding: 0.5rem;
+		padding: 0 0.5rem 0.5rem 0.5rem;
 		word-break: break-all;
 		display: block;
 	}
 	&__preview-content {
 		text-overflow: ellipsis;
 		word-break: break-all;
+		height: 1em;
+		overflow: hidden;
 		display: -webkit-box;
 		-webkit-line-clamp: 1;
 		-webkit-box-orient: vertical;

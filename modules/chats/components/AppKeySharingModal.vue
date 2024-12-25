@@ -18,7 +18,7 @@
 				</p>
 				<StaticUserSelectField
 					v-model="targetUsers"
-					:users="chatUsers"
+					:users="chatUsers || []"
 					class="key-sharing__user-select"
 				/>
 			</div>
@@ -60,7 +60,7 @@ import { useKeySharingStore } from '~/modules/encryption/store/useKeySharingStor
 const userStore = useUserStore();
 const chatStore = useChatStore();
 const chatUsers = computed(() =>
-	chatStore.chatState.users.filter(user => user.id !== userStore.state.id)
+	chatStore.chatState.users?.filter(user => user.id !== userStore.state.id)
 );
 
 const keySharingStore = useKeySharingStore();

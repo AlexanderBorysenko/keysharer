@@ -21,7 +21,7 @@ export const useMessageFormStore = defineStore('messageFormStore', () => {
     }> = ref({});
 
     const content = computed({
-        get: () => messageForms.value[chatStore.chatState.id || '']?.content,
+        get: () => messageForms.value[chatStore.chatState.id || '']?.content || '',
         set: (value) => {
             if (!chatStore.chatState.id) return;
             messageForms.value[chatStore.chatState.id].content = value;
@@ -32,7 +32,7 @@ export const useMessageFormStore = defineStore('messageFormStore', () => {
         return chatEncryptionService.encryptTextMessage(content.value.trim());
     })
     const files = computed({
-        get: () => messageForms.value[chatStore.chatState.id || '']?.files,
+        get: () => messageForms.value[chatStore.chatState.id || '']?.files || [],
         set: (value) => {
             if (!chatStore.chatState.id) return;
             messageForms.value[chatStore.chatState.id].files = value;

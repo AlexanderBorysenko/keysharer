@@ -9,6 +9,7 @@
 		<AppChatHead />
 		<AppChatSettings />
 		<AppChatDeletion />
+		<AppChatUsersManager />
 		<AppChatMessages class="app-chat__messages" />
 		<div class="app-chat__message-field-wrapper">
 			<AppChatMessageForm />
@@ -32,6 +33,7 @@ import AppChatHead from './AppChatHead.vue';
 import AppChatMessageForm from './AppChatMessageForm.vue';
 import AppChatMessages from './AppChatMessages.vue';
 import AppChatSettings from './AppChatSettings.vue';
+import AppChatUsersManager from './AppChatUsersManager.vue';
 
 const chatStore = useChatStore();
 const { fileDropEventHandler } = useMessageFormStore();

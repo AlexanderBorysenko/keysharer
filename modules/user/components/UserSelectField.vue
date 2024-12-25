@@ -25,7 +25,13 @@ import BaseClearableInputField from '~/components/BaseClearableInputField.vue';
 import useUserSearch from '../composables/useUserSearch';
 import UserSelectFieldSearchResultItem from './UserSelectFieldSearchResultItem.vue';
 
-const { search, result } = useUserSearch();
+const props = defineProps<{
+	exclude?: string[];
+}>();
+
+const { search, result } = useUserSearch({
+	exclude: props.exclude
+});
 
 const model = defineModel<string | null>({
 	required: true

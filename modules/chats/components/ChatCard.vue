@@ -15,10 +15,14 @@
 		<div class="chat-card__body">
 			<div class="chat-card__head">
 				<h3 class="chat-card__title">
-					{{ chat.name }}
-					<ClientOnly>
-						<OnlineMark :users="chat.users || []" />
-					</ClientOnly>
+					<span class="chat-card__title-text">
+						{{ chat.name }}
+					</span>
+					<span class="chat-card__title-online-mark">
+						<ClientOnly>
+							<OnlineMark :users="chat.users || []" />
+						</ClientOnly>
+					</span>
 				</h3>
 			</div>
 			<p class="chat-card__messages-status">
@@ -142,10 +146,23 @@ const incomingKeysCount = computed(
 	}
 
 	&__title {
+		display: flex;
 		font-weight: 500;
 		font-size: 1.125rem;
 		line-height: 150%;
 		margin-right: auto;
+		// max 1 line, eclipse with ...
+		&-text {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			-webkit-line-clamp: 1;
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			height: 1.4em;
+		}
+		&-online-mark {
+			flex: 0 0 max-content;
+		}
 	}
 
 	&__message-status-icon {

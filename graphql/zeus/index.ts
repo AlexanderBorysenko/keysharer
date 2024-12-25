@@ -923,7 +923,8 @@ onKeySharingTransactionSuccess?: [{	transactionId: string | Variable<any, string
 		__typename?: boolean | `@${string}`
 }>;
 	["UserQueryInput"]: {
-	search?: string | undefined | null | Variable<any, string>
+	search?: string | undefined | null | Variable<any, string>,
+	excludeUserIds?: Array<string> | undefined | null | Variable<any, string>
 };
 	["Query"]: AliasType<{
 users?: [{	input?: ValueTypes["UserQueryInput"] | undefined | null | Variable<any, string>},ValueTypes["User"]],
@@ -950,9 +951,10 @@ updateUser?: [{	input: ValueTypes["UpdateUserInput"] | Variable<any, string>},bo
 	logoutUser?:boolean | `@${string}`,
 onlineServerPong?: [{	input: ValueTypes["OnlineServerPongInput"] | Variable<any, string>},boolean | `@${string}`],
 createUserChat?: [{	input: ValueTypes["CreateChatInput"] | Variable<any, string>},ValueTypes["Chat"]],
-deleteUserChat?: [{	input: ValueTypes["DeleteUserChatInput"] | Variable<any, string>},boolean | `@${string}`],
+deleteChat?: [{	input: ValueTypes["DeleteChatInput"] | Variable<any, string>},boolean | `@${string}`],
 updateChat?: [{	input: ValueTypes["UpdateChatInput"] | Variable<any, string>},boolean | `@${string}`],
 addUserToChat?: [{	input: ValueTypes["AddUserToChatInput"] | Variable<any, string>},boolean | `@${string}`],
+removeUserFromChat?: [{	input: ValueTypes["RemoveUserFromChatInput"] | Variable<any, string>},boolean | `@${string}`],
 sendMessage?: [{	input: ValueTypes["SendMessageInput"] | Variable<any, string>},boolean | `@${string}`],
 readMessage?: [{	messageId: string | Variable<any, string>},boolean | `@${string}`],
 sendKeySharingTransaction?: [{	input: ValueTypes["SendKeySharingTransactionInput"] | Variable<any, string>},boolean | `@${string}`],
@@ -989,6 +991,7 @@ sendKeySharingTransactionSuccess?: [{	input: ValueTypes["SendKeySharingTransacti
 	name?:boolean | `@${string}`,
 	avatar?:boolean | `@${string}`,
 	owner_id?:boolean | `@${string}`,
+	iAmAdmin?:boolean | `@${string}`,
 	updated_at?:boolean | `@${string}`,
 	unread_messages_count?:boolean | `@${string}`,
 	users?:ValueTypes["User"],
@@ -1000,7 +1003,7 @@ messages?: [{	lastMessageId?: string | undefined | null | Variable<any, string>}
 	avatar?: string | undefined | null | Variable<any, string>,
 	userIds: Array<string> | Variable<any, string>
 };
-	["DeleteUserChatInput"]: {
+	["DeleteChatInput"]: {
 	chatId: string | Variable<any, string>,
 	userId?: string | undefined | null | Variable<any, string>
 };
@@ -1010,6 +1013,10 @@ messages?: [{	lastMessageId?: string | undefined | null | Variable<any, string>}
 	avatar?: ValueTypes["File"] | undefined | null | Variable<any, string>
 };
 	["AddUserToChatInput"]: {
+	chatId: string | Variable<any, string>,
+	userId: string | Variable<any, string>
+};
+	["RemoveUserFromChatInput"]: {
 	chatId: string | Variable<any, string>,
 	userId: string | Variable<any, string>
 };
@@ -1115,7 +1122,8 @@ onKeySharingTransactionSuccess?: [{	transactionId: string},boolean | `@${string}
 		__typename?: boolean | `@${string}`
 }>;
 	["UserQueryInput"]: {
-	search?: string | undefined | null
+	search?: string | undefined | null,
+	excludeUserIds?: Array<string> | undefined | null
 };
 	["Query"]: AliasType<{
 users?: [{	input?: ResolverInputTypes["UserQueryInput"] | undefined | null},ResolverInputTypes["User"]],
@@ -1142,9 +1150,10 @@ updateUser?: [{	input: ResolverInputTypes["UpdateUserInput"]},boolean | `@${stri
 	logoutUser?:boolean | `@${string}`,
 onlineServerPong?: [{	input: ResolverInputTypes["OnlineServerPongInput"]},boolean | `@${string}`],
 createUserChat?: [{	input: ResolverInputTypes["CreateChatInput"]},ResolverInputTypes["Chat"]],
-deleteUserChat?: [{	input: ResolverInputTypes["DeleteUserChatInput"]},boolean | `@${string}`],
+deleteChat?: [{	input: ResolverInputTypes["DeleteChatInput"]},boolean | `@${string}`],
 updateChat?: [{	input: ResolverInputTypes["UpdateChatInput"]},boolean | `@${string}`],
 addUserToChat?: [{	input: ResolverInputTypes["AddUserToChatInput"]},boolean | `@${string}`],
+removeUserFromChat?: [{	input: ResolverInputTypes["RemoveUserFromChatInput"]},boolean | `@${string}`],
 sendMessage?: [{	input: ResolverInputTypes["SendMessageInput"]},boolean | `@${string}`],
 readMessage?: [{	messageId: string},boolean | `@${string}`],
 sendKeySharingTransaction?: [{	input: ResolverInputTypes["SendKeySharingTransactionInput"]},boolean | `@${string}`],
@@ -1181,6 +1190,7 @@ sendKeySharingTransactionSuccess?: [{	input: ResolverInputTypes["SendKeySharingT
 	name?:boolean | `@${string}`,
 	avatar?:boolean | `@${string}`,
 	owner_id?:boolean | `@${string}`,
+	iAmAdmin?:boolean | `@${string}`,
 	updated_at?:boolean | `@${string}`,
 	unread_messages_count?:boolean | `@${string}`,
 	users?:ResolverInputTypes["User"],
@@ -1192,7 +1202,7 @@ messages?: [{	lastMessageId?: string | undefined | null},ResolverInputTypes["Mes
 	avatar?: string | undefined | null,
 	userIds: Array<string>
 };
-	["DeleteUserChatInput"]: {
+	["DeleteChatInput"]: {
 	chatId: string,
 	userId?: string | undefined | null
 };
@@ -1202,6 +1212,10 @@ messages?: [{	lastMessageId?: string | undefined | null},ResolverInputTypes["Mes
 	avatar?: ResolverInputTypes["File"] | undefined | null
 };
 	["AddUserToChatInput"]: {
+	chatId: string,
+	userId: string
+};
+	["RemoveUserFromChatInput"]: {
 	chatId: string,
 	userId: string
 };
@@ -1310,7 +1324,8 @@ export type ModelTypes = {
 	isOnline?: boolean | undefined | null
 };
 	["UserQueryInput"]: {
-	search?: string | undefined | null
+	search?: string | undefined | null,
+	excludeUserIds?: Array<string> | undefined | null
 };
 	["Query"]: {
 		users: Array<ModelTypes["User"]>,
@@ -1336,9 +1351,10 @@ export type ModelTypes = {
 	logoutUser: boolean,
 	onlineServerPong: boolean,
 	createUserChat: ModelTypes["Chat"],
-	deleteUserChat: boolean,
+	deleteChat: boolean,
 	updateChat: boolean,
 	addUserToChat: boolean,
+	removeUserFromChat: boolean,
 	sendMessage: boolean,
 	readMessage: boolean,
 	sendKeySharingTransaction: string,
@@ -1373,6 +1389,7 @@ export type ModelTypes = {
 	name: string,
 	avatar?: string | undefined | null,
 	owner_id: string,
+	iAmAdmin?: boolean | undefined | null,
 	updated_at: ModelTypes["DateTime"],
 	unread_messages_count?: number | undefined | null,
 	users?: Array<ModelTypes["User"]> | undefined | null,
@@ -1383,7 +1400,7 @@ export type ModelTypes = {
 	avatar?: string | undefined | null,
 	userIds: Array<string>
 };
-	["DeleteUserChatInput"]: {
+	["DeleteChatInput"]: {
 	chatId: string,
 	userId?: string | undefined | null
 };
@@ -1393,6 +1410,10 @@ export type ModelTypes = {
 	avatar?: ModelTypes["File"] | undefined | null
 };
 	["AddUserToChatInput"]: {
+	chatId: string,
+	userId: string
+};
+	["RemoveUserFromChatInput"]: {
 	chatId: string,
 	userId: string
 };
@@ -1499,7 +1520,8 @@ export type GraphQLTypes = {
 	isOnline?: boolean | undefined | null
 };
 	["UserQueryInput"]: {
-		search?: string | undefined | null
+		search?: string | undefined | null,
+	excludeUserIds?: Array<string> | undefined | null
 };
 	["Query"]: {
 	__typename: "Query",
@@ -1527,9 +1549,10 @@ export type GraphQLTypes = {
 	logoutUser: boolean,
 	onlineServerPong: boolean,
 	createUserChat: GraphQLTypes["Chat"],
-	deleteUserChat: boolean,
+	deleteChat: boolean,
 	updateChat: boolean,
 	addUserToChat: boolean,
+	removeUserFromChat: boolean,
 	sendMessage: boolean,
 	readMessage: boolean,
 	sendKeySharingTransaction: string,
@@ -1566,6 +1589,7 @@ export type GraphQLTypes = {
 	name: string,
 	avatar?: string | undefined | null,
 	owner_id: string,
+	iAmAdmin?: boolean | undefined | null,
 	updated_at: GraphQLTypes["DateTime"],
 	unread_messages_count?: number | undefined | null,
 	users?: Array<GraphQLTypes["User"]> | undefined | null,
@@ -1576,7 +1600,7 @@ export type GraphQLTypes = {
 	avatar?: string | undefined | null,
 	userIds: Array<string>
 };
-	["DeleteUserChatInput"]: {
+	["DeleteChatInput"]: {
 		chatId: string,
 	userId?: string | undefined | null
 };
@@ -1586,6 +1610,10 @@ export type GraphQLTypes = {
 	avatar?: GraphQLTypes["File"] | undefined | null
 };
 	["AddUserToChatInput"]: {
+		chatId: string,
+	userId: string
+};
+	["RemoveUserFromChatInput"]: {
 		chatId: string,
 	userId: string
 };
@@ -1668,9 +1696,10 @@ type ZEUS_VARIABLES = {
 	["OnlineServerPongInput"]: ValueTypes["OnlineServerPongInput"];
 	["DateTime"]: ValueTypes["DateTime"];
 	["CreateChatInput"]: ValueTypes["CreateChatInput"];
-	["DeleteUserChatInput"]: ValueTypes["DeleteUserChatInput"];
+	["DeleteChatInput"]: ValueTypes["DeleteChatInput"];
 	["UpdateChatInput"]: ValueTypes["UpdateChatInput"];
 	["AddUserToChatInput"]: ValueTypes["AddUserToChatInput"];
+	["RemoveUserFromChatInput"]: ValueTypes["RemoveUserFromChatInput"];
 	["UploadedEncryptedFileInput"]: ValueTypes["UploadedEncryptedFileInput"];
 	["SendMessageInput"]: ValueTypes["SendMessageInput"];
 	["SendKeySharingTransactionInput"]: ValueTypes["SendKeySharingTransactionInput"];

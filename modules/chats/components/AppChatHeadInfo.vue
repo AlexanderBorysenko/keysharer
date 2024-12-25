@@ -12,10 +12,14 @@
 			</h2>
 			<p class="app-chat-head-info__subtitle">
 				<span
-					v-if="typingUsers.length > 0"
+					v-if="chatStore.typingUsers.length > 0"
 					class="app-chat-head-info__typing"
 				>
-					{{ typingUsers.map(user => user.displayName).join(', ') }}
+					{{
+						chatStore.typingUsers
+							.map(user => user.displayName)
+							.join(', ')
+					}}
 					typing...
 				</span>
 				<span
@@ -39,16 +43,26 @@ import { useChatStore } from '../store/useChatStore';
 import ChatAvatarImage from './ChatAvatarImage.vue';
 const chatStore = useChatStore();
 const userStore = useUserStore();
-const { countUsersSelectionOnline } = useOnlineStatusesStore();
-const onlineUsersCount = computed(() =>
-	countUsersSelectionOnline(
+const { countUsersSelectionOnline, listenToUser } = useOnlineStatusesStore();
+watch(
+	() => chatStore.chatState.users,
+	() => {
+		chatStore.chatState.users?.forEach(user => {
+			listenToUser(user.id, user.isOnline || false);
+		});
+	},
+	{ immediate: true }
+);
+const onlineUsersCount = computed(() => {
+	if (!chatStore.chatState.users) return 0;
+	return countUsersSelectionOnline(
 		chatStore.chatState.users
 			.map(user => user.id)
 			.filter(id => id !== userStore.state.id)
-	)
-);
+	);
+});
 const onlineStatus = computed(() => {
-	if (chatStore.chatState.users.length === 2) {
+	if (chatStore.chatState.users?.length === 2) {
 		return onlineUsersCount.value ? 'Online' : 'Offline';
 	} else {
 		return onlineUsersCount.value
@@ -56,9 +70,6 @@ const onlineStatus = computed(() => {
 			: 'Offline';
 	}
 });
-const typingUsers = computed(() =>
-	chatStore.chatState.users?.filter(user => user.isTyping)
-);
 </script>
 
 <style scoped lang="scss">
@@ -85,6 +96,14 @@ const typingUsers = computed(() =>
 		font-weight: 500;
 		font-size: 1.25rem;
 		line-height: 120%;
+
+		overflow: hidden;
+		text-overflow: ellipsis;
+		-webkit-line-clamp: 1;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		height: 1.25em;
+
 		@media (max-width: 640px) {
 			font-weight: 500;
 			font-size: 1rem;

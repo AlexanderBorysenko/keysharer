@@ -1,32 +1,52 @@
-import type { TChatState } from "../types/TChatState";
 import { fetchChatState } from "../service/fetchChatState";
 import { fetchChatMessagesPage } from "../service/fetchChatMessagesPage";
 import type { ModelTypes } from "~/graphql/zeus";
+import type { AllRequired } from "~/types/AllRequired";
+import { getGQErrorMessage } from "~/graphql/utils/getGQErrorMessage";
 
 export const useChatStore = defineStore('chat', () => {
     const {
         onChatDeleted, onChatUpdated, onNewMessage, onTyping, onMessageUpdated,
     } = useUserSubscriptionsStore();
     const {
-        $onWsErrorResolved
+        $onWsErrorResolved,
+        $gqClient
     } = useNuxtApp();
+    const userStore = useUserStore();
+    const appNotificationsStore = useAppNotificationsStore();
 
-    const initialState: TChatState = {
+    const initialState: ModelTypes['Chat'] = {
         id: '',
         users: [],
         name: '',
         avatar: '',
+        owner_id: '',
+        updated_at: '',
+        iAmAdmin: false,
+        unread_messages_count: 0,
         messages: [],
     };
 
+    const typingUserIds = ref<string[]>([]);
+    const updateUserTyping = (userId: string, isTyping: boolean) => {
+        if (isTyping) {
+            typingUserIds.value.push(userId);
+        } else {
+            const index = typingUserIds.value.indexOf(userId);
+            if (index !== -1) typingUserIds.value.splice(index, 1);
+        }
+    }
+    const typingUsers = computed(() => chatState.users?.filter(user => typingUserIds.value.includes(user.id)) || []);
+
     const isLoadingChat = ref(false);
-    const chatState = reactive<TChatState>({ ...initialState });
+    const chatState = reactive<ModelTypes['Chat']>({ ...initialState });
     const isOpened = ref(false);
     const isLoadingMoreMessages = ref(false);
     const isLastPage = ref(false);
 
     const resetChatState = () => {
         Object.assign(chatState, initialState);
+        typingUserIds.value = [];
     };
 
     const close = () => {
@@ -37,11 +57,7 @@ export const useChatStore = defineStore('chat', () => {
 
     const updateChatState = (chatUpdated: ModelTypes['Chat']) => {
         if (chatUpdated.id !== chatState.id) return;
-        Object.assign(chatState, {
-            users: chatUpdated.users || chatState.users,
-            name: chatUpdated.name || chatState.name,
-            avatar: chatUpdated.avatar || chatState.avatar,
-        });
+        Object.assign(chatState, chatUpdated);
     };
 
     const handleChatDeleted = (chatDeletedId: string) => {
@@ -51,17 +67,16 @@ export const useChatStore = defineStore('chat', () => {
 
     const addNewMessage = (newMessage: any) => {
         if (newMessage.chat_id !== chatState.id) return;
-        chatState.messages.push(newMessage);
+        chatState.messages?.push(newMessage);
     };
 
     const updateTypingStatus = (typing: { chatId: string, userId: string, isTyping: boolean }) => {
         if (typing.chatId !== chatState.id) return;
-        const user = chatState.users.find(user => user.id === typing.userId);
-        if (user) user.isTyping = typing.isTyping;
+        updateUserTyping(typing.userId, typing.isTyping);
     };
 
     const updateMessage = (messageUpdated: ModelTypes['Message']) => {
-        if (messageUpdated.chat_id !== chatState.id) return;
+        if (messageUpdated.chat_id !== chatState.id || !chatState.messages) return;
         const index = chatState.messages.findIndex(message => message.id === messageUpdated.id);
         if (index !== -1) chatState.messages[index] = messageUpdated;
     };
@@ -85,6 +100,7 @@ export const useChatStore = defineStore('chat', () => {
         try {
             const state = await fetchChatState(chatId);
             Object.assign(chatState, state);
+            if (!state.messages) return;
             isLastPage.value = state.messages.length < 20;
         } catch (error) {
             console.error(error);
@@ -98,17 +114,17 @@ export const useChatStore = defineStore('chat', () => {
     });
 
     const getChatUser = (userId: string) => {
-        return chatState.users.find(user => user.id === userId);
+        return chatState.users?.find(user => user.id === userId);
     }
 
-    const lastMessageId = computed(() => chatState.messages.length ? chatState.messages[0].id : '');
+    const lastMessageId = computed(() => chatState.messages?.length ? chatState.messages[0].id : '');
 
     const loadMoreMessages = async () => {
         if (isLoadingChat.value || isLoadingMoreMessages.value || !chatState.id || isLastPage.value) return;
         isLoadingMoreMessages.value = true;
         try {
             const messages = await fetchChatMessagesPage(chatState.id, lastMessageId.value);
-            chatState.messages.unshift(...messages);
+            chatState.messages?.unshift(...messages);
             isLastPage.value = messages.length < 1;
         } catch (error) {
             console.error(error);
@@ -117,15 +133,37 @@ export const useChatStore = defineStore('chat', () => {
         }
     };
 
+    const leaveChat = async () => {
+        if (!chatState.id) return;
+        try {
+            await $gqClient('mutation')({
+                removeUserFromChat: [{
+                    input: {
+                        chatId: chatState.id,
+                        userId: userStore.state.id || ''
+                    }
+                }, true]
+            });
+            close();
+        } catch (error) {
+            appNotificationsStore.addNotification({
+                type: 'error',
+                message: getGQErrorMessage(error)
+            });
+        }
+    }
+
     return {
         isOpened,
         close,
         chatState,
         setChat,
         getChatUser,
+        typingUsers,
         loadMoreMessages,
         isLoadingMoreMessages,
         isLoadingChat,
-        isLastPage
+        isLastPage,
+        leaveChat
     };
 });

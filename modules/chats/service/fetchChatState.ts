@@ -1,7 +1,7 @@
 import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticatedError";
-import type { TChatState } from "../types/TChatState";
+import type { ModelTypes } from "~/graphql/zeus";
 
-export const fetchChatState = async (chatId: string): Promise<TChatState> => {
+export const fetchChatState = async (chatId: string): Promise<ModelTypes['Chat']> => {
     const { $gqClient } = useNuxtApp();
     const {
         addNotification
@@ -14,10 +14,10 @@ export const fetchChatState = async (chatId: string): Promise<TChatState> => {
             myChat: [{
                 chatId
             }, {
-                id: true, name: true, avatar: true, owner_id: true,
+                id: true, name: true, avatar: true, owner_id: true, iAmAdmin: true, updated_at: true, unread_messages_count: true,
                 users:
                 {
-                    id: true, username: true, displayName: true, avatar: true, isOnline: true
+                    id: true, username: true, displayName: true, avatar: true, isOnline: true,
                 },
                 messages: [
                     {},
@@ -40,13 +40,7 @@ export const fetchChatState = async (chatId: string): Promise<TChatState> => {
                 ]
             }]
         })
-        return {
-            id: myChat.id,
-            avatar: myChat.avatar || '',
-            name: myChat.name,
-            users: myChat.users || [],
-            messages: myChat.messages || [],
-        };
+        return myChat;
     } catch (e) {
         addNotification({
             type: 'error',

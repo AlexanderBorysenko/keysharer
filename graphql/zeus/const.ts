@@ -55,14 +55,17 @@ export const AllTypesProps: Record<string,any> = {
 		createUserChat:{
 			input:"CreateChatInput"
 		},
-		deleteUserChat:{
-			input:"DeleteUserChatInput"
+		deleteChat:{
+			input:"DeleteChatInput"
 		},
 		updateChat:{
 			input:"UpdateChatInput"
 		},
 		addUserToChat:{
 			input:"AddUserToChatInput"
+		},
+		removeUserFromChat:{
+			input:"RemoveUserFromChatInput"
 		},
 		sendMessage:{
 			input:"SendMessageInput"
@@ -105,13 +108,16 @@ export const AllTypesProps: Record<string,any> = {
 	CreateChatInput:{
 
 	},
-	DeleteUserChatInput:{
+	DeleteChatInput:{
 
 	},
 	UpdateChatInput:{
 		avatar:"File"
 	},
 	AddUserToChatInput:{
+
+	},
+	RemoveUserFromChatInput:{
 
 	},
 	UploadedEncryptedFileInput:{
@@ -185,9 +191,10 @@ export const ReturnTypes: Record<string,any> = {
 		logoutUser:"Boolean",
 		onlineServerPong:"Boolean",
 		createUserChat:"Chat",
-		deleteUserChat:"Boolean",
+		deleteChat:"Boolean",
 		updateChat:"Boolean",
 		addUserToChat:"Boolean",
+		removeUserFromChat:"Boolean",
 		sendMessage:"Boolean",
 		readMessage:"Boolean",
 		sendKeySharingTransaction:"ID",
@@ -207,6 +214,7 @@ export const ReturnTypes: Record<string,any> = {
 		name:"String",
 		avatar:"String",
 		owner_id:"ID",
+		iAmAdmin:"Boolean",
 		updated_at:"DateTime",
 		unread_messages_count:"Int",
 		users:"User",

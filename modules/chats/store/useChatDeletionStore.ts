@@ -5,7 +5,6 @@ import { useAppNotificationsStore } from "~/stores/appNotificationsStore";
 export const useChatDeletionStore = defineStore('chatDeletionStore', () => {
     const { $gqClient } = useNuxtApp();
     const chatStore = useChatStore();
-    const userStore = useUserStore();
     const appNotifications = useAppNotificationsStore();
 
     const isChatDeletionModalOpen = ref(false);
@@ -16,23 +15,26 @@ export const useChatDeletionStore = defineStore('chatDeletionStore', () => {
 
     const closeChatDeletionModal = () => {
         isChatDeletionModalOpen.value = false;
-        deleteOnlyForMe.value = false;
     }
 
-    const deleteOnlyForMe = ref(false);
     const loading = ref(false);
     const errors = ref<string[]>([]);
 
     const deleteChat = async () => {
+        if (!chatStore.chatState.iAmAdmin) {
+            appNotifications.addNotification({
+                type: 'error',
+                message: 'You are not the administrator of this chat'
+            });
+        }
         if (loading.value || !chatStore.chatState.id) return;
         loading.value = true;
         try {
             await $gqClient('mutation')({
-                deleteUserChat: [
+                deleteChat: [
                     {
                         input: {
                             chatId: chatStore.chatState.id,
-                            userId: deleteOnlyForMe.value ? userStore.state.id : null,
                         }
                     },
                     true
@@ -57,7 +59,6 @@ export const useChatDeletionStore = defineStore('chatDeletionStore', () => {
         isChatDeletionModalOpen,
         openChatDeletionModal,
         closeChatDeletionModal,
-        deleteOnlyForMe,
         loading,
         errors,
         deleteChat
