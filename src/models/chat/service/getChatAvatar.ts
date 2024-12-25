@@ -18,6 +18,13 @@ export const getChatAvatar = async (chat: types.Uuid | Chat, userId: types.Uuid)
 }
 
 const getDefaultAvatar = async (chatId: types.Uuid, userId: types.Uuid): Promise<string | null> => {
-    const users = (await getChatUsers(chatId)).sort((a, b) => a.id.toString() === userId.toString() ? -1 : 1);
+    const users = (await getChatUsers(chatId))
+        .sort((a, b) => {
+            if (a.id.equals(userId)) return 1;
+            if (b.id.equals(userId)) return -1;
+            return 0;
+        });
+
+    console.log(users);
     return users.length > 0 ? (users[0].avatar || '') : null;
 }
