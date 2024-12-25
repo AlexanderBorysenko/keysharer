@@ -6,6 +6,9 @@ import { types } from "cassandra-driver";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
 import { isEmailVerifiedMiddleware } from "../../user/middleware/isEmailVerifiedMiddleware";
 import { throwConflictError } from "../../../errors/throwConflictError";
+import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
+import { isUserAChatAdministratorMiddleware } from "../service/isUserAChatAdministrator";
+import { publishChatCreated } from "./chat.createChat.subscription";
 
 export type AddUserToChatInput = {
 	chatId: types.Uuid;
@@ -28,11 +31,9 @@ export const addUserToChat = async (
 	{ input: { chatId, userId } }: { input: AddUserToChatInput },
 	context: AppQraphQLContext
 ): Promise<boolean> => {
-	const user = await isEmailVerifiedMiddleware(context);
-
-	// Check if the user performing the action is a member of the chat
-	await isUserAChatMemberMiddleware({
-		chatId,
+	const user = await isAuthenticatedMiddleware(context);
+	await isUserAChatAdministratorMiddleware({
+		chatReferense: chatId,
 		userId: user.id,
 	});
 
@@ -48,6 +49,10 @@ export const addUserToChat = async (
 
 	// Publish chat updated event
 	await publishChatUpdated(chatId);
+	await publishChatCreated({
+		chatReference: chatId,
+		userIds: [userId.toString()],
+	});
 
 	return true;
 };

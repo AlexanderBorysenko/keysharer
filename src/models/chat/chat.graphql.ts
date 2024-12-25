@@ -5,9 +5,9 @@ import {
 import { chatUsers } from "./resolvers/chat.Chat.users.query";
 import { chatName } from "./resolvers/chat.Chat.name.query";
 import {
-	deleteUserChat,
-	deleteUserChatDefs,
-} from "./resolvers/chat.deleteUserChat.mutation";
+	deleteChat,
+	deleteChatDefs,
+} from "./resolvers/chat.deleteChat.mutation";
 import { chatMessages } from "./resolvers/chat.Chat.messages.query";
 import { myChats, myChatsDefs } from "./resolvers/chat.myChats.query";
 import { mergeTypeDefs } from "@graphql-tools/merge";
@@ -32,6 +32,8 @@ import {
 	addUserToChat,
 	addUserToChatDefs,
 } from "./resolvers/chat.addUserToChat.mutation";
+import { chatIAmAdmin } from "./resolvers/chat.Chat.iAmAdmin.query";
+import { removeUserFromChat, removeUserFromChatDefs } from "./resolvers/chat.removeUserFromChat.mutation";
 
 export const chatResolvers = {
 	Query: {
@@ -40,9 +42,10 @@ export const chatResolvers = {
 	},
 	Mutation: {
 		createUserChat,
-		deleteUserChat,
+		deleteChat,
 		updateChat,
 		addUserToChat,
+		removeUserFromChat,
 	},
 	Subscription: {
 		chatCreated: createChatSubscription,
@@ -55,6 +58,7 @@ export const chatResolvers = {
 		messages: chatMessages,
 		avatar: chatAvatar,
 		unread_messages_count: chatUnreadMessagesCount,
+		iAmAdmin: chatIAmAdmin
 	},
 };
 
@@ -64,9 +68,10 @@ export const chatDefs = mergeTypeDefs([
 	myChatDefs,
 
 	createUserChatDefs,
-	deleteUserChatDefs,
+	deleteChatDefs,
 	updateChatDefs,
 	addUserToChatDefs,
+	removeUserFromChatDefs,
 
 	chatUpdatedSubscriptionDefs,
 	createChatSubscriptionDefs,

@@ -16,6 +16,7 @@ export const getChatName = async (chatReference: types.Uuid | Chat | string, exc
                 chatId: chat.id,
                 exclude: excludeUserId ? [excludeUserId] : [],
             }));
+            if (chatUserIds.length === 0) return 'Empty chat';
             const usersQuery = 'SELECT id, display_name, username FROM users WHERE id IN ?';
             const usersResult = await client.execute(usersQuery, [chatUserIds], { prepare: true });
             usersResult.rows.forEach((user) => {

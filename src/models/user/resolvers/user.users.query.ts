@@ -4,11 +4,13 @@ import { isAuthenticatedMiddleware } from "../middleware/isAuthenticatedMiddlewa
 
 export type UserQueryInput = {
 	search?: string;
+	excludeUserIds?: string[];
 };
 
 export const usersQueryDefs = `
 input UserQueryInput {
     search: String
+	excludeUserIds: [ID!]
 }
 
 type Query {
@@ -17,21 +19,23 @@ type Query {
 `;
 export const usersQuery = async (
 	_: any,
-	{ input }: { input: UserQueryInput },
+	{ input,
+	}: { input: UserQueryInput },
 	context: AppQraphQLContext
 ) => {
 	if (input?.search) {
 		const user = await isAuthenticatedMiddleware(context);
+		const excludeUserIds = [...(input.excludeUserIds || []), user.id];
 		return (
 			await client.execute(
 				"SELECT * FROM users WHERE username LIKE ? LIMIT 10",
 				[`%${input.search}%`],
 				{ prepare: true }
 			)
-		).rows.filter((row) => row.id.toString() !== user.id.toString());
+		).rows.filter((row) => !excludeUserIds.includes(row.id.toString()));
 	} else {
 		return (
-			await client.execute("SELECT * FROM users", [], { prepare: true })
+			await client.execute("SELECT * FROM users LIMIT 10", [], { prepare: true })
 		).rows;
 	}
 };

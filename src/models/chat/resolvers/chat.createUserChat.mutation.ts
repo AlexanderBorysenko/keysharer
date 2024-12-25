@@ -44,7 +44,9 @@ export const createUserChat = async (
 			userIds: userIds.map((id) => id),
 		});
 
-		await publishChatCreated(chat);
+		await publishChatCreated({
+			chatReference: chat
+		});
 
 		return chat;
 	} catch (error) {

@@ -8,64 +8,57 @@ import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
 import { getChatUserIds } from "../service/getChatUserIds";
 import messageDBService from "../../message/service/messageDBService";
 import { publishChatUpdated } from "./chat.chatUpdated.subscription";
+import { isUserAChatAdministratorMiddleware } from "../service/isUserAChatAdministrator";
 
-export type DeleteUserChatInput = {
+export type DeleteChatInput = {
 	chatId: types.Uuid;
-	userId?: types.Uuid;
 };
 
-export const deleteUserChatDefs = `
-input DeleteUserChatInput {
+export const deleteChatDefs = `
+input DeleteChatInput {
 	chatId: ID!,
 	userId: ID
 }
 
 type Mutation {
-	deleteUserChat(input: DeleteUserChatInput!): Boolean!
+	deleteChat(input: DeleteChatInput!): Boolean!
 }
 `;
 
-export const deleteUserChat = async (
+export const deleteChat = async (
 	_: any,
-	{ input: { chatId, userId } }: { input: DeleteUserChatInput },
+	{ input: { chatId } }: { input: DeleteChatInput },
 	context: AppQraphQLContext
 ): Promise<boolean> => {
 	const user = await isAuthenticatedMiddleware(context);
+	await isUserAChatAdministratorMiddleware({
+		chatReferense: chatId,
+		userId: user.id,
+	});
 	const chatUserIds = await getChatUserIds({
 		chatId,
 	});
-	await isUserAChatMemberMiddleware({
-		chatId,
-		userId: user.id,
-		userIds: chatUserIds,
-	});
 
 	const queries: string[] = [];
-	const targerUserIds = userId ? [userId] : chatUserIds;
-	targerUserIds.forEach((userId) => {
+	chatUserIds.forEach((userId) => {
 		queries.push(`DELETE FROM user_chat WHERE chat_id = ${chatId} AND user_id = ${userId}`);
 	});
-	if (chatUserIds.length === targerUserIds.length) {
-		queries.push(`DELETE FROM chats WHERE id = ${chatId}`);
-	}
+	queries.push(`DELETE FROM chats WHERE id = ${chatId}`);
 
 	try {
 		await client.batch([
 			...queries,
 			...await messageDBService.deleteChatMessagesBatch({
 				chatId,
-				userIds: targerUserIds,
+				userIds: chatUserIds,
 			}),
 		], { prepare: true });
 		await messageDBService.deleteChatUnreadCounters({
 			chatId,
-			userIds: targerUserIds,
+			userIds: chatUserIds,
 		});
 
-		await publishChatDeleted(targerUserIds, chatId);
-		if (chatUserIds.length !== targerUserIds.length) {
-			await publishChatUpdated(chatId);
-		}
+		await publishChatDeleted(chatUserIds, chatId);
 		return true;
 	} catch (error) {
 		console.error(error);

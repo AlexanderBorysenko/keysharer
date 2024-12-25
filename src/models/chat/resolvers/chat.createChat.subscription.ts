@@ -26,9 +26,9 @@ export const createChatSubscription = {
 	},
 };
 
-export const publishChatCreated = async (chatReference: types.Uuid | Chat) => {
+export const publishChatCreated = async ({ chatReference, userIds }: { chatReference: types.Uuid | Chat, userIds?: string[] }) => {
 	const chat = await resolveChat(chatReference);
-	const chatUsers = await getChatUserIds({
+	const chatUsers = userIds || await getChatUserIds({
 		chatId: chat.id,
 	});
 

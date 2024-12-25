@@ -24,6 +24,8 @@ export const chatCoreDefs = `
     avatar: String
     owner_id: ID!
 
+    iAmAdmin: Boolean
+
     updated_at: DateTime!
 
     unread_messages_count: Int
