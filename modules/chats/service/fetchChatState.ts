@@ -29,6 +29,7 @@ export const fetchChatState = async (chatId: string): Promise<ModelTypes['Chat']
                         content: true,
                         timestamp: true,
                         is_read: true,
+                        reads: true,
                         disable_encryption: true,
                         files: {
                             file_url: true,

@@ -99,16 +99,15 @@ const content = computed(() => {
 	return md.render(content);
 });
 
+const readByMe = computed(() =>
+	(props.message.reads || []).includes(userStore.state.id)
+);
+
 const readMessage = async () => {
-	if (props.message.is_read || isMine.value) return;
+	if (readByMe.value || isMine.value) return;
 	try {
 		await $gqClient('mutation')({
-			readMessage: [
-				{
-					messageId: props.message.id
-				},
-				true
-			]
+			readMessage: [{ messageId: props.message.id }, true]
 		});
 	} catch (e: any) {
 		addNotification({
@@ -138,6 +137,7 @@ onMounted(() => {
 	display: flex;
 	align-items: flex-end;
 	gap: 0.5rem;
+	max-width: min(42.125rem, calc(100% - 2rem));
 	&__avatar {
 		position: relative;
 		&-image {
@@ -165,7 +165,6 @@ onMounted(() => {
 		color: #fff;
 		--message-side-space: 0.625rem;
 		border-radius: 0.625rem;
-		max-width: min(42.125rem, calc(100% - 2rem));
 		width: fit-content;
 	}
 	&__attachments {

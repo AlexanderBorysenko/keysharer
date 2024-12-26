@@ -23,6 +23,7 @@ export const fetchChatMessagesPage = async (chatId: string, lastMessageId: strin
                         content: true,
                         timestamp: true,
                         is_read: true,
+                        reads: true,
                         disable_encryption: true,
                         files: {
                             file_url: true,

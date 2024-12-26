@@ -1,259 +1,260 @@
 /* eslint-disable */
 
-export const AllTypesProps: Record<string,any> = {
-	Subscription:{
-		onlineStatusChanged:{
+export const AllTypesProps: Record<string, any> = {
+	Subscription: {
+		onlineStatusChanged: {
 
 		},
-		onlineServerPing:{
+		onlineServerPing: {
 
 		},
-		onReceivedKeySharingTransactionPublicKey:{
+		onReceivedKeySharingTransactionPublicKey: {
 
 		},
-		onReceivedKeySharingTransactionEncryptedKey:{
+		onReceivedKeySharingTransactionEncryptedKey: {
 
 		},
-		onKeySharingTransactionSuccess:{
+		onKeySharingTransactionSuccess: {
 
 		}
 	},
 	Role: "enum" as const,
-	UserQueryInput:{
+	UserQueryInput: {
 
 	},
-	Query:{
-		users:{
-			input:"UserQueryInput"
+	Query: {
+		users: {
+			input: "UserQueryInput"
 		},
-		myChat:{
+		myChat: {
 
 		}
 	},
-	CreateUserInput:{
+	CreateUserInput: {
 
 	},
-	Mutation:{
-		createUser:{
-			input:"CreateUserInput"
+	Mutation: {
+		createUser: {
+			input: "CreateUserInput"
 		},
-		loginUser:{
-			input:"LoginUserInput"
+		loginUser: {
+			input: "LoginUserInput"
 		},
-		updateTypingStatus:{
+		updateTypingStatus: {
 
 		},
-		verifyEmail:{
-			input:"VerifyEmailInput"
+		verifyEmail: {
+			input: "VerifyEmailInput"
 		},
-		updateUser:{
-			input:"UpdateUserInput"
+		updateUser: {
+			input: "UpdateUserInput"
 		},
-		onlineServerPong:{
-			input:"OnlineServerPongInput"
+		onlineServerPong: {
+			input: "OnlineServerPongInput"
 		},
-		createUserChat:{
-			input:"CreateChatInput"
+		createUserChat: {
+			input: "CreateChatInput"
 		},
-		deleteChat:{
-			input:"DeleteChatInput"
+		deleteChat: {
+			input: "DeleteChatInput"
 		},
-		updateChat:{
-			input:"UpdateChatInput"
+		updateChat: {
+			input: "UpdateChatInput"
 		},
-		addUserToChat:{
-			input:"AddUserToChatInput"
+		addUserToChat: {
+			input: "AddUserToChatInput"
 		},
-		removeUserFromChat:{
-			input:"RemoveUserFromChatInput"
+		removeUserFromChat: {
+			input: "RemoveUserFromChatInput"
 		},
-		sendMessage:{
-			input:"SendMessageInput"
+		sendMessage: {
+			input: "SendMessageInput"
 		},
-		readMessage:{
+		readMessage: {
 
 		},
-		sendKeySharingTransaction:{
-			input:"SendKeySharingTransactionInput"
+		sendKeySharingTransaction: {
+			input: "SendKeySharingTransactionInput"
 		},
-		sendKeySharingTransactionPublicKey:{
-			input:"SendKeySharingTransactionPublicKeyInput"
+		sendKeySharingTransactionPublicKey: {
+			input: "SendKeySharingTransactionPublicKeyInput"
 		},
-		sendKeySharingTransactionEncryptedKey:{
-			input:"SendKeySharingTransactionEncryptedKeyInput"
+		sendKeySharingTransactionEncryptedKey: {
+			input: "SendKeySharingTransactionEncryptedKeyInput"
 		},
-		sendKeySharingTransactionSuccess:{
-			input:"SendKeySharingTransactionSuccessInput"
+		sendKeySharingTransactionSuccess: {
+			input: "SendKeySharingTransactionSuccessInput"
 		}
 	},
-	LoginUserInput:{
+	LoginUserInput: {
 
 	},
-	VerifyEmailInput:{
+	VerifyEmailInput: {
 
 	},
 	File: `scalar.File` as const,
-	UpdateUserInput:{
-		avatar:"File"
+	UpdateUserInput: {
+		avatar: "File"
 	},
-	OnlineServerPongInput:{
+	OnlineServerPongInput: {
 
 	},
 	DateTime: `scalar.DateTime` as const,
-	Chat:{
-		messages:{
+	Chat: {
+		messages: {
 
 		}
 	},
-	CreateChatInput:{
+	CreateChatInput: {
 
 	},
-	DeleteChatInput:{
+	DeleteChatInput: {
 
 	},
-	UpdateChatInput:{
-		avatar:"File"
+	UpdateChatInput: {
+		avatar: "File"
 	},
-	AddUserToChatInput:{
+	AddUserToChatInput: {
 
 	},
-	RemoveUserFromChatInput:{
+	RemoveUserFromChatInput: {
 
 	},
-	UploadedEncryptedFileInput:{
+	UploadedEncryptedFileInput: {
 
 	},
-	SendMessageInput:{
-		files:"UploadedEncryptedFileInput"
+	SendMessageInput: {
+		files: "UploadedEncryptedFileInput"
 	},
-	SendKeySharingTransactionInput:{
+	SendKeySharingTransactionInput: {
 
 	},
-	SendKeySharingTransactionPublicKeyInput:{
+	SendKeySharingTransactionPublicKeyInput: {
 
 	},
-	SendKeySharingTransactionEncryptedKeyInput:{
+	SendKeySharingTransactionEncryptedKeyInput: {
 
 	},
-	SendKeySharingTransactionSuccessInput:{
+	SendKeySharingTransactionSuccessInput: {
 
 	}
 }
 
-export const ReturnTypes: Record<string,any> = {
-	Subscription:{
-		wsConnectionInitial:"Boolean",
-		typingStatusUpdated:"UserTypingStatus",
-		onlineStatusChanged:"Boolean",
-		userUpdated:"User",
-		onlineServerPing:"String",
-		chatUpdated:"Chat",
-		chatCreated:"Chat",
-		chatDeleted:"ID",
-		newMessage:"Message",
-		messageUpdated:"Message",
-		unreadMessagesCountChange:"UnreadMessagesCount",
-		onIncomingKeySharingTransaction:"IncomingKeySharingTransaction",
-		onReceivedKeySharingTransactionPublicKey:"String",
-		onReceivedKeySharingTransactionEncryptedKey:"String",
-		onKeySharingTransactionSuccess:"Boolean"
+export const ReturnTypes: Record<string, any> = {
+	Subscription: {
+		wsConnectionInitial: "Boolean",
+		typingStatusUpdated: "UserTypingStatus",
+		onlineStatusChanged: "Boolean",
+		userUpdated: "User",
+		onlineServerPing: "String",
+		chatUpdated: "Chat",
+		chatCreated: "Chat",
+		chatDeleted: "ID",
+		newMessage: "Message",
+		messageUpdated: "Message",
+		unreadMessagesCountChange: "UnreadMessagesCount",
+		onIncomingKeySharingTransaction: "IncomingKeySharingTransaction",
+		onReceivedKeySharingTransactionPublicKey: "String",
+		onReceivedKeySharingTransactionEncryptedKey: "String",
+		onKeySharingTransactionSuccess: "Boolean"
 	},
-	AuthPayload:{
-		token:"String",
-		user:"User"
+	AuthPayload: {
+		token: "String",
+		user: "User"
 	},
-	User:{
-		id:"ID",
-		username:"String",
-		displayName:"String",
-		avatar:"String",
-		email:"String",
-		emailVerified:"Boolean",
-		role:"Role",
-		chats:"Chat",
-		isOnline:"Boolean"
+	User: {
+		id: "ID",
+		username: "String",
+		displayName: "String",
+		avatar: "String",
+		email: "String",
+		emailVerified: "Boolean",
+		role: "Role",
+		chats: "Chat",
+		isOnline: "Boolean"
 	},
-	Query:{
-		users:"User",
-		me:"User",
-		myChats:"Chat",
-		myChat:"Chat"
+	Query: {
+		users: "User",
+		me: "User",
+		myChats: "Chat",
+		myChat: "Chat"
 	},
-	Mutation:{
-		createUser:"User",
-		createGuestUser:"AuthPayload",
-		loginUser:"AuthPayload",
-		refreshToken:"AuthPayload",
-		updateTypingStatus:"Boolean",
-		sendEmailVerification:"Boolean",
-		verifyEmail:"Boolean",
-		updateUser:"Boolean",
-		logoutUser:"Boolean",
-		onlineServerPong:"Boolean",
-		createUserChat:"Chat",
-		deleteChat:"Boolean",
-		updateChat:"Boolean",
-		addUserToChat:"Boolean",
-		removeUserFromChat:"Boolean",
-		sendMessage:"Boolean",
-		readMessage:"Boolean",
-		sendKeySharingTransaction:"ID",
-		sendKeySharingTransactionPublicKey:"Boolean",
-		sendKeySharingTransactionEncryptedKey:"Boolean",
-		sendKeySharingTransactionSuccess:"Boolean"
+	Mutation: {
+		createUser: "User",
+		createGuestUser: "AuthPayload",
+		loginUser: "AuthPayload",
+		refreshToken: "AuthPayload",
+		updateTypingStatus: "Boolean",
+		sendEmailVerification: "Boolean",
+		verifyEmail: "Boolean",
+		updateUser: "Boolean",
+		logoutUser: "Boolean",
+		onlineServerPong: "Boolean",
+		createUserChat: "Chat",
+		deleteChat: "Boolean",
+		updateChat: "Boolean",
+		addUserToChat: "Boolean",
+		removeUserFromChat: "Boolean",
+		sendMessage: "Boolean",
+		readMessage: "Boolean",
+		sendKeySharingTransaction: "ID",
+		sendKeySharingTransactionPublicKey: "Boolean",
+		sendKeySharingTransactionEncryptedKey: "Boolean",
+		sendKeySharingTransactionSuccess: "Boolean"
 	},
 	File: `scalar.File` as const,
-	UserTypingStatus:{
-		userId:"ID",
-		chatId:"ID",
-		isTyping:"Boolean"
+	UserTypingStatus: {
+		userId: "ID",
+		chatId: "ID",
+		isTyping: "Boolean"
 	},
 	DateTime: `scalar.DateTime` as const,
-	Chat:{
-		id:"ID",
-		name:"String",
-		avatar:"String",
-		owner_id:"ID",
-		iAmAdmin:"Boolean",
-		updated_at:"DateTime",
-		unread_messages_count:"Int",
-		users:"User",
-		messages:"Message"
+	Chat: {
+		id: "ID",
+		name: "String",
+		avatar: "String",
+		owner_id: "ID",
+		iAmAdmin: "Boolean",
+		updated_at: "DateTime",
+		unread_messages_count: "Int",
+		users: "User",
+		messages: "Message"
 	},
-	MessageFile:{
-		id:"ID",
-		message_id:"ID",
-		chat_id:"ID",
-		file_name:"String",
-		file_size:"Int",
-		file_type:"String",
-		file_url:"String",
-		upload_timestamp:"String"
+	MessageFile: {
+		id: "ID",
+		message_id: "ID",
+		chat_id: "ID",
+		file_name: "String",
+		file_size: "Int",
+		file_type: "String",
+		file_url: "String",
+		upload_timestamp: "String"
 	},
-	Message:{
-		id:"ID",
-		chat_id:"ID",
-		user_id:"ID",
-		type:"String",
-		is_read:"Boolean",
-		content:"String",
-		timestamp:"String",
-		disable_encryption:"Boolean",
-		files:"MessageFile"
+	Message: {
+		id: "ID",
+		chat_id: "ID",
+		user_id: "ID",
+		type: "String",
+		is_read: "Boolean",
+		content: "String",
+		timestamp: "String",
+		reads: "ID",
+		disable_encryption: "Boolean",
+		files: "MessageFile"
 	},
-	UnreadMessagesCount:{
-		chatId:"ID",
-		unreadCount:"Int"
+	UnreadMessagesCount: {
+		chatId: "ID",
+		unreadCount: "Int"
 	},
-	IncomingKeySharingTransaction:{
-		chatId:"ID",
-		senderId:"ID",
-		transactionId:"ID"
+	IncomingKeySharingTransaction: {
+		chatId: "ID",
+		senderId: "ID",
+		transactionId: "ID"
 	}
 }
 
 export const Ops = {
-query: "Query" as const,
+	query: "Query" as const,
 	mutation: "Mutation" as const,
 	subscription: "Subscription" as const
 }

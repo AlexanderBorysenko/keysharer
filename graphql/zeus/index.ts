@@ -57,10 +57,26 @@ const handleFetchResponse = (response: Response): Promise<GraphQLResponse> => {
 
 export const apiFetch =
   (options: fetchOptions) =>
-  (query: string, variables: Record<string, unknown> = {}) => {
-    const fetchOptions = options[1] || {};
-    if (fetchOptions.method && fetchOptions.method === 'GET') {
-      return fetch(`${options[0]}?query=${encodeURIComponent(query)}`, fetchOptions)
+    (query: string, variables: Record<string, unknown> = {}) => {
+      const fetchOptions = options[1] || {};
+      if (fetchOptions.method && fetchOptions.method === 'GET') {
+        return fetch(`${options[0]}?query=${encodeURIComponent(query)}`, fetchOptions)
+          .then(handleFetchResponse)
+          .then((response: GraphQLResponse) => {
+            if (response.errors) {
+              throw new GraphQLError(response);
+            }
+            return response.data;
+          });
+      }
+      return fetch(`${options[0]}`, {
+        body: JSON.stringify({ query, variables }),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        ...fetchOptions,
+      })
         .then(handleFetchResponse)
         .then((response: GraphQLResponse) => {
           if (response.errors) {
@@ -68,23 +84,7 @@ export const apiFetch =
           }
           return response.data;
         });
-    }
-    return fetch(`${options[0]}`, {
-      body: JSON.stringify({ query, variables }),
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      ...fetchOptions,
-    })
-      .then(handleFetchResponse)
-      .then((response: GraphQLResponse) => {
-        if (response.errors) {
-          throw new GraphQLError(response);
-        }
-        return response.data;
-      });
-  };
+    };
 
 export const InternalsBuildQuery = ({
   ops,
@@ -160,87 +160,87 @@ type UnionOverrideKeys<T, U> = Omit<T, keyof U> & U;
 
 export const Thunder =
   <SCLR extends ScalarDefinition>(fn: FetchFunction, thunderGraphQLOptions?: ThunderGraphQLOptions<SCLR>) =>
-  <O extends keyof typeof Ops, OVERRIDESCLR extends SCLR, R extends keyof ValueTypes = GenericOperation<O>>(
-    operation: O,
-    graphqlOptions?: ThunderGraphQLOptions<OVERRIDESCLR>,
-  ) =>
-  <Z extends ValueTypes[R]>(
-    o: Z & {
-      [P in keyof Z]: P extends keyof ValueTypes[R] ? Z[P] : never;
-    },
-    ops?: OperationOptions & { variables?: Record<string, unknown> },
-  ) => {
-    const options = {
-      ...thunderGraphQLOptions,
-      ...graphqlOptions,
-    };
-    return fn(
-      Zeus(operation, o, {
-        operationOptions: ops,
-        scalars: options?.scalars,
-      }),
-      ops?.variables,
-    ).then((data) => {
-      if (options?.scalars) {
-        return decodeScalarsInResponse({
-          response: data,
-          initialOp: operation,
-          initialZeusQuery: o as VType,
-          returns: ReturnTypes,
-          scalars: options.scalars,
-          ops: Ops,
-        });
-      }
-      return data;
-    }) as Promise<InputType<GraphQLTypes[R], Z, UnionOverrideKeys<SCLR, OVERRIDESCLR>>>;
-  };
+    <O extends keyof typeof Ops, OVERRIDESCLR extends SCLR, R extends keyof ValueTypes = GenericOperation<O>>(
+      operation: O,
+      graphqlOptions?: ThunderGraphQLOptions<OVERRIDESCLR>,
+    ) =>
+      <Z extends ValueTypes[R]>(
+        o: Z & {
+          [P in keyof Z]: P extends keyof ValueTypes[R] ? Z[P] : never;
+        },
+        ops?: OperationOptions & { variables?: Record<string, unknown> },
+      ) => {
+        const options = {
+          ...thunderGraphQLOptions,
+          ...graphqlOptions,
+        };
+        return fn(
+          Zeus(operation, o, {
+            operationOptions: ops,
+            scalars: options?.scalars,
+          }),
+          ops?.variables,
+        ).then((data) => {
+          if (options?.scalars) {
+            return decodeScalarsInResponse({
+              response: data,
+              initialOp: operation,
+              initialZeusQuery: o as VType,
+              returns: ReturnTypes,
+              scalars: options.scalars,
+              ops: Ops,
+            });
+          }
+          return data;
+        }) as Promise<InputType<GraphQLTypes[R], Z, UnionOverrideKeys<SCLR, OVERRIDESCLR>>>;
+      };
 
 export const Chain = (...options: chainOptions) => Thunder(apiFetch(options));
 
 export const SubscriptionThunder =
   <SCLR extends ScalarDefinition>(fn: SubscriptionFunction, thunderGraphQLOptions?: ThunderGraphQLOptions<SCLR>) =>
-  <O extends keyof typeof Ops, OVERRIDESCLR extends SCLR, R extends keyof ValueTypes = GenericOperation<O>>(
-    operation: O,
-    graphqlOptions?: ThunderGraphQLOptions<OVERRIDESCLR>,
-  ) =>
-  <Z extends ValueTypes[R]>(
-    o: Z & {
-      [P in keyof Z]: P extends keyof ValueTypes[R] ? Z[P] : never;
-    },
-    ops?: OperationOptions & { variables?: ExtractVariables<Z> },
-  ) => {
-    const options = {
-      ...thunderGraphQLOptions,
-      ...graphqlOptions,
-    };
-    type CombinedSCLR = UnionOverrideKeys<SCLR, OVERRIDESCLR>;
-    const returnedFunction = fn(
-      Zeus(operation, o, {
-        operationOptions: ops,
-        scalars: options?.scalars,
-      }),
-    ) as SubscriptionToGraphQL<Z, GraphQLTypes[R], CombinedSCLR>;
-    if (returnedFunction?.on && options?.scalars) {
-      const wrapped = returnedFunction.on;
-      returnedFunction.on = (fnToCall: (args: InputType<GraphQLTypes[R], Z, CombinedSCLR>) => void) =>
-        wrapped((data: InputType<GraphQLTypes[R], Z, CombinedSCLR>) => {
-          if (options?.scalars) {
-            return fnToCall(
-              decodeScalarsInResponse({
-                response: data,
-                initialOp: operation,
-                initialZeusQuery: o as VType,
-                returns: ReturnTypes,
-                scalars: options.scalars,
-                ops: Ops,
-              }),
-            );
-          }
-          return fnToCall(data);
-        });
-    }
-    return returnedFunction;
-  };
+    <O extends keyof typeof Ops, OVERRIDESCLR extends SCLR, R extends keyof ValueTypes = GenericOperation<O>>(
+      operation: O,
+      graphqlOptions?: ThunderGraphQLOptions<OVERRIDESCLR>,
+    ) =>
+      <Z extends ValueTypes[R]>(
+        o: Z & {
+          [P in keyof Z]: P extends keyof ValueTypes[R] ? Z[P] : never;
+        },
+        ops?: OperationOptions & { variables?: ExtractVariables<Z> },
+      ) => {
+        const options = {
+          ...thunderGraphQLOptions,
+          ...graphqlOptions,
+        };
+        type CombinedSCLR = UnionOverrideKeys<SCLR, OVERRIDESCLR>;
+        const returnedFunction = fn(
+          Zeus(operation, o, {
+            operationOptions: ops,
+            scalars: options?.scalars,
+          }),
+        ) as SubscriptionToGraphQL<Z, GraphQLTypes[R], CombinedSCLR>;
+        if (returnedFunction?.on && options?.scalars) {
+          const wrapped = returnedFunction.on;
+          returnedFunction.on = (fnToCall: (args: InputType<GraphQLTypes[R], Z, CombinedSCLR>) => void) =>
+            wrapped((data: InputType<GraphQLTypes[R], Z, CombinedSCLR>) => {
+              if (options?.scalars) {
+                return fnToCall(
+                  decodeScalarsInResponse({
+                    response: data,
+                    initialOp: operation,
+                    initialZeusQuery: o as VType,
+                    returns: ReturnTypes,
+                    scalars: options.scalars,
+                    ops: Ops,
+                  }),
+                );
+              }
+              return fnToCall(data);
+            });
+        }
+        return returnedFunction;
+      };
 
 export const Subscription = (...options: chainOptions) => SubscriptionThunder(apiSubscription(options));
 export const Zeus = <
@@ -368,26 +368,26 @@ export const traverseResponse = ({
 
 export type AllTypesPropsType = {
   [x: string]:
+  | undefined
+  | `scalar.${string}`
+  | 'enum'
+  | {
+    [x: string]:
     | undefined
-    | `scalar.${string}`
-    | 'enum'
+    | string
     | {
-        [x: string]:
-          | undefined
-          | string
-          | {
-              [x: string]: string | undefined;
-            };
-      };
+      [x: string]: string | undefined;
+    };
+  };
 };
 
 export type ReturnTypesType = {
   [x: string]:
-    | {
-        [x: string]: string | undefined;
-      }
-    | `scalar.${string}`
-    | undefined;
+  | {
+    [x: string]: string | undefined;
+  }
+  | `scalar.${string}`
+  | undefined;
 };
 export type InputValueType = {
   [x: string]: undefined | boolean | string | number | [any, undefined | boolean | InputValueType] | InputValueType;
@@ -404,8 +404,8 @@ export type PlainType = boolean | number | string | null | undefined;
 export type ZeusArgsType =
   | PlainType
   | {
-      [x: string]: ZeusArgsType;
-    }
+    [x: string]: ZeusArgsType;
+  }
   | Array<ZeusArgsType>;
 
 export type Operations = Record<string, string>;
@@ -722,10 +722,10 @@ export type ScalarDefinition = Record<string, ScalarResolver>;
 
 type IsScalar<S, SCLR extends ScalarDefinition> = S extends 'scalar' & { name: infer T }
   ? T extends keyof SCLR
-    ? SCLR[T]['decode'] extends (s: unknown) => unknown
-      ? ReturnType<SCLR[T]['decode']>
-      : unknown
-    : unknown
+  ? SCLR[T]['decode'] extends (s: unknown) => unknown
+  ? ReturnType<SCLR[T]['decode']>
+  : unknown
+  : unknown
   : S;
 type IsArray<T, U, SCLR extends ScalarDefinition> = T extends Array<infer R>
   ? InputType<R, U, SCLR>[]
@@ -737,27 +737,27 @@ type IsInterfaced<SRC extends DeepAnify<DST>, DST, SCLR extends ScalarDefinition
   | ZEUS_INTERFACES
   | ZEUS_UNIONS
   ? {
-      [P in keyof SRC]: SRC[P] extends '__union' & infer R
-        ? P extends keyof DST
-          ? IsArray<R, '__typename' extends keyof DST ? DST[P] & { __typename: true } : DST[P], SCLR>
-          : IsArray<R, '__typename' extends keyof DST ? { __typename: true } : Record<string, never>, SCLR>
-        : never;
-    }[keyof SRC] & {
-      [P in keyof Omit<
-        Pick<
-          SRC,
-          {
-            [P in keyof DST]: SRC[P] extends '__union' & infer R ? never : P;
-          }[keyof DST]
-        >,
-        '__typename'
-      >]: IsPayLoad<DST[P]> extends BaseZeusResolver ? IsScalar<SRC[P], SCLR> : IsArray<SRC[P], DST[P], SCLR>;
-    }
+    [P in keyof SRC]: SRC[P] extends '__union' & infer R
+    ? P extends keyof DST
+    ? IsArray<R, '__typename' extends keyof DST ? DST[P] & { __typename: true } : DST[P], SCLR>
+    : IsArray<R, '__typename' extends keyof DST ? { __typename: true } : Record<string, never>, SCLR>
+    : never;
+  }[keyof SRC] & {
+    [P in keyof Omit<
+      Pick<
+        SRC,
+        {
+          [P in keyof DST]: SRC[P] extends '__union' & infer R ? never : P;
+        }[keyof DST]
+      >,
+      '__typename'
+    >]: IsPayLoad<DST[P]> extends BaseZeusResolver ? IsScalar<SRC[P], SCLR> : IsArray<SRC[P], DST[P], SCLR>;
+  }
   : {
-      [P in keyof Pick<SRC, keyof DST>]: IsPayLoad<DST[P]> extends BaseZeusResolver
-        ? IsScalar<SRC[P], SCLR>
-        : IsArray<SRC[P], DST[P], SCLR>;
-    };
+    [P in keyof Pick<SRC, keyof DST>]: IsPayLoad<DST[P]> extends BaseZeusResolver
+    ? IsScalar<SRC[P], SCLR>
+    : IsArray<SRC[P], DST[P], SCLR>;
+  };
 
 export type MapType<SRC, DST, SCLR extends ScalarDefinition> = SRC extends DeepAnify<DST>
   ? IsInterfaced<SRC, DST, SCLR>
@@ -765,8 +765,8 @@ export type MapType<SRC, DST, SCLR extends ScalarDefinition> = SRC extends DeepA
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type InputType<SRC, DST, SCLR extends ScalarDefinition = {}> = IsPayLoad<DST> extends { __alias: infer R }
   ? {
-      [P in keyof R]: MapType<SRC, R[P], SCLR>[keyof MapType<SRC, R[P], SCLR>];
-    } & MapType<SRC, Omit<IsPayLoad<DST>, '__alias'>, SCLR>
+    [P in keyof R]: MapType<SRC, R[P], SCLR>[keyof MapType<SRC, R[P], SCLR>];
+  } & MapType<SRC, Omit<IsPayLoad<DST>, '__alias'>, SCLR>
   : MapType<SRC, IsPayLoad<DST>, SCLR>;
 export type SubscriptionToGraphQL<Z, T, SCLR extends ScalarDefinition> = {
   ws: WebSocket;
@@ -809,14 +809,14 @@ export type GraphQLVariableType = VR<AllVariableTypes>;
 
 type ExtractVariableTypeString<T extends string> = T extends VR<infer R1>
   ? R1 extends VR<infer R2>
-    ? R2 extends VR<infer R3>
-      ? R3 extends VR<infer R4>
-        ? R4 extends VR<infer R5>
-          ? R5
-          : R4
-        : R3
-      : R2
-    : R1
+  ? R2 extends VR<infer R3>
+  ? R3 extends VR<infer R4>
+  ? R4 extends VR<infer R5>
+  ? R5
+  : R4
+  : R3
+  : R2
+  : R1
   : T;
 
 type DecomposeType<T, Type> = T extends `[${infer R}]`
@@ -858,7 +858,7 @@ export type ExtractVariablesDeep<Query> = Query extends Variable<infer VType, in
   ? { [key in VName]: GetVariableType<VType> }
   : Query extends string | number | boolean | Array<string | number | boolean>
   ? // eslint-disable-next-line @typescript-eslint/ban-types
-    {}
+  {}
   : UnionToIntersection<{ [K in keyof Query]: WithOptionalNullables<ExtractVariablesDeep<Query[K]>> }[keyof Query]>;
 
 export type ExtractVariables<Query> = Query extends Variable<infer VType, infer VName>
@@ -867,7 +867,7 @@ export type ExtractVariables<Query> = Query extends Variable<infer VType, infer 
   ? ExtractVariablesDeep<Inputs> & ExtractVariables<Outputs>
   : Query extends string | number | boolean | Array<string | number | boolean>
   ? // eslint-disable-next-line @typescript-eslint/ban-types
-    {}
+  {}
   : UnionToIntersection<{ [K in keyof Query]: WithOptionalNullables<ExtractVariables<Query[K]>> }[keyof Query]>;
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never;
@@ -880,830 +880,834 @@ export const $ = <Type extends GraphQLVariableType, Name extends string>(name: N
 };
 type ZEUS_INTERFACES = never
 export type ScalarCoders = {
-	File?: ScalarResolver;
-	DateTime?: ScalarResolver;
+  File?: ScalarResolver;
+  DateTime?: ScalarResolver;
 }
 type ZEUS_UNIONS = never
 
 export type ValueTypes = {
-    ["Subscription"]: AliasType<{
-	wsConnectionInitial?:boolean | `@${string}`,
-	typingStatusUpdated?:ValueTypes["UserTypingStatus"],
-onlineStatusChanged?: [{	userId: string | Variable<any, string>},boolean | `@${string}`],
-	userUpdated?:ValueTypes["User"],
-onlineServerPing?: [{	pingPongId: string | Variable<any, string>},boolean | `@${string}`],
-	chatUpdated?:ValueTypes["Chat"],
-	chatCreated?:ValueTypes["Chat"],
-	chatDeleted?:boolean | `@${string}`,
-	newMessage?:ValueTypes["Message"],
-	messageUpdated?:ValueTypes["Message"],
-	unreadMessagesCountChange?:ValueTypes["UnreadMessagesCount"],
-	onIncomingKeySharingTransaction?:ValueTypes["IncomingKeySharingTransaction"],
-onReceivedKeySharingTransactionPublicKey?: [{	transactionId: string | Variable<any, string>},boolean | `@${string}`],
-onReceivedKeySharingTransactionEncryptedKey?: [{	transactionId: string | Variable<any, string>},boolean | `@${string}`],
-onKeySharingTransactionSuccess?: [{	transactionId: string | Variable<any, string>},boolean | `@${string}`],
-		__typename?: boolean | `@${string}`
-}>;
-	["AuthPayload"]: AliasType<{
-	token?:boolean | `@${string}`,
-	user?:ValueTypes["User"],
-		__typename?: boolean | `@${string}`
-}>;
-	["Role"]:Role;
-	["User"]: AliasType<{
-	id?:boolean | `@${string}`,
-	username?:boolean | `@${string}`,
-	displayName?:boolean | `@${string}`,
-	avatar?:boolean | `@${string}`,
-	email?:boolean | `@${string}`,
-	emailVerified?:boolean | `@${string}`,
-	role?:boolean | `@${string}`,
-	chats?:ValueTypes["Chat"],
-	isOnline?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["UserQueryInput"]: {
-	search?: string | undefined | null | Variable<any, string>,
-	excludeUserIds?: Array<string> | undefined | null | Variable<any, string>
-};
-	["Query"]: AliasType<{
-users?: [{	input?: ValueTypes["UserQueryInput"] | undefined | null | Variable<any, string>},ValueTypes["User"]],
-	me?:ValueTypes["User"],
-	myChats?:ValueTypes["Chat"],
-myChat?: [{	chatId: string | Variable<any, string>},ValueTypes["Chat"]],
-		__typename?: boolean | `@${string}`
-}>;
-	["CreateUserInput"]: {
-	username: string | Variable<any, string>,
-	email: string | Variable<any, string>,
-	password: string | Variable<any, string>,
-	confirm_password: string | Variable<any, string>
-};
-	["Mutation"]: AliasType<{
-createUser?: [{	input: ValueTypes["CreateUserInput"] | Variable<any, string>},ValueTypes["User"]],
-	createGuestUser?:ValueTypes["AuthPayload"],
-loginUser?: [{	input: ValueTypes["LoginUserInput"] | Variable<any, string>},ValueTypes["AuthPayload"]],
-	refreshToken?:ValueTypes["AuthPayload"],
-updateTypingStatus?: [{	chatId: string | Variable<any, string>,	isTyping: boolean | Variable<any, string>},boolean | `@${string}`],
-	sendEmailVerification?:boolean | `@${string}`,
-verifyEmail?: [{	input: ValueTypes["VerifyEmailInput"] | Variable<any, string>},boolean | `@${string}`],
-updateUser?: [{	input: ValueTypes["UpdateUserInput"] | Variable<any, string>},boolean | `@${string}`],
-	logoutUser?:boolean | `@${string}`,
-onlineServerPong?: [{	input: ValueTypes["OnlineServerPongInput"] | Variable<any, string>},boolean | `@${string}`],
-createUserChat?: [{	input: ValueTypes["CreateChatInput"] | Variable<any, string>},ValueTypes["Chat"]],
-deleteChat?: [{	input: ValueTypes["DeleteChatInput"] | Variable<any, string>},boolean | `@${string}`],
-updateChat?: [{	input: ValueTypes["UpdateChatInput"] | Variable<any, string>},boolean | `@${string}`],
-addUserToChat?: [{	input: ValueTypes["AddUserToChatInput"] | Variable<any, string>},boolean | `@${string}`],
-removeUserFromChat?: [{	input: ValueTypes["RemoveUserFromChatInput"] | Variable<any, string>},boolean | `@${string}`],
-sendMessage?: [{	input: ValueTypes["SendMessageInput"] | Variable<any, string>},boolean | `@${string}`],
-readMessage?: [{	messageId: string | Variable<any, string>},boolean | `@${string}`],
-sendKeySharingTransaction?: [{	input: ValueTypes["SendKeySharingTransactionInput"] | Variable<any, string>},boolean | `@${string}`],
-sendKeySharingTransactionPublicKey?: [{	input: ValueTypes["SendKeySharingTransactionPublicKeyInput"] | Variable<any, string>},boolean | `@${string}`],
-sendKeySharingTransactionEncryptedKey?: [{	input: ValueTypes["SendKeySharingTransactionEncryptedKeyInput"] | Variable<any, string>},boolean | `@${string}`],
-sendKeySharingTransactionSuccess?: [{	input: ValueTypes["SendKeySharingTransactionSuccessInput"] | Variable<any, string>},boolean | `@${string}`],
-		__typename?: boolean | `@${string}`
-}>;
-	["LoginUserInput"]: {
-	username: string | Variable<any, string>,
-	password: string | Variable<any, string>
-};
-	["VerifyEmailInput"]: {
-	code: string | Variable<any, string>
-};
-	["File"]:unknown;
-	["UpdateUserInput"]: {
-	displayName?: string | undefined | null | Variable<any, string>,
-	avatar?: ValueTypes["File"] | undefined | null | Variable<any, string>
-};
-	["OnlineServerPongInput"]: {
-	pingPongId: string | Variable<any, string>,
-	pingPongIterationId: string | Variable<any, string>
-};
-	["UserTypingStatus"]: AliasType<{
-	userId?:boolean | `@${string}`,
-	chatId?:boolean | `@${string}`,
-	isTyping?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["DateTime"]:unknown;
-	["Chat"]: AliasType<{
-	id?:boolean | `@${string}`,
-	name?:boolean | `@${string}`,
-	avatar?:boolean | `@${string}`,
-	owner_id?:boolean | `@${string}`,
-	iAmAdmin?:boolean | `@${string}`,
-	updated_at?:boolean | `@${string}`,
-	unread_messages_count?:boolean | `@${string}`,
-	users?:ValueTypes["User"],
-messages?: [{	lastMessageId?: string | undefined | null | Variable<any, string>},ValueTypes["Message"]],
-		__typename?: boolean | `@${string}`
-}>;
-	["CreateChatInput"]: {
-	name?: string | undefined | null | Variable<any, string>,
-	avatar?: string | undefined | null | Variable<any, string>,
-	userIds: Array<string> | Variable<any, string>
-};
-	["DeleteChatInput"]: {
-	chatId: string | Variable<any, string>,
-	userId?: string | undefined | null | Variable<any, string>
-};
-	["UpdateChatInput"]: {
-	id: string | Variable<any, string>,
-	name?: string | undefined | null | Variable<any, string>,
-	avatar?: ValueTypes["File"] | undefined | null | Variable<any, string>
-};
-	["AddUserToChatInput"]: {
-	chatId: string | Variable<any, string>,
-	userId: string | Variable<any, string>
-};
-	["RemoveUserFromChatInput"]: {
-	chatId: string | Variable<any, string>,
-	userId: string | Variable<any, string>
-};
-	["MessageFile"]: AliasType<{
-	id?:boolean | `@${string}`,
-	message_id?:boolean | `@${string}`,
-	chat_id?:boolean | `@${string}`,
-	file_name?:boolean | `@${string}`,
-	file_size?:boolean | `@${string}`,
-	file_type?:boolean | `@${string}`,
-	file_url?:boolean | `@${string}`,
-	upload_timestamp?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["Message"]: AliasType<{
-	id?:boolean | `@${string}`,
-	chat_id?:boolean | `@${string}`,
-	user_id?:boolean | `@${string}`,
-	type?:boolean | `@${string}`,
-	is_read?:boolean | `@${string}`,
-	content?:boolean | `@${string}`,
-	timestamp?:boolean | `@${string}`,
-	disable_encryption?:boolean | `@${string}`,
-	files?:ValueTypes["MessageFile"],
-		__typename?: boolean | `@${string}`
-}>;
-	["UploadedEncryptedFileInput"]: {
-	filename: string | Variable<any, string>,
-	mimeType: string | Variable<any, string>,
-	content: string | Variable<any, string>,
-	isEncrypted: boolean | Variable<any, string>
-};
-	["SendMessageInput"]: {
-	chatId: string | Variable<any, string>,
-	content: string | Variable<any, string>,
-	disableEncryption: boolean | Variable<any, string>,
-	files?: Array<ValueTypes["UploadedEncryptedFileInput"]> | undefined | null | Variable<any, string>
-};
-	["UnreadMessagesCount"]: AliasType<{
-	chatId?:boolean | `@${string}`,
-	unreadCount?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["SendKeySharingTransactionInput"]: {
-	chatId: string | Variable<any, string>,
-	userId: string | Variable<any, string>
-};
-	["IncomingKeySharingTransaction"]: AliasType<{
-	chatId?:boolean | `@${string}`,
-	senderId?:boolean | `@${string}`,
-	transactionId?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["SendKeySharingTransactionPublicKeyInput"]: {
-	transactionId: string | Variable<any, string>,
-	publicKey: string | Variable<any, string>
-};
-	["SendKeySharingTransactionEncryptedKeyInput"]: {
-	transactionId: string | Variable<any, string>,
-	encryptedKey: string | Variable<any, string>
-};
-	["SendKeySharingTransactionSuccessInput"]: {
-	transactionId: string | Variable<any, string>,
-	success: boolean | Variable<any, string>
-}
+  ["Subscription"]: AliasType<{
+    wsConnectionInitial?: boolean | `@${string}`,
+    typingStatusUpdated?: ValueTypes["UserTypingStatus"],
+    onlineStatusChanged?: [{ userId: string | Variable<any, string> }, boolean | `@${string}`],
+    userUpdated?: ValueTypes["User"],
+    onlineServerPing?: [{ pingPongId: string | Variable<any, string> }, boolean | `@${string}`],
+    chatUpdated?: ValueTypes["Chat"],
+    chatCreated?: ValueTypes["Chat"],
+    chatDeleted?: boolean | `@${string}`,
+    newMessage?: ValueTypes["Message"],
+    messageUpdated?: ValueTypes["Message"],
+    unreadMessagesCountChange?: ValueTypes["UnreadMessagesCount"],
+    onIncomingKeySharingTransaction?: ValueTypes["IncomingKeySharingTransaction"],
+    onReceivedKeySharingTransactionPublicKey?: [{ transactionId: string | Variable<any, string> }, boolean | `@${string}`],
+    onReceivedKeySharingTransactionEncryptedKey?: [{ transactionId: string | Variable<any, string> }, boolean | `@${string}`],
+    onKeySharingTransactionSuccess?: [{ transactionId: string | Variable<any, string> }, boolean | `@${string}`],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["AuthPayload"]: AliasType<{
+    token?: boolean | `@${string}`,
+    user?: ValueTypes["User"],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["Role"]: Role;
+  ["User"]: AliasType<{
+    id?: boolean | `@${string}`,
+    username?: boolean | `@${string}`,
+    displayName?: boolean | `@${string}`,
+    avatar?: boolean | `@${string}`,
+    email?: boolean | `@${string}`,
+    emailVerified?: boolean | `@${string}`,
+    role?: boolean | `@${string}`,
+    chats?: ValueTypes["Chat"],
+    isOnline?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["UserQueryInput"]: {
+    search?: string | undefined | null | Variable<any, string>,
+    excludeUserIds?: Array<string> | undefined | null | Variable<any, string>
+  };
+  ["Query"]: AliasType<{
+    users?: [{ input?: ValueTypes["UserQueryInput"] | undefined | null | Variable<any, string> }, ValueTypes["User"]],
+    me?: ValueTypes["User"],
+    myChats?: ValueTypes["Chat"],
+    myChat?: [{ chatId: string | Variable<any, string> }, ValueTypes["Chat"]],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["CreateUserInput"]: {
+    username: string | Variable<any, string>,
+    email: string | Variable<any, string>,
+    password: string | Variable<any, string>,
+    confirm_password: string | Variable<any, string>
+  };
+  ["Mutation"]: AliasType<{
+    createUser?: [{ input: ValueTypes["CreateUserInput"] | Variable<any, string> }, ValueTypes["User"]],
+    createGuestUser?: ValueTypes["AuthPayload"],
+    loginUser?: [{ input: ValueTypes["LoginUserInput"] | Variable<any, string> }, ValueTypes["AuthPayload"]],
+    refreshToken?: ValueTypes["AuthPayload"],
+    updateTypingStatus?: [{ chatId: string | Variable<any, string>, isTyping: boolean | Variable<any, string> }, boolean | `@${string}`],
+    sendEmailVerification?: boolean | `@${string}`,
+    verifyEmail?: [{ input: ValueTypes["VerifyEmailInput"] | Variable<any, string> }, boolean | `@${string}`],
+    updateUser?: [{ input: ValueTypes["UpdateUserInput"] | Variable<any, string> }, boolean | `@${string}`],
+    logoutUser?: boolean | `@${string}`,
+    onlineServerPong?: [{ input: ValueTypes["OnlineServerPongInput"] | Variable<any, string> }, boolean | `@${string}`],
+    createUserChat?: [{ input: ValueTypes["CreateChatInput"] | Variable<any, string> }, ValueTypes["Chat"]],
+    deleteChat?: [{ input: ValueTypes["DeleteChatInput"] | Variable<any, string> }, boolean | `@${string}`],
+    updateChat?: [{ input: ValueTypes["UpdateChatInput"] | Variable<any, string> }, boolean | `@${string}`],
+    addUserToChat?: [{ input: ValueTypes["AddUserToChatInput"] | Variable<any, string> }, boolean | `@${string}`],
+    removeUserFromChat?: [{ input: ValueTypes["RemoveUserFromChatInput"] | Variable<any, string> }, boolean | `@${string}`],
+    sendMessage?: [{ input: ValueTypes["SendMessageInput"] | Variable<any, string> }, boolean | `@${string}`],
+    readMessage?: [{ messageId: string | Variable<any, string> }, boolean | `@${string}`],
+    sendKeySharingTransaction?: [{ input: ValueTypes["SendKeySharingTransactionInput"] | Variable<any, string> }, boolean | `@${string}`],
+    sendKeySharingTransactionPublicKey?: [{ input: ValueTypes["SendKeySharingTransactionPublicKeyInput"] | Variable<any, string> }, boolean | `@${string}`],
+    sendKeySharingTransactionEncryptedKey?: [{ input: ValueTypes["SendKeySharingTransactionEncryptedKeyInput"] | Variable<any, string> }, boolean | `@${string}`],
+    sendKeySharingTransactionSuccess?: [{ input: ValueTypes["SendKeySharingTransactionSuccessInput"] | Variable<any, string> }, boolean | `@${string}`],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["LoginUserInput"]: {
+    username: string | Variable<any, string>,
+    password: string | Variable<any, string>
+  };
+  ["VerifyEmailInput"]: {
+    code: string | Variable<any, string>
+  };
+  ["File"]: unknown;
+  ["UpdateUserInput"]: {
+    displayName?: string | undefined | null | Variable<any, string>,
+    avatar?: ValueTypes["File"] | undefined | null | Variable<any, string>
+  };
+  ["OnlineServerPongInput"]: {
+    pingPongId: string | Variable<any, string>,
+    pingPongIterationId: string | Variable<any, string>
+  };
+  ["UserTypingStatus"]: AliasType<{
+    userId?: boolean | `@${string}`,
+    chatId?: boolean | `@${string}`,
+    isTyping?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["DateTime"]: unknown;
+  ["Chat"]: AliasType<{
+    id?: boolean | `@${string}`,
+    name?: boolean | `@${string}`,
+    avatar?: boolean | `@${string}`,
+    owner_id?: boolean | `@${string}`,
+    iAmAdmin?: boolean | `@${string}`,
+    updated_at?: boolean | `@${string}`,
+    unread_messages_count?: boolean | `@${string}`,
+    users?: ValueTypes["User"],
+    messages?: [{ lastMessageId?: string | undefined | null | Variable<any, string> }, ValueTypes["Message"]],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["CreateChatInput"]: {
+    name?: string | undefined | null | Variable<any, string>,
+    avatar?: string | undefined | null | Variable<any, string>,
+    userIds: Array<string> | Variable<any, string>
+  };
+  ["DeleteChatInput"]: {
+    chatId: string | Variable<any, string>,
+    userId?: string | undefined | null | Variable<any, string>
+  };
+  ["UpdateChatInput"]: {
+    id: string | Variable<any, string>,
+    name?: string | undefined | null | Variable<any, string>,
+    avatar?: ValueTypes["File"] | undefined | null | Variable<any, string>
+  };
+  ["AddUserToChatInput"]: {
+    chatId: string | Variable<any, string>,
+    userId: string | Variable<any, string>
+  };
+  ["RemoveUserFromChatInput"]: {
+    chatId: string | Variable<any, string>,
+    userId: string | Variable<any, string>
+  };
+  ["MessageFile"]: AliasType<{
+    id?: boolean | `@${string}`,
+    message_id?: boolean | `@${string}`,
+    chat_id?: boolean | `@${string}`,
+    file_name?: boolean | `@${string}`,
+    file_size?: boolean | `@${string}`,
+    file_type?: boolean | `@${string}`,
+    file_url?: boolean | `@${string}`,
+    upload_timestamp?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["Message"]: AliasType<{
+    id?: boolean | `@${string}`,
+    chat_id?: boolean | `@${string}`,
+    user_id?: boolean | `@${string}`,
+    type?: boolean | `@${string}`,
+    is_read?: boolean | `@${string}`,
+    content?: boolean | `@${string}`,
+    timestamp?: boolean | `@${string}`,
+    reads?: boolean | `@${string}`,
+    disable_encryption?: boolean | `@${string}`,
+    files?: ValueTypes["MessageFile"],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["UploadedEncryptedFileInput"]: {
+    filename: string | Variable<any, string>,
+    mimeType: string | Variable<any, string>,
+    content: string | Variable<any, string>,
+    isEncrypted: boolean | Variable<any, string>
+  };
+  ["SendMessageInput"]: {
+    chatId: string | Variable<any, string>,
+    content: string | Variable<any, string>,
+    disableEncryption: boolean | Variable<any, string>,
+    files?: Array<ValueTypes["UploadedEncryptedFileInput"]> | undefined | null | Variable<any, string>
+  };
+  ["UnreadMessagesCount"]: AliasType<{
+    chatId?: boolean | `@${string}`,
+    unreadCount?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["SendKeySharingTransactionInput"]: {
+    chatId: string | Variable<any, string>,
+    userId: string | Variable<any, string>
+  };
+  ["IncomingKeySharingTransaction"]: AliasType<{
+    chatId?: boolean | `@${string}`,
+    senderId?: boolean | `@${string}`,
+    transactionId?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["SendKeySharingTransactionPublicKeyInput"]: {
+    transactionId: string | Variable<any, string>,
+    publicKey: string | Variable<any, string>
+  };
+  ["SendKeySharingTransactionEncryptedKeyInput"]: {
+    transactionId: string | Variable<any, string>,
+    encryptedKey: string | Variable<any, string>
+  };
+  ["SendKeySharingTransactionSuccessInput"]: {
+    transactionId: string | Variable<any, string>,
+    success: boolean | Variable<any, string>
   }
+}
 
 export type ResolverInputTypes = {
-    ["Subscription"]: AliasType<{
-	wsConnectionInitial?:boolean | `@${string}`,
-	typingStatusUpdated?:ResolverInputTypes["UserTypingStatus"],
-onlineStatusChanged?: [{	userId: string},boolean | `@${string}`],
-	userUpdated?:ResolverInputTypes["User"],
-onlineServerPing?: [{	pingPongId: string},boolean | `@${string}`],
-	chatUpdated?:ResolverInputTypes["Chat"],
-	chatCreated?:ResolverInputTypes["Chat"],
-	chatDeleted?:boolean | `@${string}`,
-	newMessage?:ResolverInputTypes["Message"],
-	messageUpdated?:ResolverInputTypes["Message"],
-	unreadMessagesCountChange?:ResolverInputTypes["UnreadMessagesCount"],
-	onIncomingKeySharingTransaction?:ResolverInputTypes["IncomingKeySharingTransaction"],
-onReceivedKeySharingTransactionPublicKey?: [{	transactionId: string},boolean | `@${string}`],
-onReceivedKeySharingTransactionEncryptedKey?: [{	transactionId: string},boolean | `@${string}`],
-onKeySharingTransactionSuccess?: [{	transactionId: string},boolean | `@${string}`],
-		__typename?: boolean | `@${string}`
-}>;
-	["AuthPayload"]: AliasType<{
-	token?:boolean | `@${string}`,
-	user?:ResolverInputTypes["User"],
-		__typename?: boolean | `@${string}`
-}>;
-	["Role"]:Role;
-	["User"]: AliasType<{
-	id?:boolean | `@${string}`,
-	username?:boolean | `@${string}`,
-	displayName?:boolean | `@${string}`,
-	avatar?:boolean | `@${string}`,
-	email?:boolean | `@${string}`,
-	emailVerified?:boolean | `@${string}`,
-	role?:boolean | `@${string}`,
-	chats?:ResolverInputTypes["Chat"],
-	isOnline?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["UserQueryInput"]: {
-	search?: string | undefined | null,
-	excludeUserIds?: Array<string> | undefined | null
-};
-	["Query"]: AliasType<{
-users?: [{	input?: ResolverInputTypes["UserQueryInput"] | undefined | null},ResolverInputTypes["User"]],
-	me?:ResolverInputTypes["User"],
-	myChats?:ResolverInputTypes["Chat"],
-myChat?: [{	chatId: string},ResolverInputTypes["Chat"]],
-		__typename?: boolean | `@${string}`
-}>;
-	["CreateUserInput"]: {
-	username: string,
-	email: string,
-	password: string,
-	confirm_password: string
-};
-	["Mutation"]: AliasType<{
-createUser?: [{	input: ResolverInputTypes["CreateUserInput"]},ResolverInputTypes["User"]],
-	createGuestUser?:ResolverInputTypes["AuthPayload"],
-loginUser?: [{	input: ResolverInputTypes["LoginUserInput"]},ResolverInputTypes["AuthPayload"]],
-	refreshToken?:ResolverInputTypes["AuthPayload"],
-updateTypingStatus?: [{	chatId: string,	isTyping: boolean},boolean | `@${string}`],
-	sendEmailVerification?:boolean | `@${string}`,
-verifyEmail?: [{	input: ResolverInputTypes["VerifyEmailInput"]},boolean | `@${string}`],
-updateUser?: [{	input: ResolverInputTypes["UpdateUserInput"]},boolean | `@${string}`],
-	logoutUser?:boolean | `@${string}`,
-onlineServerPong?: [{	input: ResolverInputTypes["OnlineServerPongInput"]},boolean | `@${string}`],
-createUserChat?: [{	input: ResolverInputTypes["CreateChatInput"]},ResolverInputTypes["Chat"]],
-deleteChat?: [{	input: ResolverInputTypes["DeleteChatInput"]},boolean | `@${string}`],
-updateChat?: [{	input: ResolverInputTypes["UpdateChatInput"]},boolean | `@${string}`],
-addUserToChat?: [{	input: ResolverInputTypes["AddUserToChatInput"]},boolean | `@${string}`],
-removeUserFromChat?: [{	input: ResolverInputTypes["RemoveUserFromChatInput"]},boolean | `@${string}`],
-sendMessage?: [{	input: ResolverInputTypes["SendMessageInput"]},boolean | `@${string}`],
-readMessage?: [{	messageId: string},boolean | `@${string}`],
-sendKeySharingTransaction?: [{	input: ResolverInputTypes["SendKeySharingTransactionInput"]},boolean | `@${string}`],
-sendKeySharingTransactionPublicKey?: [{	input: ResolverInputTypes["SendKeySharingTransactionPublicKeyInput"]},boolean | `@${string}`],
-sendKeySharingTransactionEncryptedKey?: [{	input: ResolverInputTypes["SendKeySharingTransactionEncryptedKeyInput"]},boolean | `@${string}`],
-sendKeySharingTransactionSuccess?: [{	input: ResolverInputTypes["SendKeySharingTransactionSuccessInput"]},boolean | `@${string}`],
-		__typename?: boolean | `@${string}`
-}>;
-	["LoginUserInput"]: {
-	username: string,
-	password: string
-};
-	["VerifyEmailInput"]: {
-	code: string
-};
-	["File"]:unknown;
-	["UpdateUserInput"]: {
-	displayName?: string | undefined | null,
-	avatar?: ResolverInputTypes["File"] | undefined | null
-};
-	["OnlineServerPongInput"]: {
-	pingPongId: string,
-	pingPongIterationId: string
-};
-	["UserTypingStatus"]: AliasType<{
-	userId?:boolean | `@${string}`,
-	chatId?:boolean | `@${string}`,
-	isTyping?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["DateTime"]:unknown;
-	["Chat"]: AliasType<{
-	id?:boolean | `@${string}`,
-	name?:boolean | `@${string}`,
-	avatar?:boolean | `@${string}`,
-	owner_id?:boolean | `@${string}`,
-	iAmAdmin?:boolean | `@${string}`,
-	updated_at?:boolean | `@${string}`,
-	unread_messages_count?:boolean | `@${string}`,
-	users?:ResolverInputTypes["User"],
-messages?: [{	lastMessageId?: string | undefined | null},ResolverInputTypes["Message"]],
-		__typename?: boolean | `@${string}`
-}>;
-	["CreateChatInput"]: {
-	name?: string | undefined | null,
-	avatar?: string | undefined | null,
-	userIds: Array<string>
-};
-	["DeleteChatInput"]: {
-	chatId: string,
-	userId?: string | undefined | null
-};
-	["UpdateChatInput"]: {
-	id: string,
-	name?: string | undefined | null,
-	avatar?: ResolverInputTypes["File"] | undefined | null
-};
-	["AddUserToChatInput"]: {
-	chatId: string,
-	userId: string
-};
-	["RemoveUserFromChatInput"]: {
-	chatId: string,
-	userId: string
-};
-	["MessageFile"]: AliasType<{
-	id?:boolean | `@${string}`,
-	message_id?:boolean | `@${string}`,
-	chat_id?:boolean | `@${string}`,
-	file_name?:boolean | `@${string}`,
-	file_size?:boolean | `@${string}`,
-	file_type?:boolean | `@${string}`,
-	file_url?:boolean | `@${string}`,
-	upload_timestamp?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["Message"]: AliasType<{
-	id?:boolean | `@${string}`,
-	chat_id?:boolean | `@${string}`,
-	user_id?:boolean | `@${string}`,
-	type?:boolean | `@${string}`,
-	is_read?:boolean | `@${string}`,
-	content?:boolean | `@${string}`,
-	timestamp?:boolean | `@${string}`,
-	disable_encryption?:boolean | `@${string}`,
-	files?:ResolverInputTypes["MessageFile"],
-		__typename?: boolean | `@${string}`
-}>;
-	["UploadedEncryptedFileInput"]: {
-	filename: string,
-	mimeType: string,
-	content: string,
-	isEncrypted: boolean
-};
-	["SendMessageInput"]: {
-	chatId: string,
-	content: string,
-	disableEncryption: boolean,
-	files?: Array<ResolverInputTypes["UploadedEncryptedFileInput"]> | undefined | null
-};
-	["UnreadMessagesCount"]: AliasType<{
-	chatId?:boolean | `@${string}`,
-	unreadCount?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["SendKeySharingTransactionInput"]: {
-	chatId: string,
-	userId: string
-};
-	["IncomingKeySharingTransaction"]: AliasType<{
-	chatId?:boolean | `@${string}`,
-	senderId?:boolean | `@${string}`,
-	transactionId?:boolean | `@${string}`,
-		__typename?: boolean | `@${string}`
-}>;
-	["SendKeySharingTransactionPublicKeyInput"]: {
-	transactionId: string,
-	publicKey: string
-};
-	["SendKeySharingTransactionEncryptedKeyInput"]: {
-	transactionId: string,
-	encryptedKey: string
-};
-	["SendKeySharingTransactionSuccessInput"]: {
-	transactionId: string,
-	success: boolean
-};
-	["schema"]: AliasType<{
-	query?:ResolverInputTypes["Query"],
-	mutation?:ResolverInputTypes["Mutation"],
-	subscription?:ResolverInputTypes["Subscription"],
-		__typename?: boolean | `@${string}`
-}>
-  }
+  ["Subscription"]: AliasType<{
+    wsConnectionInitial?: boolean | `@${string}`,
+    typingStatusUpdated?: ResolverInputTypes["UserTypingStatus"],
+    onlineStatusChanged?: [{ userId: string }, boolean | `@${string}`],
+    userUpdated?: ResolverInputTypes["User"],
+    onlineServerPing?: [{ pingPongId: string }, boolean | `@${string}`],
+    chatUpdated?: ResolverInputTypes["Chat"],
+    chatCreated?: ResolverInputTypes["Chat"],
+    chatDeleted?: boolean | `@${string}`,
+    newMessage?: ResolverInputTypes["Message"],
+    messageUpdated?: ResolverInputTypes["Message"],
+    unreadMessagesCountChange?: ResolverInputTypes["UnreadMessagesCount"],
+    onIncomingKeySharingTransaction?: ResolverInputTypes["IncomingKeySharingTransaction"],
+    onReceivedKeySharingTransactionPublicKey?: [{ transactionId: string }, boolean | `@${string}`],
+    onReceivedKeySharingTransactionEncryptedKey?: [{ transactionId: string }, boolean | `@${string}`],
+    onKeySharingTransactionSuccess?: [{ transactionId: string }, boolean | `@${string}`],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["AuthPayload"]: AliasType<{
+    token?: boolean | `@${string}`,
+    user?: ResolverInputTypes["User"],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["Role"]: Role;
+  ["User"]: AliasType<{
+    id?: boolean | `@${string}`,
+    username?: boolean | `@${string}`,
+    displayName?: boolean | `@${string}`,
+    avatar?: boolean | `@${string}`,
+    email?: boolean | `@${string}`,
+    emailVerified?: boolean | `@${string}`,
+    role?: boolean | `@${string}`,
+    chats?: ResolverInputTypes["Chat"],
+    isOnline?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["UserQueryInput"]: {
+    search?: string | undefined | null,
+    excludeUserIds?: Array<string> | undefined | null
+  };
+  ["Query"]: AliasType<{
+    users?: [{ input?: ResolverInputTypes["UserQueryInput"] | undefined | null }, ResolverInputTypes["User"]],
+    me?: ResolverInputTypes["User"],
+    myChats?: ResolverInputTypes["Chat"],
+    myChat?: [{ chatId: string }, ResolverInputTypes["Chat"]],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["CreateUserInput"]: {
+    username: string,
+    email: string,
+    password: string,
+    confirm_password: string
+  };
+  ["Mutation"]: AliasType<{
+    createUser?: [{ input: ResolverInputTypes["CreateUserInput"] }, ResolverInputTypes["User"]],
+    createGuestUser?: ResolverInputTypes["AuthPayload"],
+    loginUser?: [{ input: ResolverInputTypes["LoginUserInput"] }, ResolverInputTypes["AuthPayload"]],
+    refreshToken?: ResolverInputTypes["AuthPayload"],
+    updateTypingStatus?: [{ chatId: string, isTyping: boolean }, boolean | `@${string}`],
+    sendEmailVerification?: boolean | `@${string}`,
+    verifyEmail?: [{ input: ResolverInputTypes["VerifyEmailInput"] }, boolean | `@${string}`],
+    updateUser?: [{ input: ResolverInputTypes["UpdateUserInput"] }, boolean | `@${string}`],
+    logoutUser?: boolean | `@${string}`,
+    onlineServerPong?: [{ input: ResolverInputTypes["OnlineServerPongInput"] }, boolean | `@${string}`],
+    createUserChat?: [{ input: ResolverInputTypes["CreateChatInput"] }, ResolverInputTypes["Chat"]],
+    deleteChat?: [{ input: ResolverInputTypes["DeleteChatInput"] }, boolean | `@${string}`],
+    updateChat?: [{ input: ResolverInputTypes["UpdateChatInput"] }, boolean | `@${string}`],
+    addUserToChat?: [{ input: ResolverInputTypes["AddUserToChatInput"] }, boolean | `@${string}`],
+    removeUserFromChat?: [{ input: ResolverInputTypes["RemoveUserFromChatInput"] }, boolean | `@${string}`],
+    sendMessage?: [{ input: ResolverInputTypes["SendMessageInput"] }, boolean | `@${string}`],
+    readMessage?: [{ messageId: string }, boolean | `@${string}`],
+    sendKeySharingTransaction?: [{ input: ResolverInputTypes["SendKeySharingTransactionInput"] }, boolean | `@${string}`],
+    sendKeySharingTransactionPublicKey?: [{ input: ResolverInputTypes["SendKeySharingTransactionPublicKeyInput"] }, boolean | `@${string}`],
+    sendKeySharingTransactionEncryptedKey?: [{ input: ResolverInputTypes["SendKeySharingTransactionEncryptedKeyInput"] }, boolean | `@${string}`],
+    sendKeySharingTransactionSuccess?: [{ input: ResolverInputTypes["SendKeySharingTransactionSuccessInput"] }, boolean | `@${string}`],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["LoginUserInput"]: {
+    username: string,
+    password: string
+  };
+  ["VerifyEmailInput"]: {
+    code: string
+  };
+  ["File"]: unknown;
+  ["UpdateUserInput"]: {
+    displayName?: string | undefined | null,
+    avatar?: ResolverInputTypes["File"] | undefined | null
+  };
+  ["OnlineServerPongInput"]: {
+    pingPongId: string,
+    pingPongIterationId: string
+  };
+  ["UserTypingStatus"]: AliasType<{
+    userId?: boolean | `@${string}`,
+    chatId?: boolean | `@${string}`,
+    isTyping?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["DateTime"]: unknown;
+  ["Chat"]: AliasType<{
+    id?: boolean | `@${string}`,
+    name?: boolean | `@${string}`,
+    avatar?: boolean | `@${string}`,
+    owner_id?: boolean | `@${string}`,
+    iAmAdmin?: boolean | `@${string}`,
+    updated_at?: boolean | `@${string}`,
+    unread_messages_count?: boolean | `@${string}`,
+    users?: ResolverInputTypes["User"],
+    messages?: [{ lastMessageId?: string | undefined | null }, ResolverInputTypes["Message"]],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["CreateChatInput"]: {
+    name?: string | undefined | null,
+    avatar?: string | undefined | null,
+    userIds: Array<string>
+  };
+  ["DeleteChatInput"]: {
+    chatId: string,
+    userId?: string | undefined | null
+  };
+  ["UpdateChatInput"]: {
+    id: string,
+    name?: string | undefined | null,
+    avatar?: ResolverInputTypes["File"] | undefined | null
+  };
+  ["AddUserToChatInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["RemoveUserFromChatInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["MessageFile"]: AliasType<{
+    id?: boolean | `@${string}`,
+    message_id?: boolean | `@${string}`,
+    chat_id?: boolean | `@${string}`,
+    file_name?: boolean | `@${string}`,
+    file_size?: boolean | `@${string}`,
+    file_type?: boolean | `@${string}`,
+    file_url?: boolean | `@${string}`,
+    upload_timestamp?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["Message"]: AliasType<{
+    id?: boolean | `@${string}`,
+    chat_id?: boolean | `@${string}`,
+    user_id?: boolean | `@${string}`,
+    type?: boolean | `@${string}`,
+    is_read?: boolean | `@${string}`,
+    content?: boolean | `@${string}`,
+    timestamp?: boolean | `@${string}`,
+    reads?: boolean | `@${string}`,
+    disable_encryption?: boolean | `@${string}`,
+    files?: ResolverInputTypes["MessageFile"],
+    __typename?: boolean | `@${string}`
+  }>;
+  ["UploadedEncryptedFileInput"]: {
+    filename: string,
+    mimeType: string,
+    content: string,
+    isEncrypted: boolean
+  };
+  ["SendMessageInput"]: {
+    chatId: string,
+    content: string,
+    disableEncryption: boolean,
+    files?: Array<ResolverInputTypes["UploadedEncryptedFileInput"]> | undefined | null
+  };
+  ["UnreadMessagesCount"]: AliasType<{
+    chatId?: boolean | `@${string}`,
+    unreadCount?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["SendKeySharingTransactionInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["IncomingKeySharingTransaction"]: AliasType<{
+    chatId?: boolean | `@${string}`,
+    senderId?: boolean | `@${string}`,
+    transactionId?: boolean | `@${string}`,
+    __typename?: boolean | `@${string}`
+  }>;
+  ["SendKeySharingTransactionPublicKeyInput"]: {
+    transactionId: string,
+    publicKey: string
+  };
+  ["SendKeySharingTransactionEncryptedKeyInput"]: {
+    transactionId: string,
+    encryptedKey: string
+  };
+  ["SendKeySharingTransactionSuccessInput"]: {
+    transactionId: string,
+    success: boolean
+  };
+  ["schema"]: AliasType<{
+    query?: ResolverInputTypes["Query"],
+    mutation?: ResolverInputTypes["Mutation"],
+    subscription?: ResolverInputTypes["Subscription"],
+    __typename?: boolean | `@${string}`
+  }>
+}
 
 export type ModelTypes = {
-    ["Subscription"]: {
-		wsConnectionInitial: boolean,
-	typingStatusUpdated: ModelTypes["UserTypingStatus"],
-	onlineStatusChanged: boolean,
-	userUpdated: ModelTypes["User"],
-	onlineServerPing: string,
-	chatUpdated: ModelTypes["Chat"],
-	chatCreated: ModelTypes["Chat"],
-	chatDeleted: string,
-	newMessage: ModelTypes["Message"],
-	messageUpdated: ModelTypes["Message"],
-	unreadMessagesCountChange: ModelTypes["UnreadMessagesCount"],
-	onIncomingKeySharingTransaction: ModelTypes["IncomingKeySharingTransaction"],
-	onReceivedKeySharingTransactionPublicKey: string,
-	onReceivedKeySharingTransactionEncryptedKey: string,
-	onKeySharingTransactionSuccess: boolean
-};
-	["AuthPayload"]: {
-		token: string,
-	user: ModelTypes["User"]
-};
-	["Role"]:Role;
-	["User"]: {
-		id: string,
-	username: string,
-	displayName?: string | undefined | null,
-	avatar?: string | undefined | null,
-	email?: string | undefined | null,
-	emailVerified?: boolean | undefined | null,
-	role?: ModelTypes["Role"] | undefined | null,
-	chats?: Array<ModelTypes["Chat"]> | undefined | null,
-	isOnline?: boolean | undefined | null
-};
-	["UserQueryInput"]: {
-	search?: string | undefined | null,
-	excludeUserIds?: Array<string> | undefined | null
-};
-	["Query"]: {
-		users: Array<ModelTypes["User"]>,
-	me: ModelTypes["User"],
-	myChats: Array<ModelTypes["Chat"]>,
-	myChat: ModelTypes["Chat"]
-};
-	["CreateUserInput"]: {
-	username: string,
-	email: string,
-	password: string,
-	confirm_password: string
-};
-	["Mutation"]: {
-		createUser: ModelTypes["User"],
-	createGuestUser: ModelTypes["AuthPayload"],
-	loginUser: ModelTypes["AuthPayload"],
-	refreshToken: ModelTypes["AuthPayload"],
-	updateTypingStatus: boolean,
-	sendEmailVerification: boolean,
-	verifyEmail: boolean,
-	updateUser: boolean,
-	logoutUser: boolean,
-	onlineServerPong: boolean,
-	createUserChat: ModelTypes["Chat"],
-	deleteChat: boolean,
-	updateChat: boolean,
-	addUserToChat: boolean,
-	removeUserFromChat: boolean,
-	sendMessage: boolean,
-	readMessage: boolean,
-	sendKeySharingTransaction: string,
-	sendKeySharingTransactionPublicKey: boolean,
-	sendKeySharingTransactionEncryptedKey: boolean,
-	sendKeySharingTransactionSuccess: boolean
-};
-	["LoginUserInput"]: {
-	username: string,
-	password: string
-};
-	["VerifyEmailInput"]: {
-	code: string
-};
-	["File"]:any;
-	["UpdateUserInput"]: {
-	displayName?: string | undefined | null,
-	avatar?: ModelTypes["File"] | undefined | null
-};
-	["OnlineServerPongInput"]: {
-	pingPongId: string,
-	pingPongIterationId: string
-};
-	["UserTypingStatus"]: {
-		userId: string,
-	chatId: string,
-	isTyping: boolean
-};
-	["DateTime"]:any;
-	["Chat"]: {
-		id: string,
-	name: string,
-	avatar?: string | undefined | null,
-	owner_id: string,
-	iAmAdmin?: boolean | undefined | null,
-	updated_at: ModelTypes["DateTime"],
-	unread_messages_count?: number | undefined | null,
-	users?: Array<ModelTypes["User"]> | undefined | null,
-	messages?: Array<ModelTypes["Message"]> | undefined | null
-};
-	["CreateChatInput"]: {
-	name?: string | undefined | null,
-	avatar?: string | undefined | null,
-	userIds: Array<string>
-};
-	["DeleteChatInput"]: {
-	chatId: string,
-	userId?: string | undefined | null
-};
-	["UpdateChatInput"]: {
-	id: string,
-	name?: string | undefined | null,
-	avatar?: ModelTypes["File"] | undefined | null
-};
-	["AddUserToChatInput"]: {
-	chatId: string,
-	userId: string
-};
-	["RemoveUserFromChatInput"]: {
-	chatId: string,
-	userId: string
-};
-	["MessageFile"]: {
-		id?: string | undefined | null,
-	message_id?: string | undefined | null,
-	chat_id?: string | undefined | null,
-	file_name: string,
-	file_size: number,
-	file_type: string,
-	file_url?: string | undefined | null,
-	upload_timestamp?: string | undefined | null
-};
-	["Message"]: {
-		id: string,
-	chat_id: string,
-	user_id: string,
-	type: string,
-	is_read?: boolean | undefined | null,
-	content: string,
-	timestamp: string,
-	disable_encryption: boolean,
-	files?: Array<ModelTypes["MessageFile"]> | undefined | null
-};
-	["UploadedEncryptedFileInput"]: {
-	filename: string,
-	mimeType: string,
-	content: string,
-	isEncrypted: boolean
-};
-	["SendMessageInput"]: {
-	chatId: string,
-	content: string,
-	disableEncryption: boolean,
-	files?: Array<ModelTypes["UploadedEncryptedFileInput"]> | undefined | null
-};
-	["UnreadMessagesCount"]: {
-		chatId: string,
-	unreadCount: number
-};
-	["SendKeySharingTransactionInput"]: {
-	chatId: string,
-	userId: string
-};
-	["IncomingKeySharingTransaction"]: {
-		chatId: string,
-	senderId: string,
-	transactionId: string
-};
-	["SendKeySharingTransactionPublicKeyInput"]: {
-	transactionId: string,
-	publicKey: string
-};
-	["SendKeySharingTransactionEncryptedKeyInput"]: {
-	transactionId: string,
-	encryptedKey: string
-};
-	["SendKeySharingTransactionSuccessInput"]: {
-	transactionId: string,
-	success: boolean
-};
-	["schema"]: {
-	query?: ModelTypes["Query"] | undefined | null,
-	mutation?: ModelTypes["Mutation"] | undefined | null,
-	subscription?: ModelTypes["Subscription"] | undefined | null
+  ["Subscription"]: {
+    wsConnectionInitial: boolean,
+    typingStatusUpdated: ModelTypes["UserTypingStatus"],
+    onlineStatusChanged: boolean,
+    userUpdated: ModelTypes["User"],
+    onlineServerPing: string,
+    chatUpdated: ModelTypes["Chat"],
+    chatCreated: ModelTypes["Chat"],
+    chatDeleted: string,
+    newMessage: ModelTypes["Message"],
+    messageUpdated: ModelTypes["Message"],
+    unreadMessagesCountChange: ModelTypes["UnreadMessagesCount"],
+    onIncomingKeySharingTransaction: ModelTypes["IncomingKeySharingTransaction"],
+    onReceivedKeySharingTransactionPublicKey: string,
+    onReceivedKeySharingTransactionEncryptedKey: string,
+    onKeySharingTransactionSuccess: boolean
+  };
+  ["AuthPayload"]: {
+    token: string,
+    user: ModelTypes["User"]
+  };
+  ["Role"]: Role;
+  ["User"]: {
+    id: string,
+    username: string,
+    displayName?: string | undefined | null,
+    avatar?: string | undefined | null,
+    email?: string | undefined | null,
+    emailVerified?: boolean | undefined | null,
+    role?: ModelTypes["Role"] | undefined | null,
+    chats?: Array<ModelTypes["Chat"]> | undefined | null,
+    isOnline?: boolean | undefined | null
+  };
+  ["UserQueryInput"]: {
+    search?: string | undefined | null,
+    excludeUserIds?: Array<string> | undefined | null
+  };
+  ["Query"]: {
+    users: Array<ModelTypes["User"]>,
+    me: ModelTypes["User"],
+    myChats: Array<ModelTypes["Chat"]>,
+    myChat: ModelTypes["Chat"]
+  };
+  ["CreateUserInput"]: {
+    username: string,
+    email: string,
+    password: string,
+    confirm_password: string
+  };
+  ["Mutation"]: {
+    createUser: ModelTypes["User"],
+    createGuestUser: ModelTypes["AuthPayload"],
+    loginUser: ModelTypes["AuthPayload"],
+    refreshToken: ModelTypes["AuthPayload"],
+    updateTypingStatus: boolean,
+    sendEmailVerification: boolean,
+    verifyEmail: boolean,
+    updateUser: boolean,
+    logoutUser: boolean,
+    onlineServerPong: boolean,
+    createUserChat: ModelTypes["Chat"],
+    deleteChat: boolean,
+    updateChat: boolean,
+    addUserToChat: boolean,
+    removeUserFromChat: boolean,
+    sendMessage: boolean,
+    readMessage: boolean,
+    sendKeySharingTransaction: string,
+    sendKeySharingTransactionPublicKey: boolean,
+    sendKeySharingTransactionEncryptedKey: boolean,
+    sendKeySharingTransactionSuccess: boolean
+  };
+  ["LoginUserInput"]: {
+    username: string,
+    password: string
+  };
+  ["VerifyEmailInput"]: {
+    code: string
+  };
+  ["File"]: any;
+  ["UpdateUserInput"]: {
+    displayName?: string | undefined | null,
+    avatar?: ModelTypes["File"] | undefined | null
+  };
+  ["OnlineServerPongInput"]: {
+    pingPongId: string,
+    pingPongIterationId: string
+  };
+  ["UserTypingStatus"]: {
+    userId: string,
+    chatId: string,
+    isTyping: boolean
+  };
+  ["DateTime"]: any;
+  ["Chat"]: {
+    id: string,
+    name: string,
+    avatar?: string | undefined | null,
+    owner_id: string,
+    iAmAdmin?: boolean | undefined | null,
+    updated_at: ModelTypes["DateTime"],
+    unread_messages_count?: number | undefined | null,
+    users?: Array<ModelTypes["User"]> | undefined | null,
+    messages?: Array<ModelTypes["Message"]> | undefined | null
+  };
+  ["CreateChatInput"]: {
+    name?: string | undefined | null,
+    avatar?: string | undefined | null,
+    userIds: Array<string>
+  };
+  ["DeleteChatInput"]: {
+    chatId: string,
+    userId?: string | undefined | null
+  };
+  ["UpdateChatInput"]: {
+    id: string,
+    name?: string | undefined | null,
+    avatar?: ModelTypes["File"] | undefined | null
+  };
+  ["AddUserToChatInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["RemoveUserFromChatInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["MessageFile"]: {
+    id?: string | undefined | null,
+    message_id?: string | undefined | null,
+    chat_id?: string | undefined | null,
+    file_name: string,
+    file_size: number,
+    file_type: string,
+    file_url?: string | undefined | null,
+    upload_timestamp?: string | undefined | null
+  };
+  ["Message"]: {
+    id: string,
+    chat_id: string,
+    user_id: string,
+    type: string,
+    is_read?: boolean | undefined | null,
+    content: string,
+    timestamp: string,
+    reads?: Array<string> | undefined | null,
+    disable_encryption: boolean,
+    files?: Array<ModelTypes["MessageFile"]> | undefined | null
+  };
+  ["UploadedEncryptedFileInput"]: {
+    filename: string,
+    mimeType: string,
+    content: string,
+    isEncrypted: boolean
+  };
+  ["SendMessageInput"]: {
+    chatId: string,
+    content: string,
+    disableEncryption: boolean,
+    files?: Array<ModelTypes["UploadedEncryptedFileInput"]> | undefined | null
+  };
+  ["UnreadMessagesCount"]: {
+    chatId: string,
+    unreadCount: number
+  };
+  ["SendKeySharingTransactionInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["IncomingKeySharingTransaction"]: {
+    chatId: string,
+    senderId: string,
+    transactionId: string
+  };
+  ["SendKeySharingTransactionPublicKeyInput"]: {
+    transactionId: string,
+    publicKey: string
+  };
+  ["SendKeySharingTransactionEncryptedKeyInput"]: {
+    transactionId: string,
+    encryptedKey: string
+  };
+  ["SendKeySharingTransactionSuccessInput"]: {
+    transactionId: string,
+    success: boolean
+  };
+  ["schema"]: {
+    query?: ModelTypes["Query"] | undefined | null,
+    mutation?: ModelTypes["Mutation"] | undefined | null,
+    subscription?: ModelTypes["Subscription"] | undefined | null
+  }
 }
-    }
 
 export type GraphQLTypes = {
-    ["Subscription"]: {
-	__typename: "Subscription",
-	wsConnectionInitial: boolean,
-	typingStatusUpdated: GraphQLTypes["UserTypingStatus"],
-	onlineStatusChanged: boolean,
-	userUpdated: GraphQLTypes["User"],
-	onlineServerPing: string,
-	chatUpdated: GraphQLTypes["Chat"],
-	chatCreated: GraphQLTypes["Chat"],
-	chatDeleted: string,
-	newMessage: GraphQLTypes["Message"],
-	messageUpdated: GraphQLTypes["Message"],
-	unreadMessagesCountChange: GraphQLTypes["UnreadMessagesCount"],
-	onIncomingKeySharingTransaction: GraphQLTypes["IncomingKeySharingTransaction"],
-	onReceivedKeySharingTransactionPublicKey: string,
-	onReceivedKeySharingTransactionEncryptedKey: string,
-	onKeySharingTransactionSuccess: boolean
-};
-	["AuthPayload"]: {
-	__typename: "AuthPayload",
-	token: string,
-	user: GraphQLTypes["User"]
-};
-	["Role"]: Role;
-	["User"]: {
-	__typename: "User",
-	id: string,
-	username: string,
-	displayName?: string | undefined | null,
-	avatar?: string | undefined | null,
-	email?: string | undefined | null,
-	emailVerified?: boolean | undefined | null,
-	role?: GraphQLTypes["Role"] | undefined | null,
-	chats?: Array<GraphQLTypes["Chat"]> | undefined | null,
-	isOnline?: boolean | undefined | null
-};
-	["UserQueryInput"]: {
-		search?: string | undefined | null,
-	excludeUserIds?: Array<string> | undefined | null
-};
-	["Query"]: {
-	__typename: "Query",
-	users: Array<GraphQLTypes["User"]>,
-	me: GraphQLTypes["User"],
-	myChats: Array<GraphQLTypes["Chat"]>,
-	myChat: GraphQLTypes["Chat"]
-};
-	["CreateUserInput"]: {
-		username: string,
-	email: string,
-	password: string,
-	confirm_password: string
-};
-	["Mutation"]: {
-	__typename: "Mutation",
-	createUser: GraphQLTypes["User"],
-	createGuestUser: GraphQLTypes["AuthPayload"],
-	loginUser: GraphQLTypes["AuthPayload"],
-	refreshToken: GraphQLTypes["AuthPayload"],
-	updateTypingStatus: boolean,
-	sendEmailVerification: boolean,
-	verifyEmail: boolean,
-	updateUser: boolean,
-	logoutUser: boolean,
-	onlineServerPong: boolean,
-	createUserChat: GraphQLTypes["Chat"],
-	deleteChat: boolean,
-	updateChat: boolean,
-	addUserToChat: boolean,
-	removeUserFromChat: boolean,
-	sendMessage: boolean,
-	readMessage: boolean,
-	sendKeySharingTransaction: string,
-	sendKeySharingTransactionPublicKey: boolean,
-	sendKeySharingTransactionEncryptedKey: boolean,
-	sendKeySharingTransactionSuccess: boolean
-};
-	["LoginUserInput"]: {
-		username: string,
-	password: string
-};
-	["VerifyEmailInput"]: {
-		code: string
-};
-	["File"]: "scalar" & { name: "File" };
-	["UpdateUserInput"]: {
-		displayName?: string | undefined | null,
-	avatar?: GraphQLTypes["File"] | undefined | null
-};
-	["OnlineServerPongInput"]: {
-		pingPongId: string,
-	pingPongIterationId: string
-};
-	["UserTypingStatus"]: {
-	__typename: "UserTypingStatus",
-	userId: string,
-	chatId: string,
-	isTyping: boolean
-};
-	["DateTime"]: "scalar" & { name: "DateTime" };
-	["Chat"]: {
-	__typename: "Chat",
-	id: string,
-	name: string,
-	avatar?: string | undefined | null,
-	owner_id: string,
-	iAmAdmin?: boolean | undefined | null,
-	updated_at: GraphQLTypes["DateTime"],
-	unread_messages_count?: number | undefined | null,
-	users?: Array<GraphQLTypes["User"]> | undefined | null,
-	messages?: Array<GraphQLTypes["Message"]> | undefined | null
-};
-	["CreateChatInput"]: {
-		name?: string | undefined | null,
-	avatar?: string | undefined | null,
-	userIds: Array<string>
-};
-	["DeleteChatInput"]: {
-		chatId: string,
-	userId?: string | undefined | null
-};
-	["UpdateChatInput"]: {
-		id: string,
-	name?: string | undefined | null,
-	avatar?: GraphQLTypes["File"] | undefined | null
-};
-	["AddUserToChatInput"]: {
-		chatId: string,
-	userId: string
-};
-	["RemoveUserFromChatInput"]: {
-		chatId: string,
-	userId: string
-};
-	["MessageFile"]: {
-	__typename: "MessageFile",
-	id?: string | undefined | null,
-	message_id?: string | undefined | null,
-	chat_id?: string | undefined | null,
-	file_name: string,
-	file_size: number,
-	file_type: string,
-	file_url?: string | undefined | null,
-	upload_timestamp?: string | undefined | null
-};
-	["Message"]: {
-	__typename: "Message",
-	id: string,
-	chat_id: string,
-	user_id: string,
-	type: string,
-	is_read?: boolean | undefined | null,
-	content: string,
-	timestamp: string,
-	disable_encryption: boolean,
-	files?: Array<GraphQLTypes["MessageFile"]> | undefined | null
-};
-	["UploadedEncryptedFileInput"]: {
-		filename: string,
-	mimeType: string,
-	content: string,
-	isEncrypted: boolean
-};
-	["SendMessageInput"]: {
-		chatId: string,
-	content: string,
-	disableEncryption: boolean,
-	files?: Array<GraphQLTypes["UploadedEncryptedFileInput"]> | undefined | null
-};
-	["UnreadMessagesCount"]: {
-	__typename: "UnreadMessagesCount",
-	chatId: string,
-	unreadCount: number
-};
-	["SendKeySharingTransactionInput"]: {
-		chatId: string,
-	userId: string
-};
-	["IncomingKeySharingTransaction"]: {
-	__typename: "IncomingKeySharingTransaction",
-	chatId: string,
-	senderId: string,
-	transactionId: string
-};
-	["SendKeySharingTransactionPublicKeyInput"]: {
-		transactionId: string,
-	publicKey: string
-};
-	["SendKeySharingTransactionEncryptedKeyInput"]: {
-		transactionId: string,
-	encryptedKey: string
-};
-	["SendKeySharingTransactionSuccessInput"]: {
-		transactionId: string,
-	success: boolean
+  ["Subscription"]: {
+    __typename: "Subscription",
+    wsConnectionInitial: boolean,
+    typingStatusUpdated: GraphQLTypes["UserTypingStatus"],
+    onlineStatusChanged: boolean,
+    userUpdated: GraphQLTypes["User"],
+    onlineServerPing: string,
+    chatUpdated: GraphQLTypes["Chat"],
+    chatCreated: GraphQLTypes["Chat"],
+    chatDeleted: string,
+    newMessage: GraphQLTypes["Message"],
+    messageUpdated: GraphQLTypes["Message"],
+    unreadMessagesCountChange: GraphQLTypes["UnreadMessagesCount"],
+    onIncomingKeySharingTransaction: GraphQLTypes["IncomingKeySharingTransaction"],
+    onReceivedKeySharingTransactionPublicKey: string,
+    onReceivedKeySharingTransactionEncryptedKey: string,
+    onKeySharingTransactionSuccess: boolean
+  };
+  ["AuthPayload"]: {
+    __typename: "AuthPayload",
+    token: string,
+    user: GraphQLTypes["User"]
+  };
+  ["Role"]: Role;
+  ["User"]: {
+    __typename: "User",
+    id: string,
+    username: string,
+    displayName?: string | undefined | null,
+    avatar?: string | undefined | null,
+    email?: string | undefined | null,
+    emailVerified?: boolean | undefined | null,
+    role?: GraphQLTypes["Role"] | undefined | null,
+    chats?: Array<GraphQLTypes["Chat"]> | undefined | null,
+    isOnline?: boolean | undefined | null
+  };
+  ["UserQueryInput"]: {
+    search?: string | undefined | null,
+    excludeUserIds?: Array<string> | undefined | null
+  };
+  ["Query"]: {
+    __typename: "Query",
+    users: Array<GraphQLTypes["User"]>,
+    me: GraphQLTypes["User"],
+    myChats: Array<GraphQLTypes["Chat"]>,
+    myChat: GraphQLTypes["Chat"]
+  };
+  ["CreateUserInput"]: {
+    username: string,
+    email: string,
+    password: string,
+    confirm_password: string
+  };
+  ["Mutation"]: {
+    __typename: "Mutation",
+    createUser: GraphQLTypes["User"],
+    createGuestUser: GraphQLTypes["AuthPayload"],
+    loginUser: GraphQLTypes["AuthPayload"],
+    refreshToken: GraphQLTypes["AuthPayload"],
+    updateTypingStatus: boolean,
+    sendEmailVerification: boolean,
+    verifyEmail: boolean,
+    updateUser: boolean,
+    logoutUser: boolean,
+    onlineServerPong: boolean,
+    createUserChat: GraphQLTypes["Chat"],
+    deleteChat: boolean,
+    updateChat: boolean,
+    addUserToChat: boolean,
+    removeUserFromChat: boolean,
+    sendMessage: boolean,
+    readMessage: boolean,
+    sendKeySharingTransaction: string,
+    sendKeySharingTransactionPublicKey: boolean,
+    sendKeySharingTransactionEncryptedKey: boolean,
+    sendKeySharingTransactionSuccess: boolean
+  };
+  ["LoginUserInput"]: {
+    username: string,
+    password: string
+  };
+  ["VerifyEmailInput"]: {
+    code: string
+  };
+  ["File"]: "scalar" & { name: "File" };
+  ["UpdateUserInput"]: {
+    displayName?: string | undefined | null,
+    avatar?: GraphQLTypes["File"] | undefined | null
+  };
+  ["OnlineServerPongInput"]: {
+    pingPongId: string,
+    pingPongIterationId: string
+  };
+  ["UserTypingStatus"]: {
+    __typename: "UserTypingStatus",
+    userId: string,
+    chatId: string,
+    isTyping: boolean
+  };
+  ["DateTime"]: "scalar" & { name: "DateTime" };
+  ["Chat"]: {
+    __typename: "Chat",
+    id: string,
+    name: string,
+    avatar?: string | undefined | null,
+    owner_id: string,
+    iAmAdmin?: boolean | undefined | null,
+    updated_at: GraphQLTypes["DateTime"],
+    unread_messages_count?: number | undefined | null,
+    users?: Array<GraphQLTypes["User"]> | undefined | null,
+    messages?: Array<GraphQLTypes["Message"]> | undefined | null
+  };
+  ["CreateChatInput"]: {
+    name?: string | undefined | null,
+    avatar?: string | undefined | null,
+    userIds: Array<string>
+  };
+  ["DeleteChatInput"]: {
+    chatId: string,
+    userId?: string | undefined | null
+  };
+  ["UpdateChatInput"]: {
+    id: string,
+    name?: string | undefined | null,
+    avatar?: GraphQLTypes["File"] | undefined | null
+  };
+  ["AddUserToChatInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["RemoveUserFromChatInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["MessageFile"]: {
+    __typename: "MessageFile",
+    id?: string | undefined | null,
+    message_id?: string | undefined | null,
+    chat_id?: string | undefined | null,
+    file_name: string,
+    file_size: number,
+    file_type: string,
+    file_url?: string | undefined | null,
+    upload_timestamp?: string | undefined | null
+  };
+  ["Message"]: {
+    __typename: "Message",
+    id: string,
+    chat_id: string,
+    user_id: string,
+    type: string,
+    is_read?: boolean | undefined | null,
+    content: string,
+    timestamp: string,
+    reads?: Array<string> | undefined | null,
+    disable_encryption: boolean,
+    files?: Array<GraphQLTypes["MessageFile"]> | undefined | null
+  };
+  ["UploadedEncryptedFileInput"]: {
+    filename: string,
+    mimeType: string,
+    content: string,
+    isEncrypted: boolean
+  };
+  ["SendMessageInput"]: {
+    chatId: string,
+    content: string,
+    disableEncryption: boolean,
+    files?: Array<GraphQLTypes["UploadedEncryptedFileInput"]> | undefined | null
+  };
+  ["UnreadMessagesCount"]: {
+    __typename: "UnreadMessagesCount",
+    chatId: string,
+    unreadCount: number
+  };
+  ["SendKeySharingTransactionInput"]: {
+    chatId: string,
+    userId: string
+  };
+  ["IncomingKeySharingTransaction"]: {
+    __typename: "IncomingKeySharingTransaction",
+    chatId: string,
+    senderId: string,
+    transactionId: string
+  };
+  ["SendKeySharingTransactionPublicKeyInput"]: {
+    transactionId: string,
+    publicKey: string
+  };
+  ["SendKeySharingTransactionEncryptedKeyInput"]: {
+    transactionId: string,
+    encryptedKey: string
+  };
+  ["SendKeySharingTransactionSuccessInput"]: {
+    transactionId: string,
+    success: boolean
+  }
 }
-    }
 export enum Role {
-	USER = "USER",
-	GUEST = "GUEST"
+  USER = "USER",
+  GUEST = "GUEST"
 }
 
 type ZEUS_VARIABLES = {
-	["Role"]: ValueTypes["Role"];
-	["UserQueryInput"]: ValueTypes["UserQueryInput"];
-	["CreateUserInput"]: ValueTypes["CreateUserInput"];
-	["LoginUserInput"]: ValueTypes["LoginUserInput"];
-	["VerifyEmailInput"]: ValueTypes["VerifyEmailInput"];
-	["File"]: ValueTypes["File"];
-	["UpdateUserInput"]: ValueTypes["UpdateUserInput"];
-	["OnlineServerPongInput"]: ValueTypes["OnlineServerPongInput"];
-	["DateTime"]: ValueTypes["DateTime"];
-	["CreateChatInput"]: ValueTypes["CreateChatInput"];
-	["DeleteChatInput"]: ValueTypes["DeleteChatInput"];
-	["UpdateChatInput"]: ValueTypes["UpdateChatInput"];
-	["AddUserToChatInput"]: ValueTypes["AddUserToChatInput"];
-	["RemoveUserFromChatInput"]: ValueTypes["RemoveUserFromChatInput"];
-	["UploadedEncryptedFileInput"]: ValueTypes["UploadedEncryptedFileInput"];
-	["SendMessageInput"]: ValueTypes["SendMessageInput"];
-	["SendKeySharingTransactionInput"]: ValueTypes["SendKeySharingTransactionInput"];
-	["SendKeySharingTransactionPublicKeyInput"]: ValueTypes["SendKeySharingTransactionPublicKeyInput"];
-	["SendKeySharingTransactionEncryptedKeyInput"]: ValueTypes["SendKeySharingTransactionEncryptedKeyInput"];
-	["SendKeySharingTransactionSuccessInput"]: ValueTypes["SendKeySharingTransactionSuccessInput"];
+  ["Role"]: ValueTypes["Role"];
+  ["UserQueryInput"]: ValueTypes["UserQueryInput"];
+  ["CreateUserInput"]: ValueTypes["CreateUserInput"];
+  ["LoginUserInput"]: ValueTypes["LoginUserInput"];
+  ["VerifyEmailInput"]: ValueTypes["VerifyEmailInput"];
+  ["File"]: ValueTypes["File"];
+  ["UpdateUserInput"]: ValueTypes["UpdateUserInput"];
+  ["OnlineServerPongInput"]: ValueTypes["OnlineServerPongInput"];
+  ["DateTime"]: ValueTypes["DateTime"];
+  ["CreateChatInput"]: ValueTypes["CreateChatInput"];
+  ["DeleteChatInput"]: ValueTypes["DeleteChatInput"];
+  ["UpdateChatInput"]: ValueTypes["UpdateChatInput"];
+  ["AddUserToChatInput"]: ValueTypes["AddUserToChatInput"];
+  ["RemoveUserFromChatInput"]: ValueTypes["RemoveUserFromChatInput"];
+  ["UploadedEncryptedFileInput"]: ValueTypes["UploadedEncryptedFileInput"];
+  ["SendMessageInput"]: ValueTypes["SendMessageInput"];
+  ["SendKeySharingTransactionInput"]: ValueTypes["SendKeySharingTransactionInput"];
+  ["SendKeySharingTransactionPublicKeyInput"]: ValueTypes["SendKeySharingTransactionPublicKeyInput"];
+  ["SendKeySharingTransactionEncryptedKeyInput"]: ValueTypes["SendKeySharingTransactionEncryptedKeyInput"];
+  ["SendKeySharingTransactionSuccessInput"]: ValueTypes["SendKeySharingTransactionSuccessInput"];
 }

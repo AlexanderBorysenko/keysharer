@@ -71,7 +71,6 @@ onMounted(() => {
 		$removeOnWsErrorResolved(fetchChats);
 	});
 });
-
 const moveChatToTop = (chatUpdated: ModelTypes['Chat']) => {
 	const chatIndex = chatCards.value.findIndex(
 		chatCard => chatCard.id === chatUpdated.id
@@ -82,34 +81,45 @@ const moveChatToTop = (chatUpdated: ModelTypes['Chat']) => {
 	chatCards.value.unshift(chatUpdated);
 };
 
+const { pushToQueue } = useQueue();
+
 const onChatCreatedCallback = (chatCreated: ModelTypes['Chat']) => {
-	moveChatToTop(chatCreated);
+	pushToQueue(async () => {
+		moveChatToTop(chatCreated);
+	});
 };
 
 const onChatDeletedCallback = (chatDeleted: string) => {
-	chatCards.value = chatCards.value.filter(
-		chatCard => chatCard.id !== chatDeleted
-	);
+	pushToQueue(async () => {
+		chatCards.value = chatCards.value.filter(
+			chatCard => chatCard.id !== chatDeleted
+		);
+	});
 };
 
 const onChatUpdatedCallback = (chatUpdated: ModelTypes['Chat']) => {
-	const chatIndex = chatCards.value.findIndex(
-		chatCard => chatCard.id === chatUpdated.id
-	);
-	if (chatIndex === -1) return;
-	chatCards.value[chatIndex] = chatUpdated;
+	pushToQueue(async () => {
+		const chatIndex = chatCards.value.findIndex(
+			chatCard => chatCard.id === chatUpdated.id
+		);
+		if (chatIndex === -1) return;
+		chatCards.value[chatIndex] = chatUpdated;
+	});
 };
 
 const onUnreadMessagesCountChangeHandler = (
 	payload: ModelTypes['UnreadMessagesCount']
 ) => {
-	const chatIndex = chatCards.value.findIndex(
-		chatCard => chatCard.id === payload.chatId
-	);
-	if (chatIndex !== -1) {
-		chatCards.value[chatIndex].unread_messages_count = payload.unreadCount;
-		moveChatToTop(chatCards.value[chatIndex]);
-	}
+	pushToQueue(async () => {
+		const chatIndex = chatCards.value.findIndex(
+			chatCard => chatCard.id === payload.chatId
+		);
+		if (chatIndex !== -1) {
+			chatCards.value[chatIndex].unread_messages_count =
+				payload.unreadCount;
+			moveChatToTop(chatCards.value[chatIndex]);
+		}
+	});
 };
 
 onMounted(() => {
