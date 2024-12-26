@@ -29,11 +29,12 @@ import {
 import { chatAvatar } from "./resolvers/chat.Chat.avatar.query";
 import { chatUnreadMessagesCount } from "./resolvers/chat.Chat.unread_messages_count.query";
 import {
-	addUserToChat,
+	addUserToChatMutation,
 	addUserToChatDefs,
 } from "./resolvers/chat.addUserToChat.mutation";
 import { chatIAmAdmin } from "./resolvers/chat.Chat.iAmAdmin.query";
 import { removeUserFromChat, removeUserFromChatDefs } from "./resolvers/chat.removeUserFromChat.mutation";
+import { chatUsersJoinedAtDefs, usersJoinedAt } from "./resolvers/chat.Chat.usersJoinedAt.query";
 
 export const chatResolvers = {
 	Query: {
@@ -44,7 +45,7 @@ export const chatResolvers = {
 		createUserChat,
 		deleteChat,
 		updateChat,
-		addUserToChat,
+		addUserToChat: addUserToChatMutation,
 		removeUserFromChat,
 	},
 	Subscription: {
@@ -58,7 +59,8 @@ export const chatResolvers = {
 		messages: chatMessages,
 		avatar: chatAvatar,
 		unread_messages_count: chatUnreadMessagesCount,
-		iAmAdmin: chatIAmAdmin
+		iAmAdmin: chatIAmAdmin,
+		usersJoinedAt
 	},
 };
 
@@ -72,6 +74,8 @@ export const chatDefs = mergeTypeDefs([
 	updateChatDefs,
 	addUserToChatDefs,
 	removeUserFromChatDefs,
+
+	chatUsersJoinedAtDefs,
 
 	chatUpdatedSubscriptionDefs,
 	createChatSubscriptionDefs,

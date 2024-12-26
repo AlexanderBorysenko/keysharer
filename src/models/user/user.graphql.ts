@@ -49,6 +49,7 @@ import {
 import { logoutUser, logoutUserDefs } from "./resolvers/user.logoutUser.mutation";
 import { onlineServerPingDefs, onlineServerPingSubscription } from "./resolvers/user.onlineServerPing.subscription";
 import { onlineServerPong, onlineServerPongDefs } from "./resolvers/user.onlineSeverPong.mutation";
+import { userJoinedChatAt } from "./resolvers/user.User.joinedChatAt.query";
 
 export const userResolvers = {
 	Query: {

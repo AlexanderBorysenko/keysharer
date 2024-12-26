@@ -2,6 +2,7 @@ import { client } from "../../../db/client";
 import type { Chat } from "../chat.types";
 import { types } from "cassandra-driver";
 import { getChat } from "./getChat";
+import { addUserToChat } from "./addUserToChat";
 
 export const createChat = async ({
 	ownerId,
@@ -28,12 +29,9 @@ export const createChat = async ({
 	if (!userIds.map((id) => id.toString()).includes(ownerId.toString())) {
 		userIds.push(ownerId);
 	}
-	userIds.forEach((userId) => {
-		queries.push({
-			query: "INSERT INTO user_chat (chat_id, user_id) VALUES (?, ?)",
-			params: [chatId, userId],
-		});
-	});
+	await Promise.all(
+		userIds.map(async (userId) => await addUserToChat({ chatId, userId }))
+	);
 
 	// Виконання пакетного запиту
 	try {

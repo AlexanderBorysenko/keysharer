@@ -6,6 +6,7 @@ import messageDBService from "../service/messageDBService";
 import { publishMessageUpdated } from "./message.messageUpdated.subscription";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
 import { publishUnreadMessagesCountChange } from "./message.unreadMessagesCountChage.subscription";
+import userDBService from "../../user/service/userDBService";
 
 export type ReadMessageInput = {
     chatId: types.Uuid;
@@ -33,6 +34,16 @@ export const readMessageMutation = async (
         userId: user.id,
         userIds: chatUserIds,
     });
+    const chatJoinTime = await userDBService.getUserChatJoinTime({
+        chatId: message.chat_id,
+        userId: user.id,
+    });
+
+    // Prevent the user from marking the message as read if the user joined the chat after the message was sent
+    if (chatJoinTime && (chatJoinTime.getTime() > message.timestamp.getTime())) {
+        return true;
+    }
+
     // Prevent the user from marking the message as read if they are the sender
     if (message.user_id === user.id) {
         return true;

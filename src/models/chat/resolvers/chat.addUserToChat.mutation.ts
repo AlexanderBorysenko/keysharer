@@ -1,14 +1,12 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
-import { client } from "../../../db/client";
-import { getChatUserIds } from "../service/getChatUserIds";
 import { publishChatUpdated } from "./chat.chatUpdated.subscription";
 import { types } from "cassandra-driver";
-import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
-import { isEmailVerifiedMiddleware } from "../../user/middleware/isEmailVerifiedMiddleware";
 import { throwConflictError } from "../../../errors/throwConflictError";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { isUserAChatAdministratorMiddleware } from "../service/isUserAChatAdministrator";
 import { publishChatCreated } from "./chat.createChat.subscription";
+import { getChatUserIds } from "../service/getChatUserIds";
+import { addUserToChat } from "../service/addUserToChat";
 
 export type AddUserToChatInput = {
 	chatId: types.Uuid;
@@ -26,7 +24,7 @@ type Mutation {
 }
 `;
 
-export const addUserToChat = async (
+export const addUserToChatMutation = async (
 	_: any,
 	{ input: { chatId, userId } }: { input: AddUserToChatInput },
 	context: AppQraphQLContext
@@ -44,8 +42,7 @@ export const addUserToChat = async (
 	}
 
 	// Add the user to the chat
-	const query = "INSERT INTO user_chat (chat_id, user_id) VALUES (?, ?)";
-	await client.execute(query, [chatId, userId], { prepare: true });
+	await addUserToChat({ chatId, userId });
 
 	// Publish chat updated event
 	await publishChatUpdated(chatId);

@@ -111,14 +111,13 @@ export const sendMessageMutation = async (
 		}));
 
 		const message = await messageDBService.getMessage({ messageId });
-		const { id, ...messageWithoutId } = message;
 
-		await publishMessageSent({ message, userIds: chatUserIds });
 		await publishUnreadMessagesCountChange({
 			chatId,
 			userIds: chatUserIds,
 			ownerId: user.id,
 		});
+		await publishMessageSent({ message, userIds: chatUserIds });
 	} catch (error) {
 		console.error(error as any);
 		throw error;

@@ -56,6 +56,15 @@ class UserDBService {
         const query = "DELETE FROM users WHERE id = ?";
         await client.execute(query, [id], { prepare: true });
     }
+
+    async getUserChatJoinTime({ userId, chatId }: { userId: types.Uuid, chatId: types.Uuid }): Promise<Date | undefined> {
+        const query = "SELECT timestamp FROM user_chat WHERE user_id = ? AND chat_id = ?";
+        const result = await client.execute(query, [userId, chatId], { prepare: true });
+        if (result.rowLength === 0) {
+            return undefined;
+        }
+        return result.first().get("timestamp");
+    }
 }
 
 const userDBService = new UserDBService();

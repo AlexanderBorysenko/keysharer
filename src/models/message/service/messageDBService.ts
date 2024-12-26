@@ -46,6 +46,7 @@ class MessageDBService {
 	}): Promise<void> => {
 		let recipientIds: types.Uuid[] =
 			userIds || (await getChatUserIds({ chatId }));
+
 		recipientIds = recipientIds.filter(
 			(id) => id.toString() !== userId.toString()
 		);
