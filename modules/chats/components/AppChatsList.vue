@@ -22,7 +22,6 @@ import ChatCard from './ChatCard.vue';
 import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticatedError';
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
 const chatStore = useChatStore();
-const userStore = useUserStore();
 const { $gqClient, $onWsErrorResolved, $removeOnWsErrorResolved } =
 	useNuxtApp();
 
@@ -37,6 +36,7 @@ const {
 	onUnreadMessagesCountChange,
 	offUnreadMessagesCountChange
 } = useUserSubscriptionsStore();
+const onlineStatusesStore = useOnlineStatusesStore();
 const fetchChats = async () => {
 	try {
 		const response = await $gqClient('query')({
@@ -58,6 +58,15 @@ const fetchChats = async () => {
 			}
 		});
 		chatCards.value = response.myChats;
+
+		chatCards.value.forEach(chatCard => {
+			chatCard.users?.forEach(user => {
+				onlineStatusesStore.listenToUser(
+					user.id,
+					user.isOnline || false
+				);
+			});
+		});
 	} catch (e: any) {
 		handleUnauthenticatedError(e);
 		console.error(e);
@@ -108,6 +117,9 @@ const onChatUpdatedCallback = (chatUpdated: ModelTypes['Chat']) => {
 		if (chatIndex === -1) return;
 		chatCards.value[chatIndex] = chatUpdated;
 	});
+	chatUpdated.users?.forEach(user => {
+		onlineStatusesStore.listenToUser(user.id, user.isOnline || false);
+	});
 };
 
 const onUnreadMessagesCountChangeHandler = (
@@ -139,23 +151,6 @@ onUnmounted(() => {
 	offChatUpdated(onChatUpdatedCallback);
 	offUnreadMessagesCountChange(onUnreadMessagesCountChangeHandler);
 });
-
-const onlineStatusesStore = useOnlineStatusesStore();
-watch(
-	() => chatCards.value,
-	() => {
-		chatCards.value.forEach(chat => {
-			chat.users?.forEach(user => {
-				if (user.id === userStore.state.id) return;
-				onlineStatusesStore.listenToUser(
-					user.id,
-					user.isOnline || false
-				);
-			});
-		});
-	},
-	{ deep: true }
-);
 </script>
 
 <style scoped lang="scss">
