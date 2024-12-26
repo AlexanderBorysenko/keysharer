@@ -1,6 +1,6 @@
 <template>
 	<div class="chatting-area">
-		<ChatsMenu />
+		<AppChatsMenu />
 		<TransitionGroup name="app-chat-slide-right">
 			<AppChat v-if="chatStore.chatState.id" />
 		</TransitionGroup>
@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-import ChatsMenu from './AppChatsMenu.vue';
+import AppChatsMenu from './AppChatsMenu.vue';
 import AppChatCreation from './AppChatCreation.vue';
 import AppChat from './AppChat.vue';
 import AppChatKeyManager from '~/modules/chats/components/AppChatKeyManager.vue';

@@ -103,8 +103,24 @@ const readByMe = computed(() =>
 	(props.message.reads || []).includes(userStore.state.id)
 );
 
+const messageUserJoinedAt = computed<number>(() => {
+	const foundTime = chatStore.chatState.usersJoinedAt?.find(
+		u => u.userId === messageUser.value?.id
+	)?.joinedAt;
+	if (foundTime) return new Date(foundTime).getTime();
+	return new Date().getTime();
+});
+
 const readMessage = async () => {
-	if (readByMe.value || isMine.value) return;
+	const messageTime = +props.message.timestamp;
+
+	// prevent marking as read if already read by me, or if it's my message, or if it's a message sent before the user joined the chat
+	if (
+		readByMe.value ||
+		isMine.value ||
+		messageTime < messageUserJoinedAt.value
+	)
+		return;
 	try {
 		await $gqClient('mutation')({
 			readMessage: [{ messageId: props.message.id }, true]

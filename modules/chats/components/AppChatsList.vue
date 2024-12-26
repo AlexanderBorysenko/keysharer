@@ -64,8 +64,8 @@ const fetchChats = async () => {
 	}
 };
 
-await fetchChats();
 onMounted(() => {
+	fetchChats();
 	$onWsErrorResolved(fetchChats);
 	onUnmounted(() => {
 		$removeOnWsErrorResolved(fetchChats);
@@ -84,12 +84,14 @@ const moveChatToTop = (chatUpdated: ModelTypes['Chat']) => {
 const { pushToQueue } = useQueue();
 
 const onChatCreatedCallback = (chatCreated: ModelTypes['Chat']) => {
+	console.log('>>> chat Created', chatCreated);
 	pushToQueue(async () => {
 		moveChatToTop(chatCreated);
 	});
 };
 
 const onChatDeletedCallback = (chatDeleted: string) => {
+	console.log('>>> chat Deleted');
 	pushToQueue(async () => {
 		chatCards.value = chatCards.value.filter(
 			chatCard => chatCard.id !== chatDeleted
@@ -98,6 +100,7 @@ const onChatDeletedCallback = (chatDeleted: string) => {
 };
 
 const onChatUpdatedCallback = (chatUpdated: ModelTypes['Chat']) => {
+	console.log('>>> chat Updated', chatUpdated);
 	pushToQueue(async () => {
 		const chatIndex = chatCards.value.findIndex(
 			chatCard => chatCard.id === chatUpdated.id
@@ -110,6 +113,7 @@ const onChatUpdatedCallback = (chatUpdated: ModelTypes['Chat']) => {
 const onUnreadMessagesCountChangeHandler = (
 	payload: ModelTypes['UnreadMessagesCount']
 ) => {
+	console.log('>>> unreadMessagesCount Change', payload);
 	pushToQueue(async () => {
 		const chatIndex = chatCards.value.findIndex(
 			chatCard => chatCard.id === payload.chatId
@@ -136,15 +140,22 @@ onUnmounted(() => {
 	offUnreadMessagesCountChange(onUnreadMessagesCountChangeHandler);
 });
 
-const { listenToUser: subscribeToUserOnline } = useOnlineStatusesStore();
-watchEffect(() => {
-	chatCards.value.forEach(chat => {
-		chat.users?.forEach(user => {
-			if (user.id === userStore.state.id) return;
-			subscribeToUserOnline(user.id, user.isOnline || false);
+const onlineStatusesStore = useOnlineStatusesStore();
+watch(
+	() => chatCards.value,
+	() => {
+		chatCards.value.forEach(chat => {
+			chat.users?.forEach(user => {
+				if (user.id === userStore.state.id) return;
+				onlineStatusesStore.listenToUser(
+					user.id,
+					user.isOnline || false
+				);
+			});
 		});
-	});
-});
+	},
+	{ deep: true }
+);
 </script>
 
 <style scoped lang="scss">

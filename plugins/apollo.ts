@@ -9,7 +9,7 @@ import { v4 } from 'uuid'
 import { createClient } from 'graphql-ws'
 
 export default defineNuxtPlugin(() => {
-    const { $AuthorizationToken, $isUserInitialized } = useNuxtApp();
+    const { $AuthorizationToken, $isUserInitialized, $isWsConnected } = useNuxtApp();
     const wsErrorOccurred = ref(false);
 
     const onWsErrorResolvedCallbacks: Array<() => void> = [];
@@ -89,7 +89,7 @@ export default defineNuxtPlugin(() => {
                 authLink.concat(httpLink)
             ),
             cache: new InMemoryCache()
-        })
+        });
     }
 
     watch(
@@ -100,6 +100,13 @@ export default defineNuxtPlugin(() => {
         },
         { immediate: true }
     )
+
+    watch(apolloClient, (
+        client
+    ) => {
+        if (!client) $isWsConnected.value = false
+        else $isWsConnected.value = true
+    })
 
     return {
         provide: {

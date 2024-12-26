@@ -19,6 +19,10 @@ export const fetchChatState = async (chatId: string): Promise<ModelTypes['Chat']
                 {
                     id: true, username: true, displayName: true, avatar: true, isOnline: true,
                 },
+                usersJoinedAt: {
+                    joinedAt: true,
+                    userId: true,
+                },
                 messages: [
                     {},
                     {

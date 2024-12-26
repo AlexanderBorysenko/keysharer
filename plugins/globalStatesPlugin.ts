@@ -13,10 +13,13 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     const isUserInitialized = ref<boolean>(false);
 
+    const isWsConnected = ref<boolean>(false);
+
     return {
         provide: {
             AuthorizationToken,
             isUserInitialized,
+            isWsConnected,
             tokenExpirationIntervalTime
         },
     };

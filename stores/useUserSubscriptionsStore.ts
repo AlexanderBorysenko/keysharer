@@ -3,9 +3,7 @@ import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', () => {
     const { $gqClient } = useNuxtApp();
-    const {
-        showNotification
-    } = useSystemNotifications();
+
     /**
      * Chat deleted subscription
      */
@@ -32,6 +30,10 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
                 avatar: true,
                 isOnline: true
             },
+            usersJoinedAt: {
+                joinedAt: true,
+                userId: true,
+            },
             name: true,
             avatar: true,
             unread_messages_count: true,
@@ -50,7 +52,17 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
     } = useSubscription({
         chatUpdated: {
             id: true,
-            users: { id: true, username: true, displayName: true, avatar: true, isOnline: true },
+            users: {
+                id: true,
+                username: true,
+                displayName: true,
+                avatar: true,
+                isOnline: true,
+            },
+            usersJoinedAt: {
+                joinedAt: true,
+                userId: true,
+            },
             name: true,
             avatar: true,
             unread_messages_count: true,

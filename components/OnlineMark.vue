@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import type { ModelTypes } from '~/graphql/zeus';
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
-const { countUsersSelectionOnline } = useOnlineStatusesStore();
+const onlineStatusesStore = useOnlineStatusesStore();
 const userStore = useUserStore();
 
 const props = defineProps<{
@@ -20,7 +20,7 @@ const props = defineProps<{
 }>();
 
 const onlineUsersCount = computed(() =>
-	countUsersSelectionOnline(
+	onlineStatusesStore.countUsersSelectionOnline(
 		props.users.map(user => user.id).filter(id => id !== userStore.state.id)
 	)
 );
