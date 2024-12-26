@@ -25,6 +25,5 @@ const getDefaultAvatar = async (chatId: types.Uuid, userId: types.Uuid): Promise
             return 0;
         });
 
-    console.log(users);
     return users.length > 0 ? (users[0].avatar || '') : null;
 }

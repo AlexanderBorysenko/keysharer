@@ -83,7 +83,6 @@ class MessageDBService {
 		userId: types.Uuid;
 	}): Promise<void> => {
 		try {
-			// check if the message is already read
 			const read = await client.execute(
 				`SELECT user_id FROM app_keyspace.message_reads WHERE chat_id = ? AND user_id = ? AND message_id = ?;`,
 				[chatId, userId, messageId],
@@ -114,28 +113,17 @@ class MessageDBService {
 	 */
 	public getMessageReads = async ({
 		message,
-		targetUserIds,
 	}: {
 		message: TMessage;
-		targetUserIds?: types.Uuid[];
 	}): Promise<types.Uuid[]> => {
-		targetUserIds =
-			targetUserIds ||
-			(await getChatUserIds({
-				chatId: message.chat_id,
-			}));
-		const result: types.Uuid[] = [];
-		targetUserIds.forEach(async (userId) => {
-			if (userId.toString() === message.user_id.toString()) return;
-
-			const read = await client.execute(
-				`SELECT user_id FROM app_keyspace.message_reads WHERE chat_id = ? AND user_id = ? AND message_id = ?;`,
-				[message.chat_id, userId, message.id],
+		const reads = (
+			await client.execute(
+				`SELECT user_id FROM app_keyspace.message_reads WHERE chat_id = ? AND message_id = ?`,
+				[message.chat_id, message.id],
 				{ prepare: true }
-			);
-			if (read.first()) result.push(userId);
-		});
-		return result;
+			)
+		).rows.map((row) => row.user_id);
+		return reads;
 	};
 
 	public deleteMessageReadsBatch = async ({

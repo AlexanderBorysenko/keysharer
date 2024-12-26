@@ -44,6 +44,7 @@ export const messageCoreDefs = `
     is_read: Boolean
     content: String!
     timestamp: String!
+    reads: [ID!]
     disable_encryption: Boolean!
     files: [MessageFile!]
   }

@@ -8,6 +8,7 @@ import { unreadMessagesCountChangeDefs, unreadMessagesCountChangeSubscription } 
 import { messageUpdatedSubscription, messageUpdatedSubscriptionDefs } from "./resolvers/message.messageUpdated.subscription";
 import { messageFilesResolver } from "./resolvers/message.Message.files";
 import { messageFileUrlResolver } from "./resolvers/message.MessageFile.fileUrl";
+import { messageReadsResolver } from "./resolvers/message.Message.messageReads.query";
 
 export const messageResolvers = {
   Mutation: {
@@ -16,7 +17,8 @@ export const messageResolvers = {
   },
   Message: {
     content: messageContent,
-    files: messageFilesResolver
+    files: messageFilesResolver,
+    reads: messageReadsResolver
   },
   Subscription: {
     newMessage: newMessageSubscription,
