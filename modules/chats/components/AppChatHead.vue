@@ -1,6 +1,10 @@
 <template>
 	<div class="app-chat-head">
-		<BackButton class="_mobile" @click="chatStore.close" />
+		<BackButton
+			:counter="chatsListStore.totalUnreadMessagesCount"
+			class="_mobile"
+			@click="chatStore.close"
+		/>
 		<AppChatHeadInfo />
 		<div class="app-chat-head__buttons">
 			<KeyWithCounterButton
@@ -20,8 +24,10 @@ import AppChatHeadInfo from './AppChatHeadInfo.vue';
 import AppChatOptionsMenu from './AppChatOptionsMenu.vue';
 import { useKeySharingStore } from '~/modules/encryption/store/useKeySharingStore';
 import KeyWithCounterButton from '~/components/KeyWithCounterButton.vue';
+import { useChatsListStore } from '../store/useChatsListStore';
 
 const chatStore = useChatStore();
+const chatsListStore = useChatsListStore();
 const encryptionKeysStore = useEncryptionKeysStore();
 
 const keySharingStore = useKeySharingStore();

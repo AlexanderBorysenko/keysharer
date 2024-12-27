@@ -2,7 +2,7 @@ import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticate
 import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', () => {
-    const { $gqClient } = useNuxtApp();
+    const { $gqClient, $useSubscription: useSubscription } = useNuxtApp();
 
     /**
      * Chat deleted subscription

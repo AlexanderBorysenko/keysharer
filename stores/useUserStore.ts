@@ -7,6 +7,7 @@ const useUserStore = defineStore('userStore', () => {
         $gqClient,
         $AuthorizationToken,
         $isUserInitialized,
+        $useSubscription: useSubscription,
         $pingPongId
     } = useNuxtApp();
     const chatStore = useChatStore();

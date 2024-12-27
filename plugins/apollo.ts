@@ -8,6 +8,10 @@ import { watch, ref } from 'vue'
 import { v4 } from 'uuid'
 import { createClient } from 'graphql-ws'
 
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
+import { type GenericOperation, type ModelTypes, type ValueTypes } from "~/graphql/zeus";
+
+
 export default defineNuxtPlugin(() => {
     const { $AuthorizationToken, $isUserInitialized, $isWsConnected } = useNuxtApp();
     const wsErrorOccurred = ref(false);
@@ -108,12 +112,65 @@ export default defineNuxtPlugin(() => {
         else $isWsConnected.value = true
     })
 
+    const useSubscription = <
+        R extends keyof ValueTypes = GenericOperation<"subscription">,
+        SubscriptionKey extends keyof ValueTypes[R] = keyof ValueTypes[R],
+    >(
+        subscription: { [P in SubscriptionKey]: ValueTypes[R][P] }
+    ) => {
+        const callbacks: Array<(payload: ValueTypes[R][SubscriptionKey]) => void> = [];
+        const on = (callback: (payload: ModelTypes[R][SubscriptionKey]) => void) => {
+            callbacks.push(callback);
+        };
+        const off = (callback: (payload: ModelTypes[R][SubscriptionKey]) => void) => {
+            const index = callbacks.indexOf(callback);
+            if (index !== -1) {
+                callbacks.splice(index, 1);
+            }
+        };
+
+        const stop = ref(false);
+        const stopSubscription = () => {
+            stop.value = true;
+            callbacks.splice(0, callbacks.length);
+        };
+
+        watch(
+            [() => apolloClient.value],
+            () => {
+                if (!apolloClient.value) return;
+                const query = typedGql('subscription')(subscription as any);
+
+                const subscriptionInstance = apolloClient.value.subscribe({
+                    query,
+                });
+                subscriptionInstance.subscribe({
+                    next: (payload) => {
+                        if (stop.value) return;
+                        const subscriptionKey = Object.keys(subscription)[0];
+                        // @ts-ignore
+                        callbacks.forEach((cb) => cb(payload.data[subscriptionKey]));
+                    },
+                });
+            },
+            { immediate: true }
+        );
+
+        return {
+            on,
+            off,
+            stopSubscription,
+        };
+    };
+
+
     return {
         provide: {
             apollo: apolloClient,
             pingPongId,
             onWsErrorResolved,
-            removeOnWsErrorResolved
+            removeOnWsErrorResolved,
+            useSubscription
         }
     }
 })

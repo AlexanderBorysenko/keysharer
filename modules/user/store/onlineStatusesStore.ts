@@ -1,5 +1,6 @@
 export const useOnlineStatusesStore = defineStore('onlineStatusesStore', () => {
     const onlineUsers = reactive<Map<string, boolean>>(new Map());
+    const { $useSubscription: useSubscription } = useNuxtApp();
 
     const listenToUser = (userId: string, isOnline: boolean) => {
         if (!onlineUsers.has(userId)) {

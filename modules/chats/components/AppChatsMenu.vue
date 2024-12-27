@@ -24,6 +24,11 @@ const { isUserSubscribed } = storeToRefs(userStore);
 	background: var(--bg-dark-lighter);
 	display: flex;
 	flex-direction: column;
+	max-height: 100vh;
+	height: 100%;
+	@supports (height: 100dvh) {
+		max-height: 100dvh;
+	}
 	&__chats-list-container {
 		padding: 1.5rem;
 		flex: 1;

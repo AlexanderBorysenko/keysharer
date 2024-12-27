@@ -36,6 +36,7 @@ const { open: openSidebar } = useAppSidebarStore();
 	--vertical-padding: 1.5rem;
 	overflow: auto;
 	max-height: 100dvh;
+	height: 100%;
 	&__head {
 		height: var(--header-part-height);
 		border-bottom: var(--header-part-border);

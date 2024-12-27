@@ -75,7 +75,8 @@ export const useEncryptionKeysStore = defineStore('encryptionKeysStore', () => {
     }
     const isCurrentKeyEditing = ref(false);
     watchEffect(() => {
-        if (!currentKey.value) isCurrentKeyEditing.value = true;
+        if (!currentKey.value && chatStore.chatState.id) isCurrentKeyEditing.value = true;
+        else isCurrentKeyEditing.value = false;
     });
 
     return {

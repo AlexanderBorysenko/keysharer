@@ -26,6 +26,7 @@ export type IncomingKeySharingTransaction = {
 export const useKeySharingStore = defineStore('keySharingStore', () => {
     const {
         $gqClient,
+        $useSubscription: useSubscription,
     } = useNuxtApp();
     const {
         chatState

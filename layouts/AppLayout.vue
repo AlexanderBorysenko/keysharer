@@ -1,5 +1,5 @@
 <template>
-	<div v-if="isAuthenticated" class="app">
+	<div v-if="$isUserInitialized" class="app">
 		<AppNotificationsDisplayer />
 		<KeepAlive>
 			<AppSidebar class="sidebar" />
@@ -17,8 +17,7 @@ import useUserStore from '~/stores/useUserStore';
 import AppSidebar from '~/modules/appSidebar/components/AppSidebar.vue';
 import AppNotificationsDisplayer from '~/components/AppNotificationsDisplayer.vue';
 
-const userStore = useUserStore();
-const isAuthenticated = computed(() => !!userStore?.state?.id);
+const { $isUserInitialized } = useNuxtApp();
 </script>
 
 <style scoped lang="scss">

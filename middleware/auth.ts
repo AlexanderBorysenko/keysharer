@@ -15,22 +15,23 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     } = useNuxtApp();
     const userStore = useUserStore();
     console.log('Auth middleware', to.path, from.path, userStore.state.id);
-    if (from.path.includes('login') && userStore.state.id) return;
-    await userStore.initializeUser();
+    if (from.path.includes('login') && !userStore.state.id) await userStore.initializeUser();
 
     let previousTokenUpdateDate: Date = new Date();
     let tokenRefreshTimeout: NodeJS.Timeout | null = null;
-    const isExpired = () => (new Date().getTime() - previousTokenUpdateDate.getTime()) > $tokenExpirationIntervalTime.getTime();
+    const isExpired = () => (new Date().getTime() - previousTokenUpdateDate.getTime()) > $tokenExpirationIntervalTime;
 
     if (import.meta.client) {
+        console.log('Auth middleware client working');
         watch($AuthorizationToken, () => {
-            if (!$AuthorizationToken.value) return;
             previousTokenUpdateDate = new Date();
             if (tokenRefreshTimeout) clearTimeout(tokenRefreshTimeout);
+            console.log('Token updated', $AuthorizationToken.value, 'Next refresh in', $tokenExpirationIntervalTime);
             tokenRefreshTimeout = setTimeout(() => {
+                if (!$AuthorizationToken.value) return;
                 userStore.refreshToken();
-            }, $tokenExpirationIntervalTime.getTime());
-        });
+            }, $tokenExpirationIntervalTime);
+        }, { immediate: true });
         if (!window.__VISIBILITY_LISTENER__) {
             window.__VISIBILITY_LISTENER__ = true;
             $onAppVisible(() => {

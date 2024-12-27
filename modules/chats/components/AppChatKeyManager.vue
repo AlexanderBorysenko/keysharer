@@ -20,7 +20,7 @@
 				</h3>
 				<ShareChatKeyButton />
 				<AppChatOutgoingKeySharingTransactions />
-				<AskForChatKeyButton />
+				<!-- <AskForChatKeyButton /> -->
 			</div>
 			<AppKeySharingModal />
 		</div>
@@ -35,6 +35,7 @@
 				v-if="!forceEncryptionDisabled"
 				@click="forceEncryptionDisabled = true"
 			>
+				<SvgIcon icon="disable-protection" class="icon" />
 				Disable Encryption
 			</BaseButton>
 			<BaseButton
@@ -42,6 +43,7 @@
 				@click="forceEncryptionDisabled = false"
 				type="primary"
 			>
+				<SvgIcon icon="enable-protection" class="icon" />
 				Enable Encryption
 			</BaseButton>
 		</div>
