@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticatedError';
 import type { ModelTypes } from '~/graphql/zeus';
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
+import { useChatStore } from './useChatStore';
 
 export const useChatsListStore = defineStore('chatsMenuStore', () => {
     const { $gqClient, $onWsErrorResolved } =

@@ -6,6 +6,10 @@
 </template>
 
 <script setup lang="ts">
+const { requestPermission } = useSystemNotifications();
+onMounted(() => {
+	requestPermission();
+});
 useHead({
 	title: 'KeySharer',
 	link: [

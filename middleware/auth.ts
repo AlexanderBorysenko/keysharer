@@ -11,24 +11,31 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
         $onOnline,
         $onAppVisible,
         $AuthorizationToken,
+        $isUserInitialized,
+        $previousAuthTokenUpdateDate,
         $tokenExpirationIntervalTime
     } = useNuxtApp();
     const userStore = useUserStore();
-    console.log('Auth middleware', to.path, from.path, userStore.state.id);
-    if (from.path.includes('login') && !userStore.state.id) await userStore.initializeUser();
-
-    let previousTokenUpdateDate: Date = new Date();
+    if (!$isUserInitialized.value) {
+        console.log('User not initialized, initializing');
+        await userStore.initializeUser();
+    }
     let tokenRefreshTimeout: NodeJS.Timeout | null = null;
-    const isExpired = () => (new Date().getTime() - previousTokenUpdateDate.getTime()) > $tokenExpirationIntervalTime;
-
+    const isExpired = () => {
+        if (!$previousAuthTokenUpdateDate.value) return true;
+        (new Date().getTime() - $previousAuthTokenUpdateDate.value.getTime()) > $tokenExpirationIntervalTime;
+    }
+    if (isExpired()) {
+        console.log('Token expired by init, refreshing');
+        await userStore.refreshToken();
+    }
     if (import.meta.client) {
-        console.log('Auth middleware client working');
         watch($AuthorizationToken, () => {
-            previousTokenUpdateDate = new Date();
+            $previousAuthTokenUpdateDate.value = new Date();
             if (tokenRefreshTimeout) clearTimeout(tokenRefreshTimeout);
-            console.log('Token updated', $AuthorizationToken.value, 'Next refresh in', $tokenExpirationIntervalTime);
             tokenRefreshTimeout = setTimeout(() => {
                 if (!$AuthorizationToken.value) return;
+                console.log('Token expired by timeout, refreshing');
                 userStore.refreshToken();
             }, $tokenExpirationIntervalTime);
         }, { immediate: true });
@@ -36,6 +43,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
             window.__VISIBILITY_LISTENER__ = true;
             $onAppVisible(() => {
                 if (!userStore.state.id || !isExpired()) return;
+                console.log('Token expired by visibility, refreshing');
                 userStore.refreshToken();
             });
         }
@@ -43,6 +51,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
             window.__ONLINE_LISTENER__ = true;
             $onOnline(() => {
                 if (!userStore.state.id || !isExpired()) return;
+                console.log('Token expired by online, refreshing');
                 userStore.refreshToken();
             });
         }

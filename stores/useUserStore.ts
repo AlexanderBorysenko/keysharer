@@ -98,7 +98,6 @@ const useUserStore = defineStore('userStore', () => {
         $isUserInitialized.value = false;
         try {
             if (!$AuthorizationToken.value) throw new Error('No token');
-            await refreshToken();
             const result = await $gqClient('query')({
                 me: {
                     id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
@@ -107,6 +106,7 @@ const useUserStore = defineStore('userStore', () => {
             Object.assign(state, result.me);
             $isUserInitialized.value = true;
         } catch (err) {
+            console.error('Failed to initialize user:', err);
             await logout();
         }
     }

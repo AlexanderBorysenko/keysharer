@@ -9,6 +9,10 @@ export default defineNuxtPlugin((nuxtApp) => {
         path: "/",
         watch: true,
     });
+    const previousAuthTokenUpdateDate = ref<Date | null>(null);
+    watch(AuthorizationToken, () => {
+        previousAuthTokenUpdateDate.value = new Date();
+    }, { immediate: true });
 
     const isUserInitialized = ref<boolean>(false);
     const isUserAuthorized = ref<boolean>(false);
@@ -20,6 +24,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             AuthorizationToken,
             isUserAuthorized,
             isUserInitialized,
+            previousAuthTokenUpdateDate,
             isWsConnected,
             tokenExpirationIntervalTime
         },

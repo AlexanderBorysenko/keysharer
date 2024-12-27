@@ -37,7 +37,7 @@ export function useSystemNotifications() {
 
         new Notification(title, {
             body: options.body || '',
-            icon: options.icon || '',
+            icon: options.icon || '/images/keysharer-logo.svg',
             ...options,
         });
     };
