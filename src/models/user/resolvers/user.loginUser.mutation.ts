@@ -20,8 +20,8 @@ input LoginUserInput {
 }
 
 type AuthPayload {
+	refreshToken: String!
     token: String!
-	refreshToken: String
     user: User!
 }
 

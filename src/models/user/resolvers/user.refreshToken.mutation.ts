@@ -7,21 +7,21 @@ import type { User } from "../user.types";
 
 export const refreshTokenDefs = `
 type Mutation {
-    refreshToken: AuthPayload!
+	refreshToken(refreshToken: String): AuthPayload!
 }
 `;
 
 export const refreshToken = async (
 	_: unknown,
-	__: unknown,
+	args: { refreshToken?: string },
 	context: AppQraphQLContext
 ) => {
-	const refreshToken = getContextRefreshToken(context);
+	const token = args.refreshToken || getContextRefreshToken(context);
 
-	if (!refreshToken) throwUnauthenticatedError("No token provided");
+	if (!token) throw throwUnauthenticatedError("No token provided");
 
 	try {
-		const user: User = await validateRefreshToken(refreshToken!);
+		const user: User = await validateRefreshToken(token);
 
 		const accessToken = createUserAccessToken(user);
 
