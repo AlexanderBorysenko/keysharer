@@ -73,7 +73,7 @@ export const loginUser = async (
 		sameSite: isLocalhost ? "none" : "lax",
 		secure: !isLocalhost,
 		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-		domain: isLocalhost ? 'localhost' : process.env.COOKIE_DOMAIN,
+		domain: process.env.COOKIE_DOMAIN,
 		path: "/",
 	});
 
