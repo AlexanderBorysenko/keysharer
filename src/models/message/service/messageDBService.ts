@@ -4,6 +4,7 @@ import type { TMessage, TMessageFile } from "../message.types";
 import { rowToObject } from "../../../utils/rowToObject";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
 import type { Queries } from "../../../../types/Queries";
+import { getChatMessagesIds } from "../../chat/service/getChatMessagesIds";
 
 class MessageDBService {
 	/**
@@ -129,15 +130,13 @@ class MessageDBService {
 
 	public deleteMessageReadsBatch = async ({
 		chatId,
-		userIds,
 	}: {
 		chatId: types.Uuid;
-		userIds?: types.Uuid[];
 	}): Promise<Queries> => {
-		userIds = userIds || (await getChatUserIds({ chatId }));
-		return userIds.map((userId) => ({
-			query: `DELETE FROM app_keyspace.message_reads WHERE chat_id = ? AND user_id = ?`,
-			params: [chatId, userId],
+		const messageIds = await getChatMessagesIds(chatId);
+		return messageIds.map((messageId) => ({
+			query: `DELETE FROM app_keyspace.message_reads WHERE chat_id = ? AND message_id = ?`,
+			params: [chatId, messageId],
 		}));
 	};
 
@@ -228,22 +227,15 @@ class MessageDBService {
 	 */
 	public deleteChatMessagesBatch = async ({
 		chatId,
-		userIds,
 	}: {
 		chatId: types.Uuid;
-		userIds?: types.Uuid[];
 	}): Promise<Queries> => {
-		userIds =
-			userIds ||
-			(await getChatUserIds({
-				chatId,
-			}));
 		return [
 			{
 				query: `DELETE FROM messages WHERE chat_id = ?`,
 				params: [chatId],
 			},
-			...(await this.deleteMessageReadsBatch({ chatId, userIds })),
+			...(await this.deleteMessageReadsBatch({ chatId })),
 		];
 	};
 

@@ -50,7 +50,6 @@ export const deleteChat = async (
 			...queries,
 			...await messageDBService.deleteChatMessagesBatch({
 				chatId,
-				userIds: chatUserIds,
 			}),
 		], { prepare: true });
 		await messageDBService.deleteChatUnreadCounters({
