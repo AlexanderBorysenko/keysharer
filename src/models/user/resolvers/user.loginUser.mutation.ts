@@ -70,9 +70,9 @@ export const loginUser = async (
 		value: refreshToken,
 		httpOnly: true,
 		sameSite: isLocalhost ? "none" : "lax",
-		secure: !process.env.IS_DEV,
+		secure: !isLocalhost,
 		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-		domain: process.env.COOKIE_DOMAIN,
+		domain: isLocalhost ? 'localhost' : process.env.COOKIE_DOMAIN,
 		path: "/",
 	});
 
