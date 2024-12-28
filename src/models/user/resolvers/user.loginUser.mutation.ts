@@ -69,7 +69,7 @@ export const loginUser = async (
 	await context.request.cookieStore?.set({
 		name: "httpOnly_refresh_token",
 		value: refreshToken,
-		httpOnly: isLocalhost ? true : false,
+		httpOnly: !isLocalhost,
 		sameSite: isLocalhost ? "none" : "lax",
 		secure: !isLocalhost,
 		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
