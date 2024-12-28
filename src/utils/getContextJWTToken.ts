@@ -12,13 +12,16 @@ export function getContextJWTToken(context: any): string | null {
 	if (context?.params?.extensions?.headers?.Authorization) {
 		return getJWTFromStr(context.params.extensions.headers.Authorization);
 	}
+	if (context?.params?.extensions?.headers?.authorization) {
+		return getJWTFromStr(context.params.extensions.headers.authorization);
+	}
 
 	// Get authorization for WS connection
-	if (context?.connectionParams?.authorization) {
-		return context.connectionParams.authorization; // receiving withot Bearer
-	}
 	if (context?.connectionParams?.Authorization) {
-		return context?.connectionParams?.Authorization;
+		return getJWTFromStr(context?.connectionParams?.Authorization);
+	}
+	if (context?.connectionParams?.authorization) {
+		return getJWTFromStr(context.connectionParams.authorization); // receiving withot Bearer
 	}
 
 	// Get from classic http request cookies
@@ -28,7 +31,7 @@ export function getContextJWTToken(context: any): string | null {
 			headerCookie,
 			"Authorization"
 		);
-		if (authCookie) return authCookie;
+		if (authCookie) return getJWTFromStr(authCookie);
 	}
 
 	// Get from classic http request headers

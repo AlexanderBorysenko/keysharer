@@ -38,7 +38,7 @@ async function startServer() {
             },
             cors: {
                 credentials: true,
-                origin: [env.SERVER_URL, env.CLIENT_URL],
+                origin: '*',
             },
             landingPage: false,
             graphqlEndpoint: '/',
