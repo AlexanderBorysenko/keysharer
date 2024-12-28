@@ -64,11 +64,12 @@ export const loginUser = async (
 	const refreshToken = createUserRefreshToken(user);
 
 	const isLocalhost = context.request.headers.get("origin")?.includes("localhost");
+	console.log('isLocalhost', isLocalhost);
 	// send RefreshToken as a cookie
 	await context.request.cookieStore?.set({
 		name: "httpOnly_refresh_token",
 		value: refreshToken,
-		httpOnly: true,
+		httpOnly: isLocalhost ? true : false,
 		sameSite: isLocalhost ? "none" : "lax",
 		secure: !isLocalhost,
 		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
