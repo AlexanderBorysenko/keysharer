@@ -907,6 +907,7 @@ onKeySharingTransactionSuccess?: [{	transactionId: string | Variable<any, string
 	["AuthPayload"]: AliasType<{
 	token?:boolean | `@${string}`,
 	user?:ValueTypes["User"],
+	refreshToken?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["Role"]:Role;
@@ -943,7 +944,7 @@ myChat?: [{	chatId: string | Variable<any, string>},ValueTypes["Chat"]],
 createUser?: [{	input: ValueTypes["CreateUserInput"] | Variable<any, string>},ValueTypes["User"]],
 	createGuestUser?:ValueTypes["AuthPayload"],
 loginUser?: [{	input: ValueTypes["LoginUserInput"] | Variable<any, string>},ValueTypes["AuthPayload"]],
-	refreshToken?:ValueTypes["AuthPayload"],
+refreshToken?: [{	refreshToken?: string | undefined | null | Variable<any, string>},ValueTypes["AuthPayload"]],
 updateTypingStatus?: [{	chatId: string | Variable<any, string>,	isTyping: boolean | Variable<any, string>},boolean | `@${string}`],
 	sendEmailVerification?:boolean | `@${string}`,
 verifyEmail?: [{	input: ValueTypes["VerifyEmailInput"] | Variable<any, string>},boolean | `@${string}`],
@@ -1113,6 +1114,7 @@ onKeySharingTransactionSuccess?: [{	transactionId: string},boolean | `@${string}
 	["AuthPayload"]: AliasType<{
 	token?:boolean | `@${string}`,
 	user?:ResolverInputTypes["User"],
+	refreshToken?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["Role"]:Role;
@@ -1149,7 +1151,7 @@ myChat?: [{	chatId: string},ResolverInputTypes["Chat"]],
 createUser?: [{	input: ResolverInputTypes["CreateUserInput"]},ResolverInputTypes["User"]],
 	createGuestUser?:ResolverInputTypes["AuthPayload"],
 loginUser?: [{	input: ResolverInputTypes["LoginUserInput"]},ResolverInputTypes["AuthPayload"]],
-	refreshToken?:ResolverInputTypes["AuthPayload"],
+refreshToken?: [{	refreshToken?: string | undefined | null},ResolverInputTypes["AuthPayload"]],
 updateTypingStatus?: [{	chatId: string,	isTyping: boolean},boolean | `@${string}`],
 	sendEmailVerification?:boolean | `@${string}`,
 verifyEmail?: [{	input: ResolverInputTypes["VerifyEmailInput"]},boolean | `@${string}`],
@@ -1323,7 +1325,8 @@ export type ModelTypes = {
 };
 	["AuthPayload"]: {
 		token: string,
-	user: ModelTypes["User"]
+	user: ModelTypes["User"],
+	refreshToken: string
 };
 	["Role"]:Role;
 	["User"]: {
@@ -1524,7 +1527,8 @@ export type GraphQLTypes = {
 	["AuthPayload"]: {
 	__typename: "AuthPayload",
 	token: string,
-	user: GraphQLTypes["User"]
+	user: GraphQLTypes["User"],
+	refreshToken: string
 };
 	["Role"]: Role;
 	["User"]: {

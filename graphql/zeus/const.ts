@@ -40,6 +40,9 @@ export const AllTypesProps: Record<string,any> = {
 		loginUser:{
 			input:"LoginUserInput"
 		},
+		refreshToken:{
+
+		},
 		updateTypingStatus:{
 
 		},
@@ -160,7 +163,8 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	AuthPayload:{
 		token:"String",
-		user:"User"
+		user:"User",
+		refreshToken:"String"
 	},
 	User:{
 		id:"ID",

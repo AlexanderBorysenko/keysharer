@@ -12,6 +12,7 @@
 				v-for="message in chatStore.chatState.messages"
 				:key="message.id"
 				:message="message"
+				@mounted="onMessageMounted"
 			/>
 		</div>
 	</div>
@@ -94,13 +95,13 @@ watch(isLoadingMoreMessages, () => {
 });
 
 const onMessageMounted = () => {
-	if (!elementRef.value || !innerRef.value) return;
+	if (!elementRef.value || !innerRef.value || isLoadingChat.value) return;
+
 	const wrapperRect = elementRef.value?.getBoundingClientRect();
 	const innerRect = innerRef.value?.getBoundingClientRect();
 	const scrollPosition = wrapperRect.bottom - innerRect.bottom;
 	const viewportHeight = window.innerHeight;
 	const scrollBottom = scrollPosition + viewportHeight * 0.5;
-
 	if (scrollBottom < 0) return;
 	setTimeout(() => {
 		elementRef.value?.scrollTo({
@@ -109,22 +110,6 @@ const onMessageMounted = () => {
 		});
 	}, 100);
 };
-
-const prevChatId = ref(chatStore.chatState.id);
-watch(
-	() => chatStore.chatState.messages.length,
-	() => {
-		if (
-			prevChatId.value === chatStore.chatState.id &&
-			!isLoadingChat.value &&
-			!isLoadingMoreMessages.value &&
-			chatStore.chatState.messages.length
-		) {
-			onMessageMounted();
-			prevChatId.value = chatStore.chatState.id;
-		}
-	}
-);
 </script>
 
 <style scoped lang="scss">

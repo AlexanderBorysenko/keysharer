@@ -8,7 +8,7 @@ const useUserStore = defineStore('userStore', () => {
         $apollo,
         $AuthorizationToken,
         $isUserInitialized,
-        $isUserAuthorized,
+        $isUserLoggedIn,
         $useSubscription: useSubscription,
         $pingPongId
     } = useNuxtApp();
@@ -47,6 +47,12 @@ const useUserStore = defineStore('userStore', () => {
         role: Role.GUEST,
     }
     const state = reactive<ModelTypes['User']>(userInitialState);
+    watch(() => state.id, (id) => {
+        if (!id) {
+            chatStore.setChat(null);
+            $isUserLoggedIn.value = false;
+        }
+    });
 
     const isUserSubscribed = ref(true);
 
@@ -75,6 +81,7 @@ const useUserStore = defineStore('userStore', () => {
                                 id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true, role: true,
                             },
                             token: true,
+                            refreshToken: true,
                         }
                     ],
                 })
@@ -85,8 +92,13 @@ const useUserStore = defineStore('userStore', () => {
 
             $AuthorizationToken.value = loginUser.token;
             Object.assign(state, loginUser.user);
+
+            // set refresh token if the server decided to send it (if client is local host) 
+            if (loginUser.refreshToken) {
+                localStorage.setItem('refreshToken', loginUser.refreshToken);
+            }
+
             $isUserInitialized.value = true;
-            $isUserAuthorized.value = true;
             return true;
         } catch (err) {
             console.error('Failed to login:', err);
@@ -99,11 +111,19 @@ const useUserStore = defineStore('userStore', () => {
         Object.assign(state, userInitialState);
         chatStore.setChat(null);
         $isUserInitialized.value = false;
-        await $apollo.value?.mutate({
-            mutation: typedGql('mutation')({
-                logoutUser: true,
-            })
-        });
+
+        try {
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            await $apollo.value?.mutate({
+                mutation: typedGql('mutation')({
+                    logoutUser: true
+                })
+            });
+        } catch (err) {
+            console.error('Failed to logout:', err);
+        }
+        localStorage.removeItem('refreshToken');
+
         if (!router.currentRoute.value.path.includes('login') && location) {
             // location.href = '/login';
             router.push('/login');
@@ -139,9 +159,12 @@ const useUserStore = defineStore('userStore', () => {
             if (!$AuthorizationToken.value) return;
             const response = await $apollo.value?.mutate({
                 mutation: typedGql('mutation')({
-                    refreshToken: {
+                    refreshToken: [{
+                        // send if the client uses localsotrage for refresh token
+                        refreshToken: localStorage.getItem('refreshToken') || '',
+                    }, {
                         token: true,
-                    },
+                    }],
                 })
             });
             const refreshToken = response?.data?.refreshToken;

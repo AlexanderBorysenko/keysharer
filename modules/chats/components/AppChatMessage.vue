@@ -89,6 +89,7 @@ const messageUser = computed(() => {
 
 const props = defineProps<{
 	message: ModelTypes['Message'];
+	onMounted?: () => void;
 }>();
 
 const content = computed(() => {
@@ -100,7 +101,7 @@ const content = computed(() => {
 	return md.render(content);
 });
 
-const readByMe = computed(() =>
+const isReadByMe = computed(() =>
 	(props.message.reads || []).includes(userStore.state.id)
 );
 
@@ -108,20 +109,21 @@ const messageUserJoinedAt = computed<number>(() => {
 	const foundTime = chatStore.chatState.usersJoinedAt?.find(
 		u => u.userId === messageUser.value?.id
 	)?.joinedAt;
-	if (foundTime) return new Date(foundTime).getTime();
+	if (foundTime) return new Date(+foundTime).getTime();
 	return new Date().getTime();
 });
 
-const readMessage = async () => {
-	const messageTime = +props.message.timestamp;
+// prevent marking as read if already read by me, or if it's my message, or if it's a message sent before the user joined the chat
+const shouldBeRead = computed(() => {
+	return (
+		!isReadByMe.value &&
+		!isMine.value &&
+		+props.message.timestamp > messageUserJoinedAt.value
+	);
+});
 
-	// prevent marking as read if already read by me, or if it's my message, or if it's a message sent before the user joined the chat
-	if (
-		readByMe.value ||
-		isMine.value ||
-		messageTime < messageUserJoinedAt.value
-	)
-		return;
+const readMessage = async () => {
+	if (!shouldBeRead.value) return;
 	try {
 		await $apollo.value?.mutate({
 			mutation: typedGql('mutation')({
@@ -138,7 +140,10 @@ const readMessage = async () => {
 };
 
 onMounted(() => {
+	if (props.onMounted) props.onMounted();
+
 	const observer = new IntersectionObserver(entries => {
+		console.log('entries', entries);
 		entries.forEach(entry => {
 			if (entry.isIntersecting) {
 				readMessage();
@@ -147,7 +152,13 @@ onMounted(() => {
 		});
 	});
 
+	if (!shouldBeRead.value) return;
+	console.log('observe', messageElementRef.value);
 	observer.observe(messageElementRef.value!);
+
+	onUnmounted(() => {
+		observer.disconnect();
+	});
 });
 </script>
 
@@ -157,6 +168,7 @@ onMounted(() => {
 	align-items: flex-end;
 	gap: 0.5rem;
 	max-width: min(42.125rem, calc(100% - 2rem));
+	--message-side-space: 0.625rem;
 	&__avatar {
 		position: relative;
 		&-image {
@@ -182,7 +194,6 @@ onMounted(() => {
 	&__body {
 		position: relative;
 		color: #fff;
-		--message-side-space: 0.625rem;
 		border-radius: 0.625rem;
 		width: fit-content;
 	}

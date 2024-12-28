@@ -1,19 +1,22 @@
 <template>
-	<div v-if="$isUserInitialized" class="app">
-		<AppNotificationsDisplayer />
+	<Transition name="fade">
 		<KeepAlive>
-			<AppSidebar class="sidebar" />
+			<div v-if="$isUserInitialized" class="app">
+				<AppNotificationsDisplayer />
+				<KeepAlive>
+					<AppSidebar class="sidebar" />
+				</KeepAlive>
+				<div class="app__main">
+					<KeepAlive>
+						<slot />
+					</KeepAlive>
+				</div>
+			</div>
 		</KeepAlive>
-		<div class="app__main">
-			<KeepAlive>
-				<slot />
-			</KeepAlive>
-		</div>
-	</div>
+	</Transition>
 </template>
 
 <script setup>
-import useUserStore from '~/stores/useUserStore';
 import AppSidebar from '~/modules/appSidebar/components/AppSidebar.vue';
 import AppNotificationsDisplayer from '~/components/AppNotificationsDisplayer.vue';
 

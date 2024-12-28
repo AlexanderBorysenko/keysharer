@@ -17,44 +17,57 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     } = useNuxtApp();
     const userStore = useUserStore();
 
-    if (!$isUserInitialized.value) {
-        console.log('User not initialized, initializing');
-        await userStore.initializeUser();
+    if (!$AuthorizationToken.value) {
+        userStore.logout();
     }
-    let tokenRefreshTimeout: NodeJS.Timeout | null = null;
     const isExpired = () => {
         if (!$previousAuthTokenUpdateDate.value) return true;
-        (new Date().getTime() - $previousAuthTokenUpdateDate.value.getTime()) > $tokenExpirationIntervalTime;
+        return (new Date().getTime() - $previousAuthTokenUpdateDate.value.getTime()) >= $tokenExpirationIntervalTime * 0.9;
     }
-    if (isExpired()) {
+    if ($AuthorizationToken.value && isExpired()) {
         console.log('Token expired by init, refreshing');
         await userStore.refreshToken();
     }
+    if ($AuthorizationToken.value && !$isUserInitialized.value) {
+        console.log('User not initialized, initializing');
+        await userStore.initializeUser();
+    }
+
+    const setupRefreshTokenTriggers = () => {
+        if (!window.__TOKEN_REFRESH_INTERVAL__) {
+            window.__TOKEN_REFRESH_INTERVAL__ = setInterval(() => {
+                if (!userStore.state.id || !isExpired()) return;
+                console.log('Token expired by interval, refreshing');
+                userStore.refreshToken();
+            }, $tokenExpirationIntervalTime);
+        }
+
+        if (!window.__VISIBILITY_LISTENER__) {
+            window.__VISIBILITY_LISTENER__ = true;
+            $onAppVisible(() => {
+                if (!userStore.state.id || !isExpired()) return;
+                console.log('Token expired by visibility, refreshing');
+                userStore.refreshToken();
+            });
+        }
+        if (!window.__ONLINE_LISTENER__) {
+            window.__ONLINE_LISTENER__ = true;
+            $onOnline(() => {
+                if (!userStore.state.id || !isExpired()) return;
+                console.log('Token expired by online, refreshing');
+                userStore.refreshToken();
+            });
+        }
+    }
+
+    if ($AuthorizationToken.value) {
+        setupRefreshTokenTriggers();
+    }
     watch($AuthorizationToken, () => {
-        $previousAuthTokenUpdateDate.value = new Date();
-        if (tokenRefreshTimeout) clearTimeout(tokenRefreshTimeout);
-        tokenRefreshTimeout = setTimeout(() => {
-            if (!$AuthorizationToken.value) return;
-            console.log('Token expired by timeout, refreshing');
-            userStore.refreshToken();
-        }, $tokenExpirationIntervalTime);
+        if ($AuthorizationToken.value) {
+            setupRefreshTokenTriggers();
+        }
     }, { immediate: true });
-    if (!window.__VISIBILITY_LISTENER__) {
-        window.__VISIBILITY_LISTENER__ = true;
-        $onAppVisible(() => {
-            if (!userStore.state.id || !isExpired()) return;
-            console.log('Token expired by visibility, refreshing');
-            userStore.refreshToken();
-        });
-    }
-    if (!window.__ONLINE_LISTENER__) {
-        window.__ONLINE_LISTENER__ = true;
-        $onOnline(() => {
-            if (!userStore.state.id || !isExpired()) return;
-            console.log('Token expired by online, refreshing');
-            userStore.refreshToken();
-        });
-    }
 
     return;
 });

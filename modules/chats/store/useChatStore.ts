@@ -15,6 +15,7 @@ export const useChatStore = defineStore('chat', () => {
     const userStore = useUserStore();
     const appNotificationsStore = useAppNotificationsStore();
 
+    // Стан за змовчуванням
     const initialState: ModelTypes['Chat'] = {
         id: '',
         users: [],
@@ -26,8 +27,20 @@ export const useChatStore = defineStore('chat', () => {
         unread_messages_count: 0,
         messages: [],
     };
+
+    // Реактивний стан поточного чату, який експортується і використовується в компонентах 
     const chatState = reactive<ModelTypes['Chat']>(deepObjectCopy(initialState));
 
+    // Підписка на зміни статусу "писання" користувачів
+    const updateTypingStatus = (typing: { chatId: string, userId: string, isTyping: boolean }) => {
+        // Виконуємо зміни тільки для поточного чату
+        if (typing.chatId !== chatState.id) return;
+        updateUserTyping(typing.userId, typing.isTyping);
+    };
+
+    onTyping(updateTypingStatus);
+
+    // Список користувачів, які пишуть в чаті
     const typingUserIds = ref<string[]>([]);
     const updateUserTyping = (userId: string, isTyping: boolean) => {
         if (isTyping) {
@@ -70,11 +83,6 @@ export const useChatStore = defineStore('chat', () => {
         chatState.messages?.push(newMessage);
     };
 
-    const updateTypingStatus = (typing: { chatId: string, userId: string, isTyping: boolean }) => {
-        if (typing.chatId !== chatState.id) return;
-        updateUserTyping(typing.userId, typing.isTyping);
-    };
-
     const updateMessage = (messageUpdated: ModelTypes['Message']) => {
         if (messageUpdated.chat_id !== chatState.id || !chatState.messages) return;
         const index = chatState.messages.findIndex(message => message.id === messageUpdated.id);
@@ -84,7 +92,7 @@ export const useChatStore = defineStore('chat', () => {
     onChatUpdated(updateChatState);
     onChatDeleted(handleChatDeleted);
     onNewMessage(addNewMessage);
-    onTyping(updateTypingStatus);
+
     onMessageUpdated(updateMessage);
 
     const setChat = async (chatId: string | null) => {
@@ -97,16 +105,12 @@ export const useChatStore = defineStore('chat', () => {
         isOpened.value = true;
         isLastPage.value = false;
         isLoadingMoreMessages.value = false;
-        try {
-            const state = await fetchChatState(chatId);
-            Object.assign(chatState, deepObjectCopy(state));
-            if (!state.messages) return;
-            isLastPage.value = state.messages.length < 20;
-        } catch (error) {
-            console.error(error);
-        } finally {
-            isLoadingChat.value = false
-        }
+
+        const state = await fetchChatState(chatId);
+        Object.assign(chatState, state);
+        if (!state.messages) return;
+        isLastPage.value = state.messages.length < 20;
+        isLoadingChat.value = false
     };
     $onWsErrorResolved(() => {
         if (chatState.id)

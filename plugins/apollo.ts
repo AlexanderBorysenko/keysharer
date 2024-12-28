@@ -113,7 +113,7 @@ export default defineNuxtPlugin(() => {
         { immediate: true }
     )
 
-    watch(apolloClient, (
+    watch(() => apolloClient.value, (
         client
     ) => {
         if (!client) $isWsConnected.value = false

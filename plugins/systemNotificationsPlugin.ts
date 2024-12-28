@@ -49,6 +49,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             if (permissionGranted) {
                 sendNotification({
                     title, body, id,
+                    icon: '/images/logo.png',
                 });
             } else {
                 console.warn('Permission for notifications not granted');

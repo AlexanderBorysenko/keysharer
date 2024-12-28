@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import { v4 } from 'uuid';
 import type { ModelTypes } from '~/graphql/zeus';
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
 
@@ -99,14 +98,15 @@ export const useChatsListStore = defineStore('chatsMenuStore', () => {
     const onUnreadMessagesCountChangeHandler = (
         payload: ModelTypes['UnreadMessagesCount']
     ) => {
-        console.log('>>> unreadMessagesCount Change', payload);
         pushToQueue(async () => {
             const chatIndex = chats.value.findIndex(
                 chat => chat.id === payload.chatId
             );
-            if (chatIndex !== -1) {
-                chats.value[chatIndex].unread_messages_count =
-                    payload.unreadCount;
+            if (chatIndex === -1) return
+            const prev = chats.value[chatIndex].unread_messages_count ?? 0;
+            chats.value[chatIndex].unread_messages_count =
+                payload.unreadCount;
+            if (prev < payload.unreadCount) {
                 moveChatToTop(chats.value[chatIndex]);
             }
         });
