@@ -1,4 +1,5 @@
 import type { ModelTypes } from "~/graphql/zeus";
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 const useUserSearch = ({
     exclude
@@ -6,7 +7,7 @@ const useUserSearch = ({
     exclude?: string[]
 } = {}) => {
     const {
-        $gqClient
+        $executeQuery
     } = useNuxtApp();
 
     const search = ref('')
@@ -25,7 +26,7 @@ const useUserSearch = ({
             request = request.slice(1)
         }
 
-        const response = await $gqClient('query')({
+        const { data: users } = await $executeQuery({
             users: [
                 {
                     input: {
@@ -44,9 +45,9 @@ const useUserSearch = ({
                     role: true,
                 }
             ]
-        })
+        });
 
-        result.value = response.users
+        result.value = deepObjectCopy(users);
     }
     watch(search, executeSearch);
 

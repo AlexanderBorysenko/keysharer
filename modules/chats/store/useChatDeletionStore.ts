@@ -1,9 +1,10 @@
 import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticatedError";
 import { useChatStore } from "./useChatStore";
 import { useAppNotificationsStore } from "~/stores/appNotificationsStore";
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 export const useChatDeletionStore = defineStore('chatDeletionStore', () => {
-    const { $gqClient } = useNuxtApp();
+    const { $apollo } = useNuxtApp();
     const chatStore = useChatStore();
     const appNotifications = useAppNotificationsStore();
 
@@ -30,15 +31,18 @@ export const useChatDeletionStore = defineStore('chatDeletionStore', () => {
         if (loading.value || !chatStore.chatState.id) return;
         loading.value = true;
         try {
-            await $gqClient('mutation')({
-                deleteChat: [
-                    {
-                        input: {
-                            chatId: chatStore.chatState.id,
-                        }
-                    },
-                    true
-                ]
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            await $apollo.value?.mutate({
+                mutation: typedGql('mutation')({
+                    deleteChat: [
+                        {
+                            input: {
+                                chatId: chatStore.chatState.id,
+                            }
+                        },
+                        true
+                    ]
+                })
             });
 
             appNotifications.addNotification({

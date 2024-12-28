@@ -6,10 +6,8 @@
 </template>
 
 <script setup lang="ts">
-const { requestPermission } = useSystemNotifications();
-onMounted(() => {
-	requestPermission();
-});
+const { $initNotificationsPermission } = useNuxtApp();
+await $initNotificationsPermission();
 useHead({
 	title: 'KeySharer',
 	link: [

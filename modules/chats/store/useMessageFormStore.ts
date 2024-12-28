@@ -4,13 +4,14 @@ import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticate
 import { getGQErrorMessage } from "~/graphql/utils/getGQErrorMessage";
 import type { ModelTypes } from "~/graphql/zeus";
 import { useEncryptionKeysStore } from "~/modules/encryption/store/useEncryptionKeysStore";
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 export const useMessageFormStore = defineStore('messageFormStore', () => {
     const appNotificationsStore = useAppNotificationsStore();
     const chatStore = useChatStore();
     const encryptionKeys = useEncryptionKeysStore();
     const isSendingMessage = ref(false);
-    const { $gqClient } = useNuxtApp();
+    const { $apollo } = useNuxtApp();
 
     const messageForms: Ref<{
         [key: string]: {
@@ -91,18 +92,21 @@ export const useMessageFormStore = defineStore('messageFormStore', () => {
         }
 
         try {
-            await $gqClient('mutation')({
-                sendMessage: [
-                    {
-                        input: {
-                            chatId,
-                            disableEncryption: !encryptionKeys.isEncryptionEnabled,
-                            content: messageContent,
-                            files: encryptedFiles,
-                        }
-                    },
-                    true
-                ]
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            await $apollo.value.mutate({
+                mutation: typedGql('mutation')({
+                    sendMessage: [
+                        {
+                            input: {
+                                chatId,
+                                disableEncryption: !encryptionKeys.isEncryptionEnabled,
+                                content: messageContent,
+                                files: encryptedFiles,
+                            }
+                        },
+                        true
+                    ]
+                })
             });
 
             messageForms.value[chatId].content = '';

@@ -2,6 +2,8 @@ import { useChatStore } from "~/modules/chats/store/useChatStore";
 import { useEncryptionKeysStore } from "./useEncryptionKeysStore";
 import { getGQErrorMessage } from "~/graphql/utils/getGQErrorMessage";
 import chatEncryption from "../service/chatEncryptionService";
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
+import { $ } from "~/graphql/zeus";
 
 type TransactionStatus = 'pending' | 'accepted' | 'rejected' | 'networkError' | 'success';
 
@@ -25,7 +27,7 @@ export type IncomingKeySharingTransaction = {
 
 export const useKeySharingStore = defineStore('keySharingStore', () => {
     const {
-        $gqClient,
+        $apollo,
         $useSubscription: useSubscription,
     } = useNuxtApp();
     const {
@@ -80,14 +82,20 @@ export const useKeySharingStore = defineStore('keySharingStore', () => {
         receiverId: string;
     }) => {
         try {
-            const { sendKeySharingTransaction: transactionId } = await $gqClient('mutation')({
-                sendKeySharingTransaction: [{
-                    input: {
-                        chatId,
-                        userId: receiverId,
-                    }
-                }, true]
-            })
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            const response = await $apollo.value.mutate({
+                mutation: typedGql('mutation')({
+                    sendKeySharingTransaction: [{
+                        input: {
+                            chatId,
+                            userId: receiverId,
+                        }
+                    }, true]
+                })
+            });
+            const transactionId = response.data?.sendKeySharingTransaction;
+            if (!transactionId) throw new Error('Failed to send key sharing transaction');
+
             outgoingTransactions.value.push({
                 id: transactionId,
                 receiverId,
@@ -113,13 +121,16 @@ export const useKeySharingStore = defineStore('keySharingStore', () => {
                 if (!chatKey) return;
                 const encryptedKey = await chatEncryption.encryptWithPublicKey(publicKey, chatKey);
                 try {
-                    await $gqClient('mutation')({
-                        sendKeySharingTransactionEncryptedKey: [{
-                            input: {
-                                transactionId,
-                                encryptedKey
-                            }
-                        }, true]
+                    if (!$apollo.value) throw new Error('Apollo client is not initialized');
+                    await $apollo.value.mutate({
+                        mutation: typedGql('mutation')({
+                            sendKeySharingTransactionEncryptedKey: [{
+                                input: {
+                                    transactionId,
+                                    encryptedKey
+                                }
+                            }, true]
+                        })
                     })
                 } catch (e: any) {
                     appNotificationsStore.addNotification({
@@ -184,14 +195,17 @@ export const useKeySharingStore = defineStore('keySharingStore', () => {
         const keyPair = await chatEncryption.generateKeyPair();
         const publicKey = await chatEncryption.exportPublicKey(keyPair.publicKey);
         try {
-            $gqClient('mutation')({
-                sendKeySharingTransactionPublicKey: [{
-                    input: {
-                        transactionId,
-                        publicKey
-                    }
-                }, true]
-            })
+            $apollo.value?.mutate({
+                mutation:
+                    typedGql('mutation')({
+                        sendKeySharingTransactionPublicKey: [{
+                            input: {
+                                transactionId,
+                                publicKey
+                            }
+                        }, true]
+                    })
+            });
             const { on:
                 onReceivedKeySharingTransactionEncryptedKey,
                 stopSubscription: stopOnRKSTEK
@@ -212,15 +226,16 @@ export const useKeySharingStore = defineStore('keySharingStore', () => {
                     receivedKey,
                     status: 'success',
                 });
-                await $gqClient('mutation')({
-                    sendKeySharingTransactionSuccess: [{
-                        input: {
-                            transactionId,
-                            success: true
-                        }
-                    }, true]
-                })
-
+                await $apollo.value?.mutate({
+                    mutation: typedGql('mutation')({
+                        sendKeySharingTransactionSuccess: [{
+                            input: {
+                                transactionId,
+                                success: true
+                            }
+                        }, true]
+                    })
+                });
                 stopOnRKSTEK();
             });
 

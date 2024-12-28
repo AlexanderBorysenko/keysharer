@@ -1,14 +1,14 @@
 export default defineNuxtPlugin((nuxtApp) => {
     const tokenExpirationIntervalTime = 60 * 1000 * 25; // 25 minute in milliseconds
-    const isLocalhost = process.env.NODE_ENV === 'development';
-    const AuthorizationToken = useCookie('Authorization', {
-        secure: true,
-        httpOnly: false,
-        sameSite: 'lax',
-        domain: isLocalhost ? 'localhost' : '.keysharer.com',
-        path: "/",
-        watch: true,
+    const AuthorizationToken = ref<string | null>(localStorage.getItem('AuthorizationToken'));
+    watch(AuthorizationToken, (newToken) => {
+        if (newToken) {
+            localStorage.setItem('AuthorizationToken', newToken);
+        } else {
+            localStorage.removeItem('AuthorizationToken');
+        }
     });
+
     const previousAuthTokenUpdateDate = ref<Date | null>(null);
     watch(AuthorizationToken, () => {
         previousAuthTokenUpdateDate.value = new Date();
@@ -19,6 +19,8 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     const isWsConnected = ref<boolean>(false);
 
+    const isTauri = '__TAURI__' in window || '__TAURI_INTERNALS__' in window;
+
     return {
         provide: {
             AuthorizationToken,
@@ -26,7 +28,8 @@ export default defineNuxtPlugin((nuxtApp) => {
             isUserInitialized,
             previousAuthTokenUpdateDate,
             isWsConnected,
-            tokenExpirationIntervalTime
+            tokenExpirationIntervalTime,
+            isTauri,
         },
     };
 })

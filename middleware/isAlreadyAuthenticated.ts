@@ -1,7 +1,8 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-    const userStore = useUserStore();
-
-    if (userStore.state.id) {
+    const {
+        $AuthorizationToken
+    } = useNuxtApp();
+    if ($AuthorizationToken.value) {
         return navigateTo('/');
     }
 });

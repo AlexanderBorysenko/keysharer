@@ -2,16 +2,14 @@ export default defineNuxtPlugin((nuxtApp) => {
     const callbacks: Array<() => void> = [];
     let wasHidden = false;
 
-    if (import.meta.client) {
-        const onVisibilityChange = () => {
-            if (document.visibilityState === 'visible' && wasHidden) {
-                callbacks.forEach(callback => callback());
-            }
-            wasHidden = document.visibilityState === 'hidden';
-        };
+    const onVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && wasHidden) {
+            callbacks.forEach(callback => callback());
+        }
+        wasHidden = document.visibilityState === 'hidden';
+    };
 
-        document.addEventListener('visibilitychange', onVisibilityChange);
-    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     const onAppVisible = (callback: () => void) => {
         callbacks.push(callback);

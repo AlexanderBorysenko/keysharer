@@ -1,8 +1,8 @@
 import { fetchChatState } from "../service/fetchChatState";
 import { fetchChatMessagesPage } from "../service/fetchChatMessagesPage";
 import type { ModelTypes } from "~/graphql/zeus";
-import type { AllRequired } from "~/types/AllRequired";
 import { getGQErrorMessage } from "~/graphql/utils/getGQErrorMessage";
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 export const useChatStore = defineStore('chat', () => {
     const {
@@ -10,7 +10,7 @@ export const useChatStore = defineStore('chat', () => {
     } = useUserSubscriptionsStore();
     const {
         $onWsErrorResolved,
-        $gqClient
+        $apollo
     } = useNuxtApp();
     const userStore = useUserStore();
     const appNotificationsStore = useAppNotificationsStore();
@@ -26,6 +26,7 @@ export const useChatStore = defineStore('chat', () => {
         unread_messages_count: 0,
         messages: [],
     };
+    const chatState = reactive<ModelTypes['Chat']>(deepObjectCopy(initialState));
 
     const typingUserIds = ref<string[]>([]);
     const updateUserTyping = (userId: string, isTyping: boolean) => {
@@ -39,13 +40,12 @@ export const useChatStore = defineStore('chat', () => {
     const typingUsers = computed(() => chatState.users?.filter(user => typingUserIds.value.includes(user.id)) || []);
 
     const isLoadingChat = ref(false);
-    const chatState = reactive<ModelTypes['Chat']>({ ...initialState });
     const isOpened = ref(false);
     const isLoadingMoreMessages = ref(false);
     const isLastPage = ref(false);
 
     const resetChatState = () => {
-        Object.assign(chatState, initialState);
+        Object.assign(chatState, deepObjectCopy(initialState));
         typingUserIds.value = [];
     };
 
@@ -99,7 +99,7 @@ export const useChatStore = defineStore('chat', () => {
         isLoadingMoreMessages.value = false;
         try {
             const state = await fetchChatState(chatId);
-            Object.assign(chatState, state);
+            Object.assign(chatState, deepObjectCopy(state));
             if (!state.messages) return;
             isLastPage.value = state.messages.length < 20;
         } catch (error) {
@@ -136,13 +136,16 @@ export const useChatStore = defineStore('chat', () => {
     const leaveChat = async () => {
         if (!chatState.id) return;
         try {
-            await $gqClient('mutation')({
-                removeUserFromChat: [{
-                    input: {
-                        chatId: chatState.id,
-                        userId: userStore.state.id || ''
-                    }
-                }, true]
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            await $apollo.value.mutate({
+                mutation: typedGql('mutation')({
+                    removeUserFromChat: [{
+                        input: {
+                            chatId: chatState.id,
+                            userId: userStore.state.id || ''
+                        }
+                    }, true]
+                })
             });
             close();
         } catch (error) {

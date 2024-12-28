@@ -1,11 +1,10 @@
 import { defineStore } from 'pinia';
-import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticatedError';
+import { v4 } from 'uuid';
 import type { ModelTypes } from '~/graphql/zeus';
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
-import { useChatStore } from './useChatStore';
 
 export const useChatsListStore = defineStore('chatsMenuStore', () => {
-    const { $gqClient, $onWsErrorResolved } =
+    const { $executeQuery, $onWsErrorResolved, $notify } =
         useNuxtApp();
     const { pushToQueue } = useQueue();
 
@@ -21,41 +20,37 @@ export const useChatsListStore = defineStore('chatsMenuStore', () => {
     const isLoadingChats = ref(false);
     const fetchChats = async () => {
         isLoadingChats.value = true;
-        try {
-            const response = await $gqClient('query')({
-                myChats: {
+        const {
+            data,
+        } = await $executeQuery({
+            myChats: {
+                id: true,
+                users: {
                     id: true,
-                    users: {
-                        id: true,
-                        username: true,
-                        displayName: true,
-                        avatar: true,
-                        isOnline: true,
-                        role: true
-                    },
+                    username: true,
+                    displayName: true,
                     avatar: true,
-                    updated_at: true,
-                    name: true,
-                    owner_id: true,
-                    unread_messages_count: true
-                }
-            });
-            chats.value = response.myChats;
+                    isOnline: true,
+                    role: true
+                },
+                avatar: true,
+                updated_at: true,
+                name: true,
+                owner_id: true,
+                unread_messages_count: true
+            }
+        });
+        chats.value = data;
 
-            chats.value.forEach(chat => {
-                chat.users?.forEach(user => {
-                    onlineStatusesStore.listenToUser(
-                        user.id,
-                        user.isOnline || false
-                    );
-                });
+        chats.value.forEach(chat => {
+            chat.users?.forEach(user => {
+                onlineStatusesStore.listenToUser(
+                    user.id,
+                    user.isOnline || false
+                );
             });
-        } catch (e: any) {
-            handleUnauthenticatedError(e);
-            console.error(e);
-        } finally {
-            isLoadingChats.value = false;
-        }
+        });
+        isLoadingChats.value = false;
     };
 
     fetchChats();
@@ -128,6 +123,28 @@ export const useChatsListStore = defineStore('chatsMenuStore', () => {
             0
         )
     );
+
+    let debounceTimeout: ReturnType<typeof setTimeout>;
+    const randomUint32 = Math.floor(Math.random() * 0xFFFFFFFF);
+    const messagesCounterNotificationId = randomUint32 >= 0x80000000 ? randomUint32 - 0x100000000 : randomUint32;
+    watch(totalUnreadMessagesCount, (unreadMessagesCount, previousUnreadMessagesCount) => {
+        if (document.visibilityState === 'visible') return;
+
+        if (unreadMessagesCount <= previousUnreadMessagesCount) return;
+        previousUnreadMessagesCount = unreadMessagesCount;
+
+        if (debounceTimeout) {
+            clearTimeout(debounceTimeout);
+        }
+
+        debounceTimeout = setTimeout(() => {
+            $notify({
+                title: 'Unread messages',
+                body: `You have ${unreadMessagesCount} unread messages`,
+                id: messagesCounterNotificationId
+            });
+        }, 2000);
+    });
 
     return {
         chats,

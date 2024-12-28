@@ -72,8 +72,9 @@ import { getGQErrorMessage } from '~/graphql/utils/getGQErrorMessage';
 import AppChatMessageAttachment from './AppChatMessageAttachment.vue';
 import { useChatStore } from '../store/useChatStore';
 import UserAvatarImage from '~/modules/user/components/UserAvatarImage.vue';
+import { typedGql } from '~/graphql/zeus/typedDocumentNode';
 const md = new MarkdownIt();
-const { $gqClient } = useNuxtApp();
+const { $apollo } = useNuxtApp();
 const { addNotification } = useAppNotificationsStore();
 
 const messageElementRef = ref<HTMLElement | null>(null);
@@ -122,8 +123,10 @@ const readMessage = async () => {
 	)
 		return;
 	try {
-		await $gqClient('mutation')({
-			readMessage: [{ messageId: props.message.id }, true]
+		await $apollo.value?.mutate({
+			mutation: typedGql('mutation')({
+				readMessage: [{ messageId: props.message.id }, true]
+			})
 		});
 	} catch (e: any) {
 		addNotification({

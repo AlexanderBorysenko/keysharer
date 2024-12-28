@@ -2,7 +2,7 @@ import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticate
 import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
 export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', () => {
-    const { $gqClient, $useSubscription: useSubscription } = useNuxtApp();
+    const { $apollo, $useSubscription: useSubscription } = useNuxtApp();
 
     /**
      * Chat deleted subscription
@@ -112,6 +112,7 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
             is_read: true,
             timestamp: true,
             disable_encryption: true,
+            reads: true,
             files: {
                 file_url: true,
                 file_name: true,
@@ -126,11 +127,14 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
      */
     const sendTypingStatus = async (chatId: string, isTyping: boolean) => {
         try {
-            await $gqClient('mutation')({
-                updateTypingStatus: [
-                    { chatId, isTyping },
-                    true
-                ]
+            await $apollo.value?.mutate({
+                mutation:
+                    typedGql('mutation')({
+                        updateTypingStatus: [
+                            { chatId, isTyping },
+                            true
+                        ]
+                    })
             });
         } catch (e: any) {
             handleUnauthenticatedError(e);

@@ -1,12 +1,14 @@
 import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticatedError";
 import { Role, type ModelTypes, type ValueTypes } from "~/graphql/zeus";
+import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 import { useChatStore } from "~/modules/chats/store/useChatStore";
 
 const useUserStore = defineStore('userStore', () => {
     const {
-        $gqClient,
+        $apollo,
         $AuthorizationToken,
         $isUserInitialized,
+        $isUserAuthorized,
         $useSubscription: useSubscription,
         $pingPongId
     } = useNuxtApp();
@@ -20,13 +22,15 @@ const useUserStore = defineStore('userStore', () => {
         }, true]
     });
     onPing((pingPongIterationId: string) => {
-        $gqClient('mutation')({
-            onlineServerPong: [{
-                input: {
-                    pingPongId: $pingPongId.value,
-                    pingPongIterationId
-                }
-            }, true]
+        $apollo.value?.mutate({
+            mutation: typedGql('mutation')({
+                onlineServerPong: [{
+                    input: {
+                        pingPongId: $pingPongId.value,
+                        pingPongIterationId
+                    }
+                }, true]
+            })
         })
     })
 
@@ -47,34 +51,42 @@ const useUserStore = defineStore('userStore', () => {
     const isUserSubscribed = ref(true);
 
     const registerRequest = async (data: ModelTypes['CreateUserInput']) => {
-        await $gqClient('mutation')({
-            createUser: [
-                { input: data },
-                {
-                    id: true,
-                }
-            ],
+        await $apollo.value?.mutate({
+            mutation: typedGql('mutation')({
+                createUser: [
+                    { input: data },
+                    {
+                        id: true,
+                    }
+                ],
+            })
         });
     };
 
     const login = async (data: ModelTypes['LoginUserInput']) => {
         $isUserInitialized.value = false;
         try {
-            const { loginUser } = await $gqClient('mutation')({
-                loginUser: [
-                    { input: data },
-                    {
-                        user: {
-                            id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true, role: true,
-                        },
-                        token: true,
-                    }
-                ],
+            const response = await $apollo.value?.mutate({
+                mutation: typedGql('mutation')({
+                    loginUser: [
+                        { input: data },
+                        {
+                            user: {
+                                id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true, role: true,
+                            },
+                            token: true,
+                        }
+                    ],
+                })
             });
+
+            const loginUser = response?.data?.loginUser;
+            if (!loginUser) throw new Error('no valid data in response');
 
             $AuthorizationToken.value = loginUser.token;
             Object.assign(state, loginUser.user);
             $isUserInitialized.value = true;
+            $isUserAuthorized.value = true;
             return true;
         } catch (err) {
             console.error('Failed to login:', err);
@@ -86,11 +98,15 @@ const useUserStore = defineStore('userStore', () => {
         $AuthorizationToken.value = '';
         Object.assign(state, userInitialState);
         chatStore.setChat(null);
-        await $gqClient('mutation')({
-            logoutUser: true,
+        $isUserInitialized.value = false;
+        await $apollo.value?.mutate({
+            mutation: typedGql('mutation')({
+                logoutUser: true,
+            })
         });
         if (!router.currentRoute.value.path.includes('login') && location) {
-            location.href = '/login';
+            // location.href = '/login';
+            router.push('/login');
         }
     }
 
@@ -98,12 +114,18 @@ const useUserStore = defineStore('userStore', () => {
         $isUserInitialized.value = false;
         try {
             if (!$AuthorizationToken.value) throw new Error('No token');
-            const result = await $gqClient('query')({
-                me: {
-                    id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
-                },
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            const result = await $apollo.value?.query({
+                query: typedGql('query')({
+                    me: {
+                        id: true, username: true, avatar: true, displayName: true, email: true, emailVerified: true, isOnline: true,
+                    },
+                })
             });
-            Object.assign(state, result.me);
+            const me = result?.data?.me;
+            if (!me) throw new Error('No valid data in response');
+
+            Object.assign(state, me);
             $isUserInitialized.value = true;
         } catch (err) {
             console.error('Failed to initialize user:', err);
@@ -115,11 +137,15 @@ const useUserStore = defineStore('userStore', () => {
         console.log('Execute refresh token');
         try {
             if (!$AuthorizationToken.value) return;
-            const { refreshToken } = await $gqClient('mutation')({
-                refreshToken: {
-                    token: true,
-                },
+            const response = await $apollo.value?.mutate({
+                mutation: typedGql('mutation')({
+                    refreshToken: {
+                        token: true,
+                    },
+                })
             });
+            const refreshToken = response?.data?.refreshToken;
+            if (!refreshToken) throw new Error('No valid data in response');
             $AuthorizationToken.value = refreshToken.token;
         } catch (err) {
             console.error('Failed to refresh token:', err);

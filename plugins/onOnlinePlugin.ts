@@ -2,18 +2,16 @@ export default defineNuxtPlugin((nuxtApp) => {
     const onlineCallbacks: Array<() => void> = [];
     const offlineCallbacks: Array<() => void> = [];
 
-    if (import.meta.client) {
-        const onOnline = () => {
-            onlineCallbacks.forEach(callback => callback());
-        };
+    const onOnline = () => {
+        onlineCallbacks.forEach(callback => callback());
+    };
 
-        const onOffline = () => {
-            offlineCallbacks.forEach(callback => callback());
-        };
+    const onOffline = () => {
+        offlineCallbacks.forEach(callback => callback());
+    };
 
-        window.addEventListener('online', onOnline);
-        window.addEventListener('offline', onOffline);
-    }
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
 
     const addOnlineCallback = (callback: () => void) => {
         onlineCallbacks.push(callback);

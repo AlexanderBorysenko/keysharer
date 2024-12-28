@@ -1,5 +1,5 @@
 import { defineNuxtPlugin } from '#app'
-import { ApolloClient, InMemoryCache, split } from '@apollo/client/core'
+import { ApolloClient, ApolloLink, InMemoryCache, split } from '@apollo/client/core'
 import { createHttpLink } from '@apollo/client/link/http'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { setContext } from '@apollo/client/link/context'
@@ -10,6 +10,7 @@ import { createClient } from 'graphql-ws'
 
 import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 import { type GenericOperation, type ModelTypes, type ValueTypes } from "~/graphql/zeus";
+import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticatedError'
 
 
 export default defineNuxtPlugin(() => {
@@ -36,18 +37,27 @@ export default defineNuxtPlugin(() => {
     const pingPongId = ref<string>(v4())
     const config = useRuntimeConfig()
 
-    const httpLink = createHttpLink({ uri: config.public.severHost })
-    const authLink = setContext((_, { headers }) => ({
-        headers: {
-            ...headers,
-            Authorization: $AuthorizationToken.value,
-            pingPongId: pingPongId.value
-        }
-    }))
+    const httpLink = createHttpLink({
+        uri: config.public.severHost,
+        credentials: 'include',
+    })
 
     let apolloClient: Ref<ApolloClient<any> | null> = ref(null)
     let wsLink: GraphQLWsLink | null = null
+    let authLink: ApolloLink | null = null
 
+    const getAuthorizationHeaders = () => ({
+        Authorization: `Bearer ${$AuthorizationToken.value}`,
+        pingPongId: pingPongId.value,
+    })
+    function createAuthLink(token: string) {
+        return setContext((_, { headers }) => ({
+            headers: {
+                ...headers,
+                ...getAuthorizationHeaders(),
+            },
+        }));
+    }
     function createWsLink(token: string) {
         return new GraphQLWsLink(createClient({
             url: config.public.wsHost,
@@ -55,8 +65,7 @@ export default defineNuxtPlugin(() => {
             retryAttempts: Infinity,
             shouldRetry: () => true,
             connectionParams: {
-                Authorization: token,
-                pingPongId: pingPongId.value,
+                ...getAuthorizationHeaders(),
             },
             retryWait: async () => {
                 await new Promise(resolve => setTimeout(resolve, 2500));
@@ -74,12 +83,12 @@ export default defineNuxtPlugin(() => {
     }
 
     function initApollo(token: string) {
-        if (!token) return null
         // close previous connection
         wsLink?.client.dispose();
         apolloClient.value = null
 
         wsLink = createWsLink(token)
+        authLink = createAuthLink(token)
         apolloClient.value = new ApolloClient({
             link: split(
                 ({ query }) => {
@@ -99,7 +108,6 @@ export default defineNuxtPlugin(() => {
     watch(
         [() => $AuthorizationToken.value, () => $isUserInitialized.value],
         () => {
-            if (!import.meta.client || !$isUserInitialized.value) return
             initApollo($AuthorizationToken.value || '')
         },
         { immediate: true }
@@ -111,6 +119,45 @@ export default defineNuxtPlugin(() => {
         if (!client) $isWsConnected.value = false
         else $isWsConnected.value = true
     })
+
+    const executeQuery = async <
+        R extends keyof ValueTypes = GenericOperation<"query">,
+        QueryKey extends keyof ValueTypes[R] = keyof ValueTypes[R]
+    >(
+        query: { [P in QueryKey]: ValueTypes[R][P] }
+    ) => {
+        if (!apolloClient.value) throw new Error('Apollo client is not initialized')
+        const { data, errors } = await apolloClient.value.query({
+            query: typedGql('query')(query as any)
+        });
+        if (errors?.length) {
+            handleUnauthenticatedError(errors)
+        }
+
+        return {
+            data: deepObjectCopy<ModelTypes[R][QueryKey]>(data[Object.keys(query)[0]]),
+            errors
+        }
+    }
+    const executeMutation = async <
+        R extends keyof ValueTypes = GenericOperation<"mutation">,
+        MutationKey extends keyof ValueTypes[R] = keyof ValueTypes[R]
+    >(
+        mutation: { [P in MutationKey]: ValueTypes[R][P] }
+    ) => {
+        if (!apolloClient.value) throw new Error('Apollo client is not initialized')
+        const { data, errors } = await apolloClient.value.mutate({
+            mutation: typedGql('mutation')(mutation as any)
+        });
+        if (errors?.length) {
+            handleUnauthenticatedError(errors)
+        }
+
+        return {
+            data: deepObjectCopy<ModelTypes[R][MutationKey]>(data),
+            errors
+        }
+    }
 
     const useSubscription = <
         R extends keyof ValueTypes = GenericOperation<"subscription">,
@@ -136,9 +183,9 @@ export default defineNuxtPlugin(() => {
         };
 
         watch(
-            [() => apolloClient.value],
+            [() => apolloClient.value, () => $isUserInitialized.value],
             () => {
-                if (!apolloClient.value) return;
+                if (!apolloClient.value || !$isUserInitialized.value) return;
                 const query = typedGql('subscription')(subscription as any);
 
                 const subscriptionInstance = apolloClient.value.subscribe({
@@ -167,6 +214,8 @@ export default defineNuxtPlugin(() => {
     return {
         provide: {
             apollo: apolloClient,
+            executeQuery,
+            executeMutation,
             pingPongId,
             onWsErrorResolved,
             removeOnWsErrorResolved,

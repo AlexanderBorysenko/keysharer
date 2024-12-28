@@ -30,6 +30,7 @@ const chatStore = useChatStore();
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
+
 	transition: opacity 0.3s ease;
 	&.is-switching-chat {
 		opacity: 0.8;

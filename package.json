@@ -8,13 +8,17 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "generate-types": "npx zeus http://localhost:4000 ./graphql --subscriptions --typedDocumentNode graphql-ws"
+    "generate-types": "npx zeus http://localhost:4000 ./graphql --subscriptions --typedDocumentNode graphql-ws",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "tauri:build-debug": "tauri build --debug"
   },
   "dependencies": {
     "@apollo/client": "^3.12.4",
     "@graphql-codegen/typed-document-node": "^5.0.12",
     "@nuxtjs/tailwindcss": "^6.12.2",
     "@pinia/nuxt": "^0.7.0",
+    "@tauri-apps/plugin-notification": "^2.2.0",
     "bcrypt": "^5.1.1",
     "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
@@ -34,6 +38,7 @@
   },
   "devDependencies": {
     "@nuxtjs/style-resources": "^1.2.2",
+    "@tauri-apps/cli": "^2.1.0",
     "@types/bcrypt": "^5.0.2",
     "@types/crypto-js": "^4.2.2",
     "@types/jsonwebtoken": "^9.0.7",

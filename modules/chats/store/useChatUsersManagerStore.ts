@@ -3,9 +3,10 @@ import { useChatStore } from './useChatStore';
 import { useAppNotificationsStore } from '~/stores/appNotificationsStore';
 import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticatedError';
 import { getGQErrorMessage } from '~/graphql/utils/getGQErrorMessage';
+import { typedGql } from '~/graphql/zeus/typedDocumentNode';
 
 export const useChatUsersManagerStore = defineStore('chatUsersManagerStore', () => {
-    const { $gqClient } = useNuxtApp();
+    const { $apollo } = useNuxtApp();
     const chatStore = useChatStore();
     const appNotificationsStore = useAppNotificationsStore();
 
@@ -25,16 +26,19 @@ export const useChatUsersManagerStore = defineStore('chatUsersManagerStore', () 
     const addMember = async () => {
         if (!userToAddId.value) return;
         try {
-            await $gqClient('mutation')({
-                addUserToChat: [
-                    {
-                        input: {
-                            chatId: chatStore.chatState.id,
-                            userId: userToAddId.value
-                        }
-                    },
-                    true
-                ]
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            await $apollo.value.mutate({
+                mutation: typedGql('mutation')({
+                    addUserToChat: [
+                        {
+                            input: {
+                                chatId: chatStore.chatState.id,
+                                userId: userToAddId.value
+                            }
+                        },
+                        true
+                    ]
+                })
             });
             appNotificationsStore.addNotification({
                 type: 'success',
@@ -54,16 +58,19 @@ export const useChatUsersManagerStore = defineStore('chatUsersManagerStore', () 
 
     const removeMember = async (userId: string) => {
         try {
-            await $gqClient('mutation')({
-                removeUserFromChat: [
-                    {
-                        input: {
-                            chatId: chatStore.chatState.id,
-                            userId
-                        }
-                    },
-                    true
-                ]
+            if (!$apollo.value) throw new Error('Apollo client is not initialized');
+            await $apollo.value.mutate({
+                mutation: typedGql('mutation')({
+                    removeUserFromChat: [
+                        {
+                            input: {
+                                chatId: chatStore.chatState.id,
+                                userId
+                            }
+                        },
+                        true
+                    ]
+                })
             });
             appNotificationsStore.addNotification({
                 type: 'success',
