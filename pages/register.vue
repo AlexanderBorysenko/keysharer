@@ -80,10 +80,10 @@
 				<BaseButton class="mb-0-75" to="/login" type="secondary">
 					Login
 				</BaseButton>
-				<BaseButton class="w-full" type="as-link">
+				<!-- <BaseButton class="w-full" type="as-link">
 					Continue With Temporary Account
 					<SvgIcon icon="arrow-right" />
-				</BaseButton>
+				</BaseButton> -->
 			</div>
 		</div>
 	</div>
