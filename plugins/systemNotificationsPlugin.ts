@@ -1,6 +1,7 @@
 import {
     isPermissionGranted, requestPermission, sendNotification,
 } from '@tauri-apps/plugin-notification';
+
 export default defineNuxtPlugin((nuxtApp) => {
     const { $isTauri } = useNuxtApp();
     async function initNotificationsPermission() {

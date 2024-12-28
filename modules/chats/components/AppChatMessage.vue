@@ -143,7 +143,6 @@ onMounted(() => {
 	if (props.onMounted) props.onMounted();
 
 	const observer = new IntersectionObserver(entries => {
-		console.log('entries', entries);
 		entries.forEach(entry => {
 			if (entry.isIntersecting) {
 				readMessage();

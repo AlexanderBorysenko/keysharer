@@ -1,9 +1,12 @@
 import { defineStore } from 'pinia';
 import type { ModelTypes } from '~/graphql/zeus';
 import { useOnlineStatusesStore } from '~/modules/user/store/onlineStatusesStore';
+import {
+    getCurrentWindow
+} from '@tauri-apps/api/window';
 
 export const useChatsListStore = defineStore('chatsMenuStore', () => {
-    const { $executeQuery, $onWsErrorResolved, $notify } =
+    const { $executeQuery, $onWsErrorResolved, $notify, $isTauri } =
         useNuxtApp();
     const { pushToQueue } = useQueue();
 
@@ -127,8 +130,12 @@ export const useChatsListStore = defineStore('chatsMenuStore', () => {
     let debounceTimeout: ReturnType<typeof setTimeout>;
     const randomUint32 = Math.floor(Math.random() * 0xFFFFFFFF);
     const messagesCounterNotificationId = randomUint32 >= 0x80000000 ? randomUint32 - 0x100000000 : randomUint32;
-    watch(totalUnreadMessagesCount, (unreadMessagesCount, previousUnreadMessagesCount) => {
-        if (document.visibilityState === 'visible') return;
+    watch(totalUnreadMessagesCount, async (unreadMessagesCount, previousUnreadMessagesCount) => {
+        if (
+            ($isTauri && await getCurrentWindow().isFocused())
+            ||
+            (!$isTauri && document.visibilityState === 'visible')
+        ) return;
 
         if (unreadMessagesCount <= previousUnreadMessagesCount) return;
         previousUnreadMessagesCount = unreadMessagesCount;
@@ -143,6 +150,7 @@ export const useChatsListStore = defineStore('chatsMenuStore', () => {
                 body: `You have ${unreadMessagesCount} unread messages`,
                 id: messagesCounterNotificationId
             });
+
         }, 2000);
     });
 
