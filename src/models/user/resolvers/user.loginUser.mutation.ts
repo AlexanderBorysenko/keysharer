@@ -63,12 +63,13 @@ export const loginUser = async (
 	// Generate RefreshToken
 	const refreshToken = createUserRefreshToken(user);
 
-	// send RefreshToken as a	 cookie
+	const isLocalhost = context.request.headers.get("origin")?.includes("localhost");
+	// send RefreshToken as a cookie
 	await context.request.cookieStore?.set({
 		name: "httpOnly_refresh_token",
 		value: refreshToken,
 		httpOnly: true,
-		sameSite: "lax",
+		sameSite: isLocalhost ? "none" : "lax",
 		secure: !process.env.IS_DEV,
 		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
 		domain: process.env.COOKIE_DOMAIN,
