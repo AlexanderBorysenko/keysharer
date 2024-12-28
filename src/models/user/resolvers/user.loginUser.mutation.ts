@@ -21,6 +21,7 @@ input LoginUserInput {
 
 type AuthPayload {
     token: String!
+	refreshToken: String
     user: User!
 }
 
@@ -64,21 +65,23 @@ export const loginUser = async (
 	const refreshToken = createUserRefreshToken(user);
 
 	const isLocalhost = context.request.headers.get("origin")?.includes("localhost");
-	console.log('isLocalhost', isLocalhost);
-	// send RefreshToken as a cookie
-	await context.request.cookieStore?.set({
-		name: "httpOnly_refresh_token",
-		value: refreshToken,
-		httpOnly: !isLocalhost,
-		sameSite: isLocalhost ? "none" : "lax",
-		secure: !isLocalhost,
-		expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-		domain: process.env.COOKIE_DOMAIN,
-		path: "/",
-	});
+
+	if (isLocalhost) {
+		await context.request.cookieStore?.set({
+			name: "httpOnly_refresh_token",
+			value: refreshToken,
+			httpOnly: true,
+			sameSite: "lax",
+			secure: true,
+			expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+			domain: process.env.COOKIE_DOMAIN,
+			path: "/",
+		});
+	}
 
 	return {
 		token: acessToken,
 		user: user,
+		refreshToken: isLocalhost ? null : refreshToken,
 	};
 };
