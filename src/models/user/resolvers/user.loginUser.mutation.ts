@@ -7,6 +7,7 @@ import {
 } from "../service/createJWTToken";
 import { findUser } from "../service/findUser";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
+import { isLocalhostRequest } from "../../../utils/isLocalhostRequest";
 
 export type LoginUserInput = {
 	username: string;
@@ -64,9 +65,8 @@ export const loginUser = async (
 	// Generate RefreshToken
 	const refreshToken = createUserRefreshToken(user);
 
-	const isLocalhost = context.request.headers.get("origin")?.includes("localhost");
-
-	if (!isLocalhost) {
+	const isLocalhost = isLocalhostRequest(context);
+	if (isLocalhost) {
 		await context.request.cookieStore?.set({
 			name: "httpOnly_refresh_token",
 			value: refreshToken,
