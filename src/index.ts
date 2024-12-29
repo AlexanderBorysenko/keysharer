@@ -17,6 +17,12 @@ import { types } from 'cassandra-driver';
 import { publishOnlineServerPing } from './models/user/resolvers/user.onlineServerPing.subscription';
 import { usersOnlinePingPongIterationIdsStorage, usersOnlinePingPongIterationIntervalsStorage } from './models/user/storage/usersOnlinePingPongStorage';
 
+const resolveAllowOrigin = (request: Request): string => {
+    const requestOrigin = request.headers.get('origin') || '';
+    const allowedOrigins = ['https://app.keysharer.com', '//localhost'];
+    return allowedOrigins.some(allowedOrigin => requestOrigin.includes(allowedOrigin)) ? requestOrigin : '';
+}
+
 async function startServer() {
     try {
         await client.connect();
@@ -36,9 +42,11 @@ async function startServer() {
                     user: await getContextUser(context)
                 }
             },
-            cors: {
-                credentials: true,
-                origin: ['app.keysharer.com', 'localhost'],
+            cors: request => {
+                return {
+                    origin: resolveAllowOrigin(request),
+                    credentials: true,
+                };
             },
             landingPage: false,
             graphqlEndpoint: '/',
@@ -166,13 +174,8 @@ async function startServer() {
                         }
 
                         const headers = new Headers();
-                        const allowedOrigins = ['https://app.keysharer.com', '//localhost'];
-                        const origin = request.headers.get('Origin') || '';
-                        if (allowedOrigins.some(allowedOrigin => origin.includes(allowedOrigin))) {
-                            headers.set('Access-Control-Allow-Origin', origin);
-                        } else {
-                            headers.set('Access-Control-Allow-Origin', '');
-                        }
+
+                        headers.set('Access-Control-Allow-Origin', resolveAllowOrigin(request));
                         headers.set('Access-Control-Allow-Credentials', 'true');
                         headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
                         headers.set('Access-Control-Allow-Headers', 'Content-Type');
