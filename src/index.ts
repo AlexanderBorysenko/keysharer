@@ -166,7 +166,13 @@ async function startServer() {
                         }
 
                         const headers = new Headers();
-                        headers.set('Access-Control-Allow-Origin', '*');
+                        const allowedOrigins = ['http://app.keysharer.com', 'http://localhost'];
+                        const origin = request.headers.get('Origin') || '';
+                        if (allowedOrigins.includes(origin)) {
+                            headers.set('Access-Control-Allow-Origin', origin);
+                        } else {
+                            headers.set('Access-Control-Allow-Origin', '');
+                        }
                         headers.set('Access-Control-Allow-Credentials', 'true');
                         headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
                         headers.set('Access-Control-Allow-Headers', 'Content-Type');
