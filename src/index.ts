@@ -166,7 +166,8 @@ async function startServer() {
                         }
 
                         const headers = new Headers();
-                        const allowedOrigins = ['http://app.keysharer.com', 'http://localhost'];
+                        const allowedOrigins = ['https://app.keysharer.com', 'http://localhost'];
+                        console.log('Origin:', request.headers.get('Origin'));
                         const origin = request.headers.get('Origin') || '';
                         if (allowedOrigins.includes(origin)) {
                             headers.set('Access-Control-Allow-Origin', origin);
