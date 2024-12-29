@@ -38,7 +38,7 @@ async function startServer() {
             },
             cors: {
                 credentials: true,
-                origin: ['https://app.keysharer.com', '//localhost'],
+                origin: ['app.keysharer.com', 'localhost'],
             },
             landingPage: false,
             graphqlEndpoint: '/',
