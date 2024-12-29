@@ -166,7 +166,7 @@ async function startServer() {
                         }
 
                         const headers = new Headers();
-                        headers.set('Access-Control-Allow-Origin', env.CLIENT_URL);
+                        headers.set('Access-Control-Allow-Origin', '*');
                         headers.set('Access-Control-Allow-Credentials', 'true');
                         headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
                         headers.set('Access-Control-Allow-Headers', 'Content-Type');
