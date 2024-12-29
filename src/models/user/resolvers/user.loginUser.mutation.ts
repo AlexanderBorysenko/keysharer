@@ -66,8 +66,7 @@ export const loginUser = async (
 	const refreshToken = createUserRefreshToken(user);
 
 	const isLocalhost = isLocalhostRequest(context);
-	console.log("isLocalhost", isLocalhost);
-	if (isLocalhost) {
+	if (!isLocalhost) {
 		await context.request.cookieStore?.set({
 			name: "httpOnly_refresh_token",
 			value: refreshToken,
