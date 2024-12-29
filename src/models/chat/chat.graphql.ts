@@ -21,7 +21,7 @@ import {
 	deleteChatSubscriptionDefs,
 } from "./resolvers/chat.deleteChat.subscription";
 import { myChat, myChatDefs } from "./resolvers/chat.myChat.query";
-import { updateChat, updateChatDefs } from "./resolvers/chat.updateChat.query";
+import { updateChat, updateChatDefs } from "./resolvers/chat.updateChat.mutation";
 import {
 	chatUpdatedSubscription,
 	chatUpdatedSubscriptionDefs,

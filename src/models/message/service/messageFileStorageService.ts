@@ -6,6 +6,7 @@ import type { UploadedEncryptedFile } from "../resolvers/message.sendMessage.mut
 export interface StoredEncryptedFile {
     id: types.Uuid;
     fileName: string;
+    originalFileName: string;
     fileSize: number;
     fileType: string;
 }
@@ -63,6 +64,7 @@ class MessageFileStorageService {
      */
     public async createMessageFile(fileData: UploadedEncryptedFile): Promise<StoredEncryptedFile> {
         let { filename, mimeType, content } = fileData;
+        const originalFileName = filename;
 
         // Когда файл зашифрован, мы сохраняем его полноценный BLOB, а когда нет - только содержимое без префикса data:...,
         if (!fileData.isEncrypted) {
@@ -92,6 +94,7 @@ class MessageFileStorageService {
 
         return {
             id,
+            originalFileName,
             fileName,
             fileSize,
             fileType,

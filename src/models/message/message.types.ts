@@ -31,6 +31,7 @@ export const messageCoreDefs = `
     message_id: ID
     chat_id: ID
     file_name: String!
+    original_file_name: String
     file_size: Int!
     file_type: String!
     file_url: String

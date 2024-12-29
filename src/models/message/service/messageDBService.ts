@@ -298,6 +298,7 @@ class MessageDBService {
 		messageId,
 		chatId,
 		fileName,
+		originalFileName,
 		fileSize,
 		fileType,
 	}: {
@@ -305,11 +306,12 @@ class MessageDBService {
 		messageId: types.Uuid;
 		chatId: types.Uuid;
 		fileName: string;
+		originalFileName: string;
 		fileSize: number;
 		fileType: string;
 	}): Promise<void> => {
-		const query = `INSERT INTO message_files (id, message_id, chat_id, file_name, file_size, file_type, upload_timestamp) VALUES (?, ?, ?, ?, ?, ?, toTimestamp(now()))`;
-		const params = [id, messageId, chatId, fileName, fileSize, fileType];
+		const query = `INSERT INTO message_files (id, message_id, chat_id, file_name, original_file_name, file_size, file_type, upload_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, toTimestamp(now()))`;
+		const params = [id, messageId, chatId, fileName, originalFileName, fileSize, fileType];
 		try {
 			await client.execute(query, params, { prepare: true });
 		} catch (error) {

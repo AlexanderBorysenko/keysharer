@@ -2,8 +2,6 @@ import { types } from "cassandra-driver";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { isUserAChatMemberMiddleware } from "../service/isUserAChatMemeber";
-import { getChat } from "../service/getChat";
-import type { Chat } from "../chat.types";
 import { updateChatName } from "../service/updateChatName";
 import { updateChatAvatar } from "../service/updateChatAvatar";
 import { publishChatUpdated } from "./chat.chatUpdated.subscription";

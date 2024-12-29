@@ -8,7 +8,6 @@ import { encrypt } from "../../../utils/cryptoUtils";
 import messageDBService from "../service/messageDBService";
 import { publishUnreadMessagesCountChange } from "./message.unreadMessagesCountChage.subscription";
 import { getChatUserIds } from "../../chat/service/getChatUserIds";
-import { isEmailVerifiedMiddleware } from "../../user/middleware/isEmailVerifiedMiddleware";
 import { messageSendDelayMiddleware } from "../middleware/messageSendDelayMiddleware";
 import { GraphQLError } from 'graphql';
 import { messageFileStorageService, type StoredEncryptedFile } from "../service/messageFileStorageService";
@@ -101,12 +100,9 @@ export const sendMessageMutation = async (
 
 		await Promise.all(storedFiles.map(async (file) => {
 			await messageDBService.createMessageFile({
-				id: file.id,
 				chatId: chatId,
 				messageId: messageId,
-				fileName: file.fileName,
-				fileSize: file.fileSize,
-				fileType: file.fileType,
+				...file,
 			});
 		}));
 

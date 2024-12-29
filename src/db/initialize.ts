@@ -2,6 +2,7 @@ import { types } from 'cassandra-driver';
 import userActiveSessionsService from '../models/user/service/userActiveSessionsService';
 import userDBService from '../models/user/service/userDBService';
 import { Role } from '../models/user/user.types';
+import { client } from './client';
 
 export const initializeDatabase = async () => {
     await userActiveSessionsService.resetAllUsersActiveSessionsCount();
@@ -32,4 +33,11 @@ export const initializeDatabase = async () => {
             });
         }
     }
+
+    const query = `
+        ALTER TABLE app_keyspace.message_files
+        ADD original_file_name TEXT
+    `;
+
+    await client.execute(query);
 }
