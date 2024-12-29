@@ -38,7 +38,7 @@ async function startServer() {
             },
             cors: {
                 credentials: true,
-                origin: '*',
+                origin: ['https://app.keysharer.com', '//localhost'],
             },
             landingPage: false,
             graphqlEndpoint: '/',
@@ -166,10 +166,9 @@ async function startServer() {
                         }
 
                         const headers = new Headers();
-                        const allowedOrigins = ['https://app.keysharer.com'];
-                        console.log('Origin:', request.headers.get('Origin'));
+                        const allowedOrigins = ['https://app.keysharer.com', '//localhost'];
                         const origin = request.headers.get('Origin') || '';
-                        if (allowedOrigins.includes(origin) || origin.includes('//localhost')) {
+                        if (allowedOrigins.some(allowedOrigin => origin.includes(allowedOrigin))) {
                             headers.set('Access-Control-Allow-Origin', origin);
                         } else {
                             headers.set('Access-Control-Allow-Origin', '');
