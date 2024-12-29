@@ -2,7 +2,7 @@ import { handleUnauthenticatedError } from "~/graphql/utils/handleUnauthenticate
 import type { ModelTypes } from "~/graphql/zeus";
 import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 
-export const fetchChatMessagesPage = async (chatId: string, lastMessageId: string): Promise<ModelTypes['Message'][]> => {
+export const fetchChatMessagesPage = async (chatId: string, lastMessageId: string | null): Promise<ModelTypes['Message'][]> => {
     const { $apollo } = useNuxtApp();
     const {
         addNotification
@@ -17,7 +17,8 @@ export const fetchChatMessagesPage = async (chatId: string, lastMessageId: strin
                     messages: [
                         {
                             lastMessageId
-                        }, {
+                        },
+                        {
                             id: true,
                             chat_id: true,
                             user_id: true,
@@ -30,6 +31,7 @@ export const fetchChatMessagesPage = async (chatId: string, lastMessageId: strin
                             files: {
                                 file_url: true,
                                 file_name: true,
+                                original_file_name: true,
                                 file_size: true,
                                 file_type: true,
                             }

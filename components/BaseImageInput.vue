@@ -9,6 +9,7 @@
 			ref="inputRef"
 		/>
 		<div
+			@click="inputRef?.click()"
 			class="base-image-input__preview"
 			v-if="previewUrl || previousImageUrl"
 		>
@@ -57,8 +58,8 @@ function onFileChange(event: Event) {
 <style scoped lang="scss">
 .base-image-input {
 	display: flex;
-	align-items: center;
-	gap: 0.5rem;
+	gap: 0.25rem;
+	flex-direction: column;
 	.base-image-input__input {
 		display: none;
 	}
@@ -71,12 +72,15 @@ function onFileChange(event: Event) {
 		cursor: pointer;
 	}
 	.base-image-input__preview {
-		width: 5rem;
-		height: 5rem;
+		width: 100%;
+		height: 8rem;
+		background: rgba(255, 255, 255, 0.1);
+		padding: 1rem;
+		border-radius: 0.75rem;
 		img {
 			width: 100%;
 			height: 100%;
-			object-fit: cover;
+			object-fit: contain;
 			object-position: center;
 			border-radius: 0.75rem;
 		}

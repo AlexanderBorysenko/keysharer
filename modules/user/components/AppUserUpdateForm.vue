@@ -24,17 +24,14 @@
 			</p>
 		</label>
 	</div>
-	<div class="user-update-form__controls">
-		<BaseButton
-			type="primary"
-			:large="true"
-			@click="updateUser"
-			class="user-update-form__button"
-			:disabled="loading"
-		>
-			Save
-		</BaseButton>
-	</div>
+	<BaseButton
+		type="primary"
+		@click="updateUser"
+		class="user-update-form__button"
+		:disabled="loading"
+	>
+		Save changes
+	</BaseButton>
 </template>
 
 <script setup lang="ts">

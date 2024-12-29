@@ -1032,6 +1032,7 @@ messages?: [{	lastMessageId?: string | undefined | null | Variable<any, string>}
 	message_id?:boolean | `@${string}`,
 	chat_id?:boolean | `@${string}`,
 	file_name?:boolean | `@${string}`,
+	original_file_name?:boolean | `@${string}`,
 	file_size?:boolean | `@${string}`,
 	file_type?:boolean | `@${string}`,
 	file_url?:boolean | `@${string}`,
@@ -1239,6 +1240,7 @@ messages?: [{	lastMessageId?: string | undefined | null},ResolverInputTypes["Mes
 	message_id?:boolean | `@${string}`,
 	chat_id?:boolean | `@${string}`,
 	file_name?:boolean | `@${string}`,
+	original_file_name?:boolean | `@${string}`,
 	file_size?:boolean | `@${string}`,
 	file_type?:boolean | `@${string}`,
 	file_url?:boolean | `@${string}`,
@@ -1326,7 +1328,7 @@ export type ModelTypes = {
 	["AuthPayload"]: {
 		token: string,
 	user: ModelTypes["User"],
-	refreshToken: string
+	refreshToken?: string | undefined | null
 };
 	["Role"]:Role;
 	["User"]: {
@@ -1444,6 +1446,7 @@ export type ModelTypes = {
 	message_id?: string | undefined | null,
 	chat_id?: string | undefined | null,
 	file_name: string,
+	original_file_name?: string | undefined | null,
 	file_size: number,
 	file_type: string,
 	file_url?: string | undefined | null,
@@ -1528,7 +1531,7 @@ export type GraphQLTypes = {
 	__typename: "AuthPayload",
 	token: string,
 	user: GraphQLTypes["User"],
-	refreshToken: string
+	refreshToken?: string | undefined | null
 };
 	["Role"]: Role;
 	["User"]: {
@@ -1653,6 +1656,7 @@ export type GraphQLTypes = {
 	message_id?: string | undefined | null,
 	chat_id?: string | undefined | null,
 	file_name: string,
+	original_file_name?: string | undefined | null,
 	file_size: number,
 	file_type: string,
 	file_url?: string | undefined | null,

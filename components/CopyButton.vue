@@ -1,9 +1,9 @@
 <template>
 	<button class="copy-button" @click="copyToClipboard">
-		<SvgIcon icon="copy" class="copy-button__icon" />
 		<span class="copy-button__text">
 			<slot></slot>
 		</span>
+		<SvgIcon icon="copy" class="copy-button__icon" />
 	</button>
 </template>
 
@@ -33,13 +33,15 @@ function copyToClipboard() {
 
 <style scoped lang="scss">
 .copy-button {
-	font-size: 1em;
+	box-sizing: border-box;
 	display: flex;
+	flex-direction: row;
 	align-items: center;
-	gap: 0.25em;
-	background: rgba(255, 255, 255, 0.1);
-	padding: 0.5em;
-	border-radius: 0.5em;
+	padding: 1rem;
+	gap: 0.5rem;
+	border: 0.0625rem solid rgba(255, 255, 255, 0.08);
+	border-radius: 0.75rem;
+
 	&:hover {
 		cursor: pointer;
 		text-decoration: underline;

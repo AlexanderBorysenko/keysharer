@@ -49,8 +49,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             }
             if (permissionGranted) {
                 sendNotification({
-                    title, body, id,
-                    icon: '/images/logo.png',
+                    title, body, id
                 });
             } else {
                 console.warn('Permission for notifications not granted');
@@ -71,7 +70,8 @@ export default defineNuxtPlugin((nuxtApp) => {
                 if (permission === 'granted') {
                     new Notification(title, {
                         body,
-                        icon: '/images/keysharer-logo.svg',
+                        icon: '/images/icon.png',
+                        badge: '/images/icon.png',
                     });
                 } else {
                     console.warn('Дозвіл на сповіщення не надано.');

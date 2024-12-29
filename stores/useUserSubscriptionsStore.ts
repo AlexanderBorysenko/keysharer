@@ -90,6 +90,7 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
             files: {
                 file_url: true,
                 file_name: true,
+                original_file_name: true,
                 file_size: true,
                 file_type: true,
             },
@@ -116,6 +117,7 @@ export const useUserSubscriptionsStore = defineStore('userSubscriptionsStore', (
             files: {
                 file_url: true,
                 file_name: true,
+                original_file_name: true,
                 file_size: true,
                 file_type: true,
             },

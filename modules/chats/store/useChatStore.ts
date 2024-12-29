@@ -3,6 +3,7 @@ import { fetchChatMessagesPage } from "../service/fetchChatMessagesPage";
 import type { ModelTypes } from "~/graphql/zeus";
 import { getGQErrorMessage } from "~/graphql/utils/getGQErrorMessage";
 import { typedGql } from "~/graphql/zeus/typedDocumentNode";
+import { useUsersTypingStatusesStore } from "./useUsersTypingStatusesStore";
 
 export const useChatStore = defineStore('chat', () => {
     const {
@@ -31,27 +32,6 @@ export const useChatStore = defineStore('chat', () => {
     // Реактивний стан поточного чату, який експортується і використовується в компонентах 
     const chatState = reactive<ModelTypes['Chat']>(deepObjectCopy(initialState));
 
-    // Підписка на зміни статусу "писання" користувачів
-    const updateTypingStatus = (typing: { chatId: string, userId: string, isTyping: boolean }) => {
-        // Виконуємо зміни тільки для поточного чату
-        if (typing.chatId !== chatState.id) return;
-        updateUserTyping(typing.userId, typing.isTyping);
-    };
-
-    onTyping(updateTypingStatus);
-
-    // Список користувачів, які пишуть в чаті
-    const typingUserIds = ref<string[]>([]);
-    const updateUserTyping = (userId: string, isTyping: boolean) => {
-        if (isTyping) {
-            typingUserIds.value.push(userId);
-        } else {
-            const index = typingUserIds.value.indexOf(userId);
-            if (index !== -1) typingUserIds.value.splice(index, 1);
-        }
-    }
-    const typingUsers = computed(() => chatState.users?.filter(user => typingUserIds.value.includes(user.id)) || []);
-
     const isLoadingChat = ref(false);
     const isOpened = ref(false);
     const isLoadingMoreMessages = ref(false);
@@ -59,7 +39,6 @@ export const useChatStore = defineStore('chat', () => {
 
     const resetChatState = () => {
         Object.assign(chatState, deepObjectCopy(initialState));
-        typingUserIds.value = [];
     };
 
     const close = () => {
@@ -108,9 +87,9 @@ export const useChatStore = defineStore('chat', () => {
 
         const state = await fetchChatState(chatId);
         Object.assign(chatState, state);
-        if (!state.messages) return;
-        isLastPage.value = state.messages.length < 20;
-        isLoadingChat.value = false
+
+        loadInitialMessages();
+        isLoadingChat.value = false;
     };
     $onWsErrorResolved(() => {
         if (chatState.id)
@@ -121,10 +100,35 @@ export const useChatStore = defineStore('chat', () => {
         return chatState.users?.find(user => user.id === userId);
     }
 
-    const lastMessageId = computed(() => chatState.messages?.length ? chatState.messages[0].id : '');
+    const lastMessageId = computed(() => chatState.messages?.length ? chatState.messages[0].id : null);
+
+    const currentInitialMessagesChatLoadingId = ref<string | null>('');
+    const isLoadingInitialMessages = computed(() => chatState.id === currentInitialMessagesChatLoadingId.value);
+
+    const loadInitialMessages = async () => {
+        if (!chatState.id) return;
+        currentInitialMessagesChatLoadingId.value = chatState.id;
+        try {
+            const messages = await fetchChatMessagesPage(chatState.id, null);
+
+            // Перевірка, чи чат не змінився під час завантаження повідомлень
+            if (currentInitialMessagesChatLoadingId.value !== chatState.id) return;
+
+            chatState.messages = messages;
+            isLastPage.value = messages.length < 1;
+        } catch (error) {
+            appNotificationsStore.addNotification({
+                type: 'error',
+                message: getGQErrorMessage(error)
+            });
+        } finally {
+            if (currentInitialMessagesChatLoadingId.value === chatState.id)
+                currentInitialMessagesChatLoadingId.value = null;
+        }
+    }
 
     const loadMoreMessages = async () => {
-        if (isLoadingChat.value || isLoadingMoreMessages.value || !chatState.id || isLastPage.value) return;
+        if (isLoadingMoreMessages.value || isLoadingInitialMessages.value || !chatState.id || isLastPage.value) return;
         isLoadingMoreMessages.value = true;
         try {
             const messages = await fetchChatMessagesPage(chatState.id, lastMessageId.value);
@@ -160,17 +164,30 @@ export const useChatStore = defineStore('chat', () => {
         }
     }
 
+    const { getTypingUsers } = useUsersTypingStatusesStore();
+    const typingUsers = computed(
+        () => getTypingUsers(chatState.users || [], chatState.id) || []
+    );
+
+    const typingStatus = computed(() => {
+        if (typingUsers.value.length === 0) return '';
+        if (typingUsers.value.length === 1)
+            return `${typingUsers.value[0].displayName} is typing...`;
+        return 'Several people are typing...';
+    });
+
     return {
         isOpened,
         close,
         chatState,
         setChat,
         getChatUser,
-        typingUsers,
         loadMoreMessages,
         isLoadingMoreMessages,
+        isLoadingInitialMessages,
         isLoadingChat,
         isLastPage,
+        typingStatus,
         leaveChat
     };
 });

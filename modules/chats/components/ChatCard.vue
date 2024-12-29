@@ -46,8 +46,7 @@ import ChatAvatarImage from './ChatAvatarImage.vue';
 import KeyWithCounterButton from '~/components/KeyWithCounterButton.vue';
 import { useKeySharingStore } from '~/modules/encryption/store/useKeySharingStore';
 import OnlineMark from '~/components/OnlineMark.vue';
-
-const { onTyping, offTyping } = useUserSubscriptionsStore();
+import { useUsersTypingStatusesStore } from '../store/useUsersTypingStatusesStore';
 
 const props = defineProps<{
 	chat: ModelTypes['Chat'];
@@ -56,37 +55,16 @@ const props = defineProps<{
 
 const elementRef = ref<HTMLElement | null>(null);
 
-const users = ref<(ModelTypes['User'] & { isTyping: boolean })[]>();
-watch(
-	() => props.chat.users,
-	() => {
-		users.value = props.chat.users?.map(user => ({
-			...user,
-			isTyping: false
-		}));
-	},
-	{ immediate: true }
+const { getTypingUsers } = useUsersTypingStatusesStore();
+const typingUsers = computed(
+	() => getTypingUsers(props.chat?.users || [], props.chat.id) || []
 );
 
 const typingStatus = computed(() => {
-	const typingUsers =
-		users.value?.filter(user => user.isTyping).map(user => user.username) ||
-		[];
-	return typingUsers.length > 0 ? `${typingUsers.join(', ')} typing...` : '';
-});
-const onUserTypingStatusCallback = (
-	typingStatus: ModelTypes['UserTypingStatus']
-) => {
-	if (typingStatus.chatId !== props.chat.id) return;
-	const user = users.value?.find(user => user.id === typingStatus.userId);
-	if (!user) return;
-	user.isTyping = typingStatus.isTyping;
-};
-onMounted(() => {
-	onTyping(onUserTypingStatusCallback);
-});
-onUnmounted(() => {
-	offTyping(onUserTypingStatusCallback);
+	if (typingUsers.value.length === 0) return '';
+	if (typingUsers.value.length === 1)
+		return `${typingUsers.value[0].displayName} is typing...`;
+	return 'Several people are typing...';
 });
 
 const status = computed(() => {
@@ -182,7 +160,11 @@ const incomingKeysCount = computed(
 	}
 
 	&__latest-messages-counter {
-		padding: 0.125rem 0.375rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 1.5em;
+		padding: 0 0.375rem;
 		background: var(--purple);
 		border-radius: 0.375rem;
 		font-weight: 500;

@@ -93,6 +93,8 @@ watch(
 	font-size: 1rem;
 	outline: none;
 	resize: none;
+	appearance: none;
+	-webkit-appearance: none;
 }
 
 .base-password-input__toggle-button {

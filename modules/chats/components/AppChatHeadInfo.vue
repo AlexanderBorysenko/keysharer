@@ -12,15 +12,10 @@
 			</h2>
 			<p class="app-chat-head-info__subtitle">
 				<span
-					v-if="chatStore.typingUsers.length > 0"
+					v-if="chatStore.typingStatus"
 					class="app-chat-head-info__typing"
 				>
-					{{
-						chatStore.typingUsers
-							.map(user => user.displayName)
-							.join(', ')
-					}}
-					typing...
+					{{ chatStore.typingStatus }}
 				</span>
 				<span
 					class="app-chat-head-info__online-status"

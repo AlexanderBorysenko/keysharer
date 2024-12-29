@@ -152,7 +152,6 @@ onMounted(() => {
 	});
 
 	if (!shouldBeRead.value) return;
-	console.log('observe', messageElementRef.value);
 	observer.observe(messageElementRef.value!);
 
 	onUnmounted(() => {
@@ -168,6 +167,9 @@ onMounted(() => {
 	gap: 0.5rem;
 	max-width: min(42.125rem, calc(100% - 2rem));
 	--message-side-space: 0.625rem;
+	&:not(:last-child) {
+		margin-bottom: 0.5rem;
+	}
 	&__avatar {
 		position: relative;
 		&-image {
@@ -207,8 +209,7 @@ onMounted(() => {
 	&__text-content {
 		margin-bottom: 0.5rem;
 		:deep(*) {
-			line-break: anywhere;
-			word-break: break-all;
+			word-break: break-word;
 		}
 	}
 	&__meta {
@@ -236,12 +237,6 @@ onMounted(() => {
 		&__icon {
 			width: 1rem;
 			height: 1rem;
-		}
-	}
-	&:not(:last-child) {
-		margin-bottom: 1rem;
-		@media (max-width: 640px) {
-			margin-bottom: 1rem;
 		}
 	}
 	&:not(.is-mine) {

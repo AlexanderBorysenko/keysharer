@@ -26,6 +26,8 @@ const onFileChange = (event: Event) => {
 			messageFormStore.addFile(file);
 		});
 	}
+	input.value = '';
+	input.files = null;
 };
 
 const triggerFileInput = () => {

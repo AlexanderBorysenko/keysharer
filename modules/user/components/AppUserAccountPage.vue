@@ -3,17 +3,20 @@
 		<div class="app-user-account-page__head">
 			<BackButton class="_mobile" @click="openSidebar" />
 			<h2 class="app-user-account-page__head-title">Account Settings</h2>
-		</div>
-		<div class="app-user-account-page__main">
-			<h1 class="mb-2 fs-2">
-				<CopyButton :clipboard="userStore.state.username">
-					{{ userStore.state.username }}
-				</CopyButton>
-			</h1>
-			<AppUserUpdateForm />
-			<BaseButton type="secondary" @click="userStore.logout">
+			<BaseButton
+				class="app-user-account-page__head-logout"
+				type="secondary"
+				@click="userStore.logout"
+			>
+				<SvgIcon icon="logout" />
 				Logout
 			</BaseButton>
+		</div>
+		<div class="app-user-account-page__main">
+			<CopyButton class="mb-2" :clipboard="userStore.state.username">
+				{{ userStore.state.username }}
+			</CopyButton>
+			<AppUserUpdateForm />
 		</div>
 	</div>
 </template>
@@ -22,6 +25,7 @@
 import CopyButton from '~/components/CopyButton.vue';
 import { useAppSidebarStore } from '~/modules/appSidebar/store/useAppSidebarStore';
 import AppUserUpdateForm from './AppUserUpdateForm.vue';
+import SvgIcon from '~/components/SvgIcon.vue';
 
 const userStore = useUserStore();
 const { open: openSidebar } = useAppSidebarStore();
@@ -38,12 +42,19 @@ const { open: openSidebar } = useAppSidebarStore();
 	max-height: 100dvh;
 	height: 100%;
 	&__head {
+		position: sticky;
+		top: 0;
 		height: var(--header-part-height);
+		flex: 0 0 var(--header-part-height);
 		border-bottom: var(--header-part-border);
 		padding: 0.5rem var(--horizontal-padding);
+		background: var(--bg-dark-lighter);
 		display: flex;
 		gap: 0.5rem;
 		align-items: center;
+		&-logout {
+			margin-left: auto;
+		}
 		&-title {
 			font-weight: 500;
 			font-size: 1.375rem;
@@ -52,8 +63,8 @@ const { open: openSidebar } = useAppSidebarStore();
 	}
 	&__main {
 		flex: 1;
-		overflow: auto;
 		padding: var(--vertical-padding) var(--horizontal-padding);
+		max-width: 30rem;
 	}
 	@media (max-width: 640px) {
 		--horizontal-padding: 1rem;

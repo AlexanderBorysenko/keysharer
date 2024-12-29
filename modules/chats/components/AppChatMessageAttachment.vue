@@ -12,7 +12,10 @@
 				alt="Attachment"
 				class="attachment-image-view__image"
 			/>
-			<a :href="fileUrl" download class="attachment-image-view__download">
+			<button
+				@click="downloadFile"
+				class="attachment-image-view__download"
+			>
 				<img
 					class="attachment-image-view__download-icon"
 					src="/assets/images/attachment-file-download-icon.svg"
@@ -20,7 +23,7 @@
 				<span class="attachment-image-view__download-size">
 					{{ formatFileSize(file.file_size) }}
 				</span>
-			</a>
+			</button>
 		</div>
 		<div class="attachment-file-body" v-else>
 			<div class="attachment-file-body__icon" v-if="!fileUrl">
@@ -30,18 +33,17 @@
 				/>
 				<RefreshingSpinner v-else />
 			</div>
-			<a
+			<button
 				class="attachment-file-body__icon"
 				v-else
-				:href="fileUrl"
-				target="_blank"
+				@click="downloadFile"
 			>
 				<img src="/assets/images/attachment-file-download-icon.svg" />
-			</a>
+			</button>
 			<div class="attachment-file-body__main">
 				<div class="attachment-file-body__title">
 					<div class="attachment-file-body__ext">
-						{{ fileExtension }}
+						{{ file.original_file_name || file.file_name }}
 					</div>
 					<div
 						class="attachment-file-body__decryption-error"
@@ -55,7 +57,8 @@
 					</div>
 				</div>
 				<p class="attachment-file-body__sub-title">
-					File is encrypted. {{ formatFileSize(file.file_size) }}
+					<span v-if="!fileUrl">File is encrypted. </span
+					>{{ formatFileSize(file.file_size) }}
 				</p>
 			</div>
 			<BaseButton
@@ -89,8 +92,6 @@ const fileType: 'image' | 'video' | 'file' = (() => {
 	if (props.file.file_type.startsWith('video')) return 'video';
 	return 'file';
 })();
-
-const fileExtension = props.file.file_url?.split('.').pop();
 
 const decryptionInProgress = ref(false);
 const decryptionError = ref<string | null>(null);
@@ -127,6 +128,11 @@ watch(
 	},
 	{ immediate: true }
 );
+
+const { downloadFile } = useDownload(
+	props.file.file_url || '',
+	props.file.original_file_name || props.file.file_name || ''
+);
 </script>
 
 <style scoped lang="scss">
@@ -162,12 +168,21 @@ watch(
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		padding: 0.5rem;
 		width: 3.5rem;
 		height: 3.5rem;
 		background: rgba(255, 255, 255, 0.04);
 		border: 0.0625rem solid rgba(255, 255, 255, 0.08);
 		border-radius: 0.5rem;
+		img {
+			width: 2.5rem;
+			height: 2.5rem;
+			transition: transform 0.2s;
+		}
+		&:hover {
+			img {
+				transform: scale(1.1);
+			}
+		}
 	}
 	&__main {
 		margin-right: auto;
@@ -180,9 +195,6 @@ watch(
 		gap: 0.5rem;
 		align-items: flex-end;
 		margin-bottom: 0.125rem;
-	}
-	&__ext {
-		text-transform: uppercase;
 	}
 	&__sub-title {
 		font-size: 0.875rem;

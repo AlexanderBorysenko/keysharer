@@ -224,6 +224,7 @@ export default defineNuxtPlugin(() => {
     return {
         provide: {
             apollo: apolloClient,
+            getAuthorizationHeaders,
             executeQuery,
             executeMutation,
             pingPongId,

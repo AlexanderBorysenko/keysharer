@@ -11,7 +11,9 @@
     "generate-types": "npx zeus http://localhost:4000 ./graphql --subscriptions --typedDocumentNode graphql-ws",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
-    "tauri:build-debug": "tauri build --debug"
+    "tauri:build-debug": "tauri build --debug",
+    "tauri:build-android": "tauri build --target android",
+    "tauri:build-ios": "tauri build --target aarch64-apple-ios"
   },
   "dependencies": {
     "@apollo/client": "^3.12.4",

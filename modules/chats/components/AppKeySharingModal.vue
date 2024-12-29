@@ -11,7 +11,14 @@
 					class="key-sharing__chats-icon"
 					alt=""
 				/>
-				<h2 class="key-sharing__title">Share your encryption key</h2>
+				<h2 class="key-sharing__title mb-1">
+					Share your current encryption key
+				</h2>
+				<BasePasswordInput
+					class="mb-1"
+					:disabled="true"
+					:model-value="encryptionKeyStore.currentKey"
+				/>
 				<p class="key-sharing__instructions">
 					Send your encryption key to the conversation
 					<strong>online</strong> members.
@@ -56,6 +63,7 @@ import BaseContextModal from '~/components/BaseContextModal.vue';
 import StaticUserSelectField from '~/modules/user/components/StaticUserSelectField.vue';
 import { useChatStore } from '../store/useChatStore';
 import { useKeySharingStore } from '~/modules/encryption/store/useKeySharingStore';
+import { useEncryptionKeysStore } from '~/modules/encryption/store/useEncryptionKeysStore';
 
 const userStore = useUserStore();
 const chatStore = useChatStore();
@@ -81,6 +89,8 @@ const share = () => {
 	});
 	onClose();
 };
+
+const encryptionKeyStore = useEncryptionKeysStore();
 </script>
 
 <style scoped lang="scss">

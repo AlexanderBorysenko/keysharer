@@ -9,37 +9,64 @@ class ChatEncryptionService {
             const keyStore = useEncryptionKeysStore();
             key = keyStore.currentKey;
         }
+        // Повертаємо WordArray, щоб використати його нижче
         return CryptoJS.SHA256(key);
     }
 
     encryptTextMessage(message: string): string {
-        const key = this.getKey();
+        const keyWordArray = this.getKey();
         const iv = CryptoJS.lib.WordArray.random(16);
-        const encrypted = CryptoJS.AES.encrypt(message, key, { iv: iv });
+
+        // У CryptoJS, коли хочемо передати власні key та iv (як WordArray),
+        // слід передавати їх у першому параметрі об’єктом: { key, iv }.
+        // Також для надійності вказуємо mode і padding.
+        const encrypted = CryptoJS.AES.encrypt(
+            message,
+            keyWordArray,
+            {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            }
+        );
+
+        // Комбінуємо IV і шифртекст
         const combined = iv.concat(encrypted.ciphertext);
         return combined.toString(CryptoJS.enc.Base64);
     }
 
     decryptTextMessage(encryptedMessage: string): string {
         try {
-            const key = this.getKey();
+            const keyWordArray = this.getKey();
+
             const combined = CryptoJS.enc.Base64.parse(encryptedMessage);
-            const iv = CryptoJS.lib.WordArray.create(combined.words.slice(0, 4));
+            // Перші 16 байт (4 Words) — це IV
+            const iv = CryptoJS.lib.WordArray.create(combined.words.slice(0, 4), 16);
+            // Решта — шифртекст
             const ciphertext = CryptoJS.lib.WordArray.create(
                 combined.words.slice(4),
                 combined.sigBytes - 16
             );
-            const decrypted = CryptoJS.AES.decrypt(
-                //@ts-ignore
-                { ciphertext: ciphertext },
-                key,
-                { iv: iv }
-            );
-            const result = decrypted.toString(CryptoJS.enc.Utf8);
 
+            const cipherParams = CryptoJS.lib.CipherParams.create({
+                ciphertext: ciphertext
+            });
+
+            const decrypted = CryptoJS.AES.decrypt(
+                cipherParams,
+                keyWordArray,
+                {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                }
+            );
+
+            const result = decrypted.toString(CryptoJS.enc.Utf8);
             if (!result) return encryptedMessage;
             return result;
-        } catch (e) {
+        } catch (error) {
+            // Якщо щось пішло не так, повертаємо оригінал
             return encryptedMessage;
         }
     }
@@ -75,10 +102,29 @@ class ChatEncryptionService {
         return u8.buffer;
     }
 
+    // Якщо file.arrayBuffer() відсутній у старіших браузерах — fallback через FileReader
+    private async fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
+        if (file.arrayBuffer) {
+            return file.arrayBuffer();
+        }
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (e.target?.result) {
+                    resolve(e.target.result as ArrayBuffer);
+                } else {
+                    reject(new Error("Failed to read file."));
+                }
+            };
+            reader.onerror = (err) => reject(err);
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
     // Encrypt a file and return a Base64 string (IV + Ciphertext)
     async encryptFile(file: File): Promise<string> {
         const key = this.getKey();
-        const arrayBuffer = await file.arrayBuffer();
+        const arrayBuffer = await this.fileToArrayBuffer(file);
         const fileWordArray = this.arrayBufferToWordArray(arrayBuffer);
 
         const knownHeader = "MYMAGICHEADER";
@@ -86,7 +132,19 @@ class ChatEncryptionService {
         const dataToEncrypt = headerWordArray.concat(fileWordArray);
 
         const iv = CryptoJS.lib.WordArray.random(16);
-        const encrypted = CryptoJS.AES.encrypt(dataToEncrypt, key, { iv });
+
+        const keyWordArray = CryptoJS.lib.WordArray.create(key.words, 32);
+
+        const encrypted = CryptoJS.AES.encrypt(
+            dataToEncrypt,
+            keyWordArray,
+            {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            }
+        );
+
         const combined = iv.concat(encrypted.ciphertext);
         return combined.toString(CryptoJS.enc.Base64);
     }
@@ -105,12 +163,24 @@ class ChatEncryptionService {
             combined.sigBytes - 16
         );
 
-        // Perform AES decryption
-        //@ts-ignore
-        const decrypted = CryptoJS.AES.decrypt({ ciphertext }, key, { iv });
+        const cipherParams = CryptoJS.lib.CipherParams.create({
+            ciphertext: ciphertext
+        });
+
+        const keyWordArray = CryptoJS.lib.WordArray.create(key.words, 32);
+
+        const decrypted = CryptoJS.AES.decrypt(
+            cipherParams,
+            keyWordArray,
+            {
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            }
+        );
 
         if (!decrypted || decrypted.sigBytes <= 0) {
-            throw new Error('Decryption failed or returned empty data.');
+            throw new Error("Decryption failed or returned empty data.");
         }
 
         // Convert WordArray to ArrayBuffer
@@ -122,34 +192,34 @@ class ChatEncryptionService {
         const headerBytes = new TextEncoder().encode(knownHeader);
         for (let i = 0; i < headerBytes.length; i++) {
             if (decodedData[i] !== headerBytes[i]) {
-                throw new Error('Invalid decryption key or corrupted data.');
+                throw new Error("Invalid decryption key or corrupted data.");
             }
         }
 
         // Strip the header off to get the actual file data
         const fileBytes = decodedData.subarray(headerBytes.length);
-
         return new Blob([fileBytes], { type: mimeType });
     }
 
     /**
-    * Fetches an encrypted file from a given URL, decrypts it, and returns an objectURL for preview/download.
-    * @param {string} fileUrl - The URL pointing to the encrypted raw file.
-    * @param {string} mimeType - The MIME type of the original file.
-    * @returns {Promise<string>} - A promise that resolves to an objectURL.
-    */
+     * Fetches an encrypted file from a given URL, decrypts it, and returns an objectURL for preview/download.
+     * @param {string} fileUrl - The URL pointing to the encrypted raw file.
+     * @param {string} mimeType - The MIME type of the original file.
+     * @returns {Promise<string>} - A promise that resolves to an objectURL.
+     */
     async getDecryptedObjectURL(fileUrl: string, mimeType: string): Promise<string> {
         // Fetch the encrypted binary data
         const response = await fetch(fileUrl, {
-            mode: 'cors',
-            credentials: 'include',
+            mode: "cors",
+            credentials: "include"
         });
+
         if (!response.ok) {
             throw new Error(`Failed to fetch file from ${fileUrl}. Status: ${response.status}`);
         }
-        const arrayBuffer = await response.arrayBuffer();
 
-        // Convert binary data to Base64 so we can decrypt
+        // Якщо в старих браузерах .arrayBuffer() не підтримується — потрібен поліфіл
+        const arrayBuffer = await response.arrayBuffer();
         const encryptedBase64 = this.arrayBufferToBase64(arrayBuffer);
 
         // Decrypt the file back into a Blob
@@ -165,11 +235,11 @@ class ChatEncryptionService {
     }
 
     /**
-    * Helper to convert an ArrayBuffer to a Base64 string.
-    */
+     * Helper to convert an ArrayBuffer to a Base64 string.
+     */
     arrayBufferToBase64(arrayBuffer: ArrayBuffer): string {
         const uint8Array = new Uint8Array(arrayBuffer);
-        let binary = '';
+        let binary = "";
         for (let i = 0; i < uint8Array.length; i++) {
             binary += String.fromCharCode(uint8Array[i]);
         }
@@ -177,11 +247,10 @@ class ChatEncryptionService {
     }
 
     // =====================
-    // RSA KEY PAIR GENERATION/USAGE
+    // RSA KEY PAIR GENERATION/USAGE (WebCrypto)
     // =====================
-
-    // Generate an RSA key pair for encryption
     async generateKeyPair(): Promise<CryptoKeyPair> {
+        // Перевірте, чи доступний window.crypto.subtle у вашому оточенні (у старіших браузерах потребує поліфілу)
         return await window.crypto.subtle.generateKey(
             {
                 name: "RSA-OAEP",
@@ -200,7 +269,7 @@ class ChatEncryptionService {
     }
 
     async importPublicKey(spkiStr: string): Promise<CryptoKey> {
-        const spki = Uint8Array.from(atob(spkiStr), c => c.charCodeAt(0));
+        const spki = Uint8Array.from(atob(spkiStr), (c) => c.charCodeAt(0));
         return window.crypto.subtle.importKey(
             "spki",
             spki,
@@ -218,7 +287,7 @@ class ChatEncryptionService {
     }
 
     async decryptWithPrivateKey(privateKey: CryptoKey, encryptedBase64: string): Promise<string> {
-        const encrypted = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0));
+        const encrypted = Uint8Array.from(atob(encryptedBase64), (c) => c.charCodeAt(0));
         const decrypted = await window.crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, encrypted);
         const decoder = new TextDecoder();
         return decoder.decode(decrypted);

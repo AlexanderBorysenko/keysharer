@@ -1,22 +1,12 @@
-import { Chain } from '~/graphql/zeus';
-
 export default defineNuxtPlugin((nuxtApp) => {
     const config = useRuntimeConfig();
     const apiEndpoint = config.public.severHost;
 
-    const headers = import.meta.server ? (useRequestHeaders(['cookie']) || {}) : {};
-    const apiClient = Chain(apiEndpoint, {
-        headers: {
-            ...headers,
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-    });
-
-
     const postGQFormDataRequest = async (query: string, variables: {
         [key: string]: any
     }) => {
+        const { $getAuthorizationHeaders } = useNuxtApp();
+
         const formData = new FormData();
 
         // Construct the operations object
@@ -52,6 +42,7 @@ export default defineNuxtPlugin((nuxtApp) => {
         const response = await fetch(apiEndpoint, {
             method: 'POST',
             headers: {
+                ...$getAuthorizationHeaders(),
             },
             credentials: 'include',
             body: formData,
@@ -69,8 +60,6 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     return {
         provide: {
-            gqClient: apiClient,
-            // wsClient: wsClientRef,
             postGQFormDataRequest,
         },
     };
