@@ -5,7 +5,6 @@ type Mutation {
     logoutUser: Boolean!
 }`;
 
-
 export const logoutUser = async (parent: any, args: any, context: any): Promise<boolean> => {
     // Clear the refresh token cookie
     if (isLocalhostRequest(context)) return true;
