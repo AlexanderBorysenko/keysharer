@@ -28,10 +28,14 @@
 		<div class="attachment-file-body" v-else>
 			<div class="attachment-file-body__icon" v-if="!fileUrl">
 				<img
+					class="attachment-file-body__icon-image"
 					src="/assets/images/attachment-file-icon.svg"
 					v-if="!decryptionInProgress"
 				/>
-				<RefreshingSpinner v-else />
+				<RefreshingSpinner
+					class="attachment-file-body__icon-image"
+					v-else
+				/>
 			</div>
 			<button
 				class="attachment-file-body__icon"
@@ -175,15 +179,13 @@ const { downloadFile } = useDownload(
 		background: rgba(255, 255, 255, 0.04);
 		border: 0.0625rem solid rgba(255, 255, 255, 0.08);
 		border-radius: 0.5rem;
-		img {
+		&-image {
 			width: 2.5rem;
 			height: 2.5rem;
 			transition: transform 0.2s;
 		}
-		&:hover {
-			img {
-				transform: scale(1.1);
-			}
+		&:hover &-image {
+			transform: scale(1.1);
 		}
 	}
 	&__main {
@@ -195,7 +197,7 @@ const { downloadFile } = useDownload(
 		display: flex;
 		gap: 0.5rem;
 		align-items: flex-end;
-		margin-bottom: 0.25rem;
+		margin-bottom: 0.5rem;
 	}
 	&__sub-title {
 		font-size: 0.875rem;
