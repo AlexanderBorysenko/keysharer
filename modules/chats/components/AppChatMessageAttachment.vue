@@ -45,7 +45,9 @@
 					<div class="attachment-file-body__ext">
 						{{ file.original_file_name || file.file_name }}
 					</div>
-					<div
+				</div>
+				<p class="attachment-file-body__sub-title">
+					<span
 						class="attachment-file-body__decryption-error"
 						v-if="decryptionError && !decryptionInProgress"
 					>
@@ -54,10 +56,9 @@
 							class="attachment-file-body__decryption-error-icon"
 						/>
 						Decryption failed
-					</div>
-				</div>
-				<p class="attachment-file-body__sub-title">
-					<span v-if="!fileUrl">File is encrypted. </span
+					</span>
+					<span v-if="!fileUrl && !decryptionError"
+						>File is encrypted. </span
 					>{{ formatFileSize(file.file_size) }}
 				</p>
 			</div>
@@ -170,6 +171,7 @@ const { downloadFile } = useDownload(
 		align-items: center;
 		width: 3.5rem;
 		height: 3.5rem;
+		flex: 0 0 3.5rem;
 		background: rgba(255, 255, 255, 0.04);
 		border: 0.0625rem solid rgba(255, 255, 255, 0.08);
 		border-radius: 0.5rem;
@@ -190,11 +192,10 @@ const { downloadFile } = useDownload(
 	&__title {
 		font-weight: 400;
 		font-size: 1.125rem;
-		line-height: 150%;
 		display: flex;
 		gap: 0.5rem;
 		align-items: flex-end;
-		margin-bottom: 0.125rem;
+		margin-bottom: 0.25rem;
 	}
 	&__sub-title {
 		font-size: 0.875rem;
