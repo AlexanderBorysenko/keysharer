@@ -1,0 +1,35 @@
+@use '../../vars.scss' as *;
+
+@mixin layout-alignment-classes($breakpoint: '') {
+	@if $breakpoint != '' {
+		$breakpoint: -#{$breakpoint};
+	}
+
+	.align#{$breakpoint}-center {
+		align-items: center;
+	}
+	.justify#{$breakpoint}-center {
+		justify-content: center;
+	}
+}
+
+@include layout-alignment-classes();
+
+.align-self-center {
+	align-self: center;
+}
+.align-self-end {
+	align-self: end;
+}
+.justify-self-center {
+	justify-self: center;
+}
+.justify-self-end {
+	justify-self: end;
+}
+
+@each $breakpoint, $breakpointWidth in $breakpoints {
+	@media (max-width: $breakpointWidth) {
+		@include layout-alignment-classes($breakpoint);
+	}
+}

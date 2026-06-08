@@ -1,0 +1,26 @@
+@use '../../vars.scss' as *;
+
+.fw-700 {
+	font-weight: 700;
+	& > * {
+		font-weight: 700;
+	}
+}
+.fw-600 {
+	font-weight: 400;
+	& > * {
+		font-weight: 400;
+	}
+}
+.fw-500 {
+	font-weight: 500;
+	& > * {
+		font-weight: 500;
+	}
+}
+.fw-400 {
+	font-weight: 400;
+	& > * {
+		font-weight: 400;
+	}
+}

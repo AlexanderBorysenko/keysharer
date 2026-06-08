@@ -1,0 +1,31 @@
+/**
+ * Pulsing keyframe animation
+ */
+@keyframes pulsing {
+	0% {
+		transform: scale(1);
+	}
+	10% {
+		transform: scale(1.1);
+	}
+	20% {
+		transform: scale(1);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+/**
+ * Fade vue animation
+ */
+.fade-enter-active,
+.fade-leave-active {
+	transition: opacity 0.3s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+	opacity: 0;
+}
+.fade-enter-to, .fade-leave /* .fade-leave-active in <2.1.8 */ {
+	opacity: 1;
+}

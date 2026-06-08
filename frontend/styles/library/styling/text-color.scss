@@ -1,0 +1,27 @@
+@use '../../vars.scss' as *;
+
+.text-grey {
+	color: var(--grey);
+	strong,
+	b,
+	a {
+		color: var(--text-color);
+	}
+}
+
+.text-semi-dark {
+	color: var(--semi-dark);
+	strong,
+	b,
+	a {
+		color: var(--text-color);
+	}
+}
+
+.text-07 {
+	color: rgba($color: #fff, $alpha: 0.7);
+}
+
+.text-danger {
+	color: var(--danger);
+}

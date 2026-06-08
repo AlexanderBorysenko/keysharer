@@ -1,0 +1,16 @@
+:root {
+	--header-part-height: 5.5rem;
+	--sidebar-width: 23.625rem;
+	--header-part-border: 0.125rem solid #ffffff1a;
+	--ui-light-border: 0.0625rem solid rgba(255, 255, 255, 0.1);
+	--bg-darker: #0c111d;
+	--bg-dark-lighter: #161b26;
+	--purple: #5645ee;
+	--purple-dark: #4d3ee9;
+	--danger: #f7604f;
+	--warning: #ffcc00;
+	--success: #25a357;
+	@media (max-width: 640px) {
+		--header-part-height: 4rem;
+	}
+}
