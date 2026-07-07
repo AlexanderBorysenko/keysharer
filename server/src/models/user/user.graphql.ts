@@ -47,8 +47,6 @@ import {
 	refreshTokenDefs,
 } from "./resolvers/user.refreshToken.mutation";
 import { logoutUser, logoutUserDefs } from "./resolvers/user.logoutUser.mutation";
-import { onlineServerPingDefs, onlineServerPingSubscription } from "./resolvers/user.onlineServerPing.subscription";
-import { onlineServerPong, onlineServerPongDefs } from "./resolvers/user.onlineSeverPong.mutation";
 import { userJoinedChatAt } from "./resolvers/user.User.joinedChatAt.query";
 
 export const userResolvers = {
@@ -66,12 +64,10 @@ export const userResolvers = {
 		verifyEmail,
 		updateUser,
 		logoutUser,
-		onlineServerPong
 	},
 	Subscription: {
 		typingStatusUpdated,
 		onlineStatusChanged: onlineStatusChangedSubscription,
-		onlineServerPing: onlineServerPingSubscription,
 		userUpdated: userUpdatedSubscription,
 	},
 	User: {
@@ -95,10 +91,8 @@ export const userDefs = mergeTypeDefs([
 	verifyEmailDefs,
 	updateUserDefs,
 	logoutUserDefs,
-	onlineServerPongDefs,
 
 	typingStatusUpdatedDefs,
 	onlineStatusChangedDefs,
 	userUpdatedSubscriptionDefs,
-	onlineServerPingDefs,
 ]);
