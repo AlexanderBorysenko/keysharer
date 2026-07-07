@@ -8,6 +8,17 @@ import {
 import { findUser } from "../service/findUser";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { isLocalhostRequest } from "../../../utils/isLocalhostRequest";
+import {
+	assertNotRateLimited,
+	clearFailures,
+	recordFailure,
+} from "../../../services/rateLimiter";
+
+// A legitimate user mistyping their password a handful of times in a row
+// should never trip this; it exists to slow down credential-stuffing /
+// brute-force attempts against a single username.
+const LOGIN_RATE_LIMIT_MAX = 10;
+const LOGIN_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 export type LoginUserInput = {
 	username: string;
@@ -48,16 +59,31 @@ export const loginUser = async (
 		input
 	);
 
+	const rateLimitKey = `login:${input.username}`;
+	assertNotRateLimited(
+		rateLimitKey,
+		LOGIN_RATE_LIMIT_MAX,
+		LOGIN_RATE_LIMIT_WINDOW_MS
+	);
+
 	const user = await findUser({ username: input.username });
 
-	if (!user) return throwUserInputError("Invalid username or password.");
+	if (!user) {
+		recordFailure(rateLimitKey, LOGIN_RATE_LIMIT_WINDOW_MS);
+		return throwUserInputError("Invalid username or password.");
+	}
 
 	// Compare provided password with stored hash
 	const isPasswordValid = await bcrypt.compare(
 		input.password,
 		user?.password || ""
 	);
-	if (!isPasswordValid) throwUserInputError("Invalid username or password.");
+	if (!isPasswordValid) {
+		recordFailure(rateLimitKey, LOGIN_RATE_LIMIT_WINDOW_MS);
+		throwUserInputError("Invalid username or password.");
+	}
+
+	clearFailures(rateLimitKey);
 
 	// Generate JWT token
 	const acessToken = createUserAccessToken(user);

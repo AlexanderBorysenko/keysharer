@@ -12,6 +12,21 @@ const emit = defineEmits<{
 	(e: 'generated', randomString: string): void;
 }>();
 
+// Cryptographically secure index in [0, max) via rejection sampling (no modulo bias).
+function secureRandomIndex(max: number): number {
+	const array = new Uint32Array(1);
+	// Largest multiple of `max` that fits in a Uint32; values >= this are
+	// discarded so the remaining range maps onto [0, max) with equal
+	// probability for every value.
+	const limit = Math.floor(0x100000000 / max) * max;
+	let value: number;
+	do {
+		crypto.getRandomValues(array);
+		value = array[0];
+	} while (value >= limit);
+	return value % max;
+}
+
 function generateRandomString() {
 	const chars =
 		'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+~`|}{[]:;?><,./-=';
@@ -24,7 +39,7 @@ function generateRandomString() {
 	) {
 		randomString = Array.from(
 			{ length: 24 },
-			() => chars[Math.floor(Math.random() * chars.length)]
+			() => chars[secureRandomIndex(chars.length)]
 		).join('');
 	}
 	emit('generated', randomString);
