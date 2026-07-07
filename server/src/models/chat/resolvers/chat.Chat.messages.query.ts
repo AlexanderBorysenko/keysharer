@@ -21,14 +21,17 @@ export const chatMessages = async (
     // Fetch messages with pagination
     const pageSize = 20;
     const messagesQuery = lastMessageId
-        ? `SELECT * FROM messages 
-        WHERE chat_id = ${chat.id.toString()} 
-        AND id < ${lastMessageId.toString()} 
-        LIMIT ${pageSize}`
-        : `SELECT * FROM messages 
-        WHERE chat_id = ${chat.id.toString()} 
-        LIMIT ${pageSize}`;
-    const messagesResult = await client.execute(messagesQuery, [], {
+        ? `SELECT * FROM messages
+        WHERE chat_id = ?
+        AND id < ?
+        LIMIT ?`
+        : `SELECT * FROM messages
+        WHERE chat_id = ?
+        LIMIT ?`;
+    const messagesParams = lastMessageId
+        ? [chat.id, lastMessageId, pageSize]
+        : [chat.id, pageSize];
+    const messagesResult = await client.execute(messagesQuery, messagesParams, {
         prepare: true,
     });
 
