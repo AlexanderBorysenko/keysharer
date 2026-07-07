@@ -1,3 +1,4 @@
+import { GraphQLError } from "graphql";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { throwUserInputError } from "../../../errors/throwUserInputError";
 import { isNotGuestMiddleware } from "../middleware/isNotGuestMiddleware";
@@ -8,6 +9,13 @@ import {
 	clearFailures,
 	recordFailure,
 } from "../../../services/rateLimiter";
+
+// The exact `extensions.code` that `throwUserInputError` sets on the
+// `GraphQLError` it throws (see errors/throwUserInputError.ts). Used below to
+// tell a genuine wrong/expired-code user error (which should cost the user a
+// rate-limit attempt) apart from infrastructure errors, e.g. a Cassandra
+// timeout inside `verifyUserEmail`, which should not.
+const USER_INPUT_ERROR_CODE = "BAD_USER_INPUT";
 
 // A legitimate user should never come close to this many wrong codes; it
 // exists to stop someone from brute-forcing the 6-digit verification code.
@@ -49,7 +57,16 @@ export const verifyEmail = async (
 	try {
 		await verifyUserEmail(user, input?.code);
 	} catch (error) {
-		recordFailure(rateLimitKey, VERIFY_RATE_LIMIT_WINDOW_MS);
+		// Only a genuine wrong/expired verification code should consume the
+		// user's rate-limit budget. Infrastructure errors (e.g. a DB timeout
+		// inside `verifyUserEmail`) must not, otherwise an outage could
+		// soft-lock legitimate users out of verifying their email.
+		if (
+			error instanceof GraphQLError &&
+			error.extensions?.code === USER_INPUT_ERROR_CODE
+		) {
+			recordFailure(rateLimitKey, VERIFY_RATE_LIMIT_WINDOW_MS);
+		}
 		throw error;
 	}
 
