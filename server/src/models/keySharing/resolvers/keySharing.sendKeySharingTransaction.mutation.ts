@@ -29,7 +29,7 @@ export const sendKeySharingTransaction = async (
     context: AppQraphQLContext
 ): Promise<types.TimeUuid> => {
     const user = await isAuthenticatedMiddleware(context);
-    isUserAChatMemberMiddleware({
+    await isUserAChatMemberMiddleware({
         chatId,
         userId: user.id,
     });

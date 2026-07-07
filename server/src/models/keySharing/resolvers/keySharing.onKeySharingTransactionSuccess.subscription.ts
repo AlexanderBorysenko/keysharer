@@ -1,5 +1,6 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { pubsub } from "../../../graphql/pubSub";
+import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 
 export const onKeySharingTransactionSuccessSubscriptionDefs = `
 type Subscription {
@@ -8,6 +9,7 @@ type Subscription {
 
 export const onKeySharingTransactionSuccessSubscription = {
     subscribe: async (_: unknown, { transactionId }: { transactionId: string }, context: AppQraphQLContext) => {
+        await isAuthenticatedMiddleware(context);
         return pubsub.subscribe(`KEY_SHARING_TRANSACTION_SUCCESS_${transactionId}`);
     },
     resolve: (payload: boolean) => {

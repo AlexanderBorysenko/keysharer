@@ -1,4 +1,5 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
+import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { publishKeySharingTransactionSuccess } from "./keySharing.onKeySharingTransactionSuccess.subscription";
 
 export type SendKeySharingTransactionSuccessInput = {
@@ -22,6 +23,7 @@ export const sendKeySharingTransactionSuccess = async (
     { input: { transactionId, success } }: { input: SendKeySharingTransactionSuccessInput },
     context: AppQraphQLContext
 ): Promise<boolean> => {
+    await isAuthenticatedMiddleware(context);
     await publishKeySharingTransactionSuccess({
         transactionId,
         success,

@@ -23,8 +23,8 @@ export const usersQuery = async (
 	}: { input: UserQueryInput },
 	context: AppQraphQLContext
 ) => {
+	const user = await isAuthenticatedMiddleware(context);
 	if (input?.search) {
-		const user = await isAuthenticatedMiddleware(context);
 		const excludeUserIds = [...(input.excludeUserIds || []), user.id];
 		return (
 			await client.execute(
