@@ -17,9 +17,8 @@ export const getChatUserIds = async ({
 		let userIds = result.rows.map((row) => row.user_id);
 
 		if (exclude.length > 0) {
-			userIds = userIds.filter(
-				(userId) => userId.toString() !== exclude.toString()
-			);
+			const excludeSet = new Set(exclude.map((id) => id.toString()));
+			userIds = userIds.filter((userId) => !excludeSet.has(userId.toString()));
 		}
 
 		return userIds;

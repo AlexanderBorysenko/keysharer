@@ -40,14 +40,16 @@ export const publishUnreadMessagesCountChange = async ({
         exclude: [ownerId]
     }));
 
-    recepientIds.forEach((recepientId) => {
-        const unreadCount = messageDBService.getUnreadMessagesCount({
-            userId: recepientId,
-            chatId,
-        });
-        pubsub.publish(`UNREAD_MESSAGES_COUNT_CHANGE_${recepientId.toString()}`, {
-            chatId: chatId.toString(),
-            unreadCount
-        });
-    });
+    await Promise.all(
+        recepientIds.map(async (recepientId) => {
+            const unreadCount = await messageDBService.getUnreadMessagesCount({
+                userId: recepientId,
+                chatId,
+            });
+            pubsub.publish(`UNREAD_MESSAGES_COUNT_CHANGE_${recepientId.toString()}`, {
+                chatId: chatId.toString(),
+                unreadCount,
+            });
+        })
+    );
 };
