@@ -41,7 +41,7 @@ export const fetchChatMessagesPage = async (chatId: string, lastMessageId: strin
             })
         })
 
-        return response?.data.myChat.messages || [];
+        return response?.data?.myChat.messages || [];
     } catch (e) {
         addNotification({
             type: 'error',

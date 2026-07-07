@@ -1,9 +1,13 @@
 import { defineNuxtPlugin } from '#app'
-import { ApolloClient, ApolloLink, InMemoryCache, split } from '@apollo/client/core'
-import { createHttpLink } from '@apollo/client/link/http'
+// Apollo Client 4 reorganized entry points: `@apollo/client/core` is still a
+// valid subpath (its `.` root re-exports the same thing), but the bare link
+// helper functions (`split`, `from`, `concat`) moved to static `ApolloLink.*`
+// methods, and `createHttpLink` is superseded by the `HttpLink` class.
+import { ApolloClient, ApolloLink, InMemoryCache, HttpLink } from '@apollo/client/core'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import { CombinedGraphQLErrors } from '@apollo/client/errors'
 import { watch, ref } from 'vue'
 import { createClient } from 'graphql-ws'
 
@@ -11,6 +15,22 @@ import { typedGql } from "~/graphql/zeus/typedDocumentNode";
 import { type GenericOperation, type ModelTypes, type ValueTypes } from "~/graphql/zeus";
 import { handleUnauthenticatedError } from '~/graphql/utils/handleUnauthenticatedError'
 
+// Apollo Client 4 requires default `errorPolicy` values to be declared at the
+// type level, so that `client.query`/`watchQuery` result types correctly
+// reflect that `data` can be partial/undefined under that policy. This must
+// mirror the `defaultOptions` passed to `new ApolloClient(...)` below.
+declare module '@apollo/client/core' {
+    namespace ApolloClient {
+        namespace DeclareDefaultOptions {
+            interface WatchQuery {
+                errorPolicy: 'ignore'
+            }
+            interface Query {
+                errorPolicy: 'all'
+            }
+        }
+    }
+}
 
 export default defineNuxtPlugin(() => {
     const { $AuthorizationToken, $isUserInitialized, $isWsConnected } = useNuxtApp();
@@ -35,12 +55,14 @@ export default defineNuxtPlugin(() => {
 
     const config = useRuntimeConfig()
 
-    const httpLink = createHttpLink({
+    const httpLink = new HttpLink({
         uri: config.public.severHost,
         credentials: 'include',
     })
 
-    let apolloClient: Ref<ApolloClient<any> | null> = ref(null)
+    // v4 dropped the `TCacheShape` generic from `ApolloClient` (it added
+    // little type safety and everyone set it to `any` anyway).
+    let apolloClient: Ref<ApolloClient | null> = ref(null)
     let wsLink: GraphQLWsLink | null = null
     let authLink: ApolloLink | null = null
 
@@ -88,7 +110,7 @@ export default defineNuxtPlugin(() => {
         const newWsLink = createWsLink(token)
         authLink = createAuthLink(token)
         const newApolloClient = new ApolloClient({
-            link: split(
+            link: ApolloLink.split(
                 ({ query }) => {
                     const definition = getMainDefinition(query)
                     return (
@@ -134,6 +156,17 @@ export default defineNuxtPlugin(() => {
         else $isWsConnected.value = true
     })
 
+    // Apollo Client 4 unifies GraphQL + network errors into a single `error`
+    // field on query/mutate results (replacing v3's `errors` array). Convert
+    // back to an array here so downstream consumers of executeQuery/executeMutation
+    // (handleUnauthenticatedError, fetchChatState.ts's `errors?.length` check,
+    // getGQErrorMessage) keep working against the same shape as before.
+    const toErrorsArray = (error: unknown): any[] | undefined => {
+        if (!error) return undefined
+        if (CombinedGraphQLErrors.is(error)) return [...error.errors]
+        return [error]
+    }
+
     const executeQuery = async <
         R extends keyof ValueTypes = GenericOperation<"query">,
         QueryKey extends keyof ValueTypes[R] = keyof ValueTypes[R]
@@ -141,15 +174,16 @@ export default defineNuxtPlugin(() => {
         query: { [P in QueryKey]: ValueTypes[R][P] }
     ) => {
         if (!apolloClient.value) throw new Error('Apollo client is not initialized')
-        const { data, errors } = await apolloClient.value.query({
+        const { data, error } = await apolloClient.value.query({
             query: typedGql('query')(query as any)
         });
+        const errors = toErrorsArray(error);
         if (errors?.length) {
             handleUnauthenticatedError(errors)
         }
 
         return {
-            data: deepObjectCopy<ModelTypes[R][QueryKey]>(data[Object.keys(query)[0]]),
+            data: deepObjectCopy<ModelTypes[R][QueryKey]>(data?.[Object.keys(query)[0]]),
             errors
         }
     }
@@ -160,9 +194,10 @@ export default defineNuxtPlugin(() => {
         mutation: { [P in MutationKey]: ValueTypes[R][P] }
     ) => {
         if (!apolloClient.value) throw new Error('Apollo client is not initialized')
-        const { data, errors } = await apolloClient.value.mutate({
+        const { data, error } = await apolloClient.value.mutate({
             mutation: typedGql('mutation')(mutation as any)
         });
+        const errors = toErrorsArray(error);
         if (errors?.length) {
             handleUnauthenticatedError(errors)
         }
@@ -216,15 +251,28 @@ export default defineNuxtPlugin(() => {
                     query,
                 });
                 activeSubscriptionHandle = subscriptionInstance.subscribe({
-                    next: (payload) => {
+                    // Apollo Client 4 routes ALL subscription errors (including
+                    // what used to reach the observer's `error` callback) through
+                    // `next`'s `result.error` instead, so the observable never
+                    // terminates on a network error. Check it here first to
+                    // preserve the Task 2 catch-up-refetch behavior.
+                    next: (result) => {
                         if (stop.value) return;
+                        if (result.error) {
+                            console.error('Subscription error:', result.error);
+                            // reconcile state via the same catch-up path used for reconnects
+                            wsErrorOccurred.value = true;
+                            return;
+                        }
                         const subscriptionKey = Object.keys(subscription)[0];
                         // @ts-ignore
-                        callbacks.forEach((cb) => cb(payload.data[subscriptionKey]));
+                        callbacks.forEach((cb) => cb(result.data[subscriptionKey]));
                     },
+                    // Kept as a safety net: v4 no longer delivers subscription
+                    // errors here (see `next` above), but this stays wired in
+                    // case anything still surfaces through it.
                     error: (error) => {
                         console.error('Subscription error:', error);
-                        // reconcile state via the same catch-up path used for reconnects
                         wsErrorOccurred.value = true;
                     },
                     complete: () => {

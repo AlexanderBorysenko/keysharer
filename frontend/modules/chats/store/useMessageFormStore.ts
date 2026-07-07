@@ -94,6 +94,14 @@ export const useMessageFormStore = defineStore('messageFormStore', () => {
         try {
             if (!$apollo.value) throw new Error('Apollo client is not initialized');
             await $apollo.value.mutate({
+                // Apollo Client 4's stricter `mutate()` overloads require a
+                // `variables` property whose static shape matches zeus's inferred
+                // `ExtractVariables<Z>` for this query. That inferred type is a
+                // generated-type artifact (zeus inlines all values into the query
+                // string itself — there are no real GraphQL variables here), so
+                // there's no sensible literal to assign; `as any` sidesteps the
+                // artifact without changing runtime behavior.
+                variables: {} as any,
                 mutation: typedGql('mutation')({
                     sendMessage: [
                         {
