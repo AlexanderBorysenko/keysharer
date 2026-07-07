@@ -5,7 +5,12 @@ import { types } from "cassandra-driver";
 // so the real `../../../db/client` (which opens a live Cassandra connection
 // as an import side effect) and its transitive DB-touching dependencies are
 // never loaded. This keeps the test fully offline.
-const executeMock = mock(async () => ({ rows: [] }));
+// Typed with the same call signature as `client.execute(query, params, options)`
+// so `executeMock.mock.calls` entries are inferred as `[string, any[], any]`
+// instead of `[]`, avoiding an unsound tuple cast at each call site below.
+const executeMock = mock(
+    async (_query: string, _params: any[], _options: any) => ({ rows: [] })
+);
 
 mock.module("../../../db/client", () => ({
     client: { execute: executeMock },
@@ -44,11 +49,7 @@ describe("chatMessages (CQL parameterization)", () => {
         );
 
         expect(executeMock).toHaveBeenCalledTimes(1);
-        const [query, params, options] = executeMock.mock.calls[0] as [
-            string,
-            any[],
-            any
-        ];
+        const [query, params, options] = executeMock.mock.calls[0];
 
         // No interpolated values in the query text.
         expect(query).not.toContain("${");
@@ -68,11 +69,7 @@ describe("chatMessages (CQL parameterization)", () => {
         );
 
         expect(executeMock).toHaveBeenCalledTimes(1);
-        const [query, params, options] = executeMock.mock.calls[0] as [
-            string,
-            any[],
-            any
-        ];
+        const [query, params, options] = executeMock.mock.calls[0];
 
         expect(query).not.toContain("${");
         expect(query).not.toContain(fakeChatId.toString());
