@@ -10,29 +10,8 @@ const useUserStore = defineStore('userStore', () => {
         $isUserInitialized,
         $isUserLoggedIn,
         $useSubscription: useSubscription,
-        $pingPongId
     } = useNuxtApp();
     const chatStore = useChatStore();
-
-    const {
-        on: onPing,
-    } = useSubscription({
-        onlineServerPing: [{
-            pingPongId: $pingPongId.value
-        }, true]
-    });
-    onPing((pingPongIterationId: string) => {
-        $apollo.value?.mutate({
-            mutation: typedGql('mutation')({
-                onlineServerPong: [{
-                    input: {
-                        pingPongId: $pingPongId.value,
-                        pingPongIterationId
-                    }
-                }, true]
-            })
-        })
-    })
 
     const router = useRouter();
 

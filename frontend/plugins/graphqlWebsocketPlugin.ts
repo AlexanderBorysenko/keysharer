@@ -5,7 +5,6 @@ import { v4 } from 'uuid';
 interface WsClientOptions {
     wsEndpoint: string;
     token: string | null;
-    pingPongId?: string;
     onError?: () => void;
 }
 
@@ -27,7 +26,6 @@ export function createWsClient(options: WsClientOptions) {
             return {
                 'Content-Type': 'application/json',
                 Authorization: token || '',
-                pingPongId: options.pingPongId || '',
             };
         },
     });
@@ -54,7 +52,6 @@ export function createWsClient(options: WsClientOptions) {
 export default defineNuxtPlugin((nuxtApp) => {
     // const config = useRuntimeConfig();
     // const wsEndpoint = config.public.wsHost;
-    // const pingPongId = ref<string>(v4());
 
     // const {
     //     $AuthorizationToken,
@@ -98,7 +95,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     //     const { client, close } = createWsClient({
     //         wsEndpoint,
     //         token: $AuthorizationToken.value,
-    //         pingPongId: pingPongId.value,
     //         onError: () => {
     //             // Якщо виникла помилка, ставимо перепідключення через 5 секунд (тільки один раз!)
     //             if (!reconnectTimer) {
@@ -146,7 +142,6 @@ export default defineNuxtPlugin((nuxtApp) => {
     // return {
     //     provide: {
     //         wsClient: wsClientRef,
-    //         pingPongId,
     //     },
     // };
 });
