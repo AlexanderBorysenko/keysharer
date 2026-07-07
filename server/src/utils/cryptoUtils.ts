@@ -1,8 +1,10 @@
 import crypto from "crypto";
 
 const algorithm = "aes-256-cbc"; // Encryption algorithm
-const secretKey = process.env.SECRET_KEY || "your_secret_key_here"; // Key should be 32 bytes
+// validateEnv() hard-fails at boot if SECRET_KEY is unset, so it is safe to assert non-null here.
+const secretKey = process.env.SECRET_KEY!; // Key should be 32 bytes
 const ivLength = 16; // Recommended length for GCM
+// TODO(deferred hardening, out of scope for this pass): migrate to AES-256-GCM with a per-record salt instead of the static "salt" used below.
 
 export const encrypt = (text: string): string => {
 	const iv = crypto.randomBytes(ivLength);

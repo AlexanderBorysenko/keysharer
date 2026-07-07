@@ -6,6 +6,12 @@ import { Role } from "../models/user/user.types";
 export const initializeDatabase = async () => {
 	await userActiveSessionsService.resetAllUsersActiveSessionsCount();
 
+	// Demo/seed users are for local development only — never seed these on a
+	// production boot.
+	if (!process.env.IS_DEV) {
+		return;
+	}
+
 	const users = [
 		{ username: "Igor", email: "elon@gmail.com", displayName: "Igor" },
 		{ username: "Yurii", email: "elon@gmail.com", displayName: "Yurii" },
