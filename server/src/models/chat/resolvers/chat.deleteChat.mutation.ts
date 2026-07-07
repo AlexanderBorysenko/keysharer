@@ -9,6 +9,7 @@ import { getChatUserIds } from "../service/getChatUserIds";
 import messageDBService from "../../message/service/messageDBService";
 import { publishChatUpdated } from "./chat.chatUpdated.subscription";
 import { isUserAChatAdministratorMiddleware } from "../service/isUserAChatAdministrator";
+import type { Queries } from "../../../../types/Queries";
 
 export type DeleteChatInput = {
 	chatId: types.Uuid;
@@ -39,11 +40,17 @@ export const deleteChat = async (
 		chatId,
 	});
 
-	const queries: string[] = [];
+	const queries: Queries = [];
 	chatUserIds.forEach((userId) => {
-		queries.push(`DELETE FROM user_chat WHERE chat_id = ${chatId} AND user_id = ${userId}`);
+		queries.push({
+			query: `DELETE FROM user_chat WHERE chat_id = ? AND user_id = ?`,
+			params: [chatId, userId],
+		});
 	});
-	queries.push(`DELETE FROM chats WHERE id = ${chatId}`);
+	queries.push({
+		query: `DELETE FROM chats WHERE id = ?`,
+		params: [chatId],
+	});
 
 	try {
 		await client.batch([
