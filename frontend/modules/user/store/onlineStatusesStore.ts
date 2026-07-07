@@ -4,18 +4,16 @@ export const useOnlineStatusesStore = defineStore('onlineStatusesStore', () => {
 
     const listenToUser = (userId: string, isOnline: boolean) => {
         if (!onlineUsers.has(userId)) {
+            onlineUsers.set(userId, isOnline);
             const { on } = useSubscription({
                 onlineStatusChanged: [{
                     userId,
                 }, true]
             })
-            on((isOnline) => {
-                console.log('onlineStatusChanged', userId, isOnline);
-                onlineUsers.set(userId, isOnline);
+            on((live) => {
+                onlineUsers.set(userId, live);
             });
         }
-
-        onlineUsers.set(userId, isOnline);
     }
 
     const getUserOnlineStatus = (userId: string) => {
