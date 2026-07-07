@@ -1,4 +1,5 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
+import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { publishKeySharingTransactionEncryptedKey } from "./keySharing.onReceivedKeySharingTransactionEncryptedKey.subscription";
 
 export const sendKeySharingTransactionEncryptedKeyDefs = `
@@ -22,6 +23,7 @@ export const sendKeySharingTransactionEncryptedKey = async (
     { input: { transactionId, encryptedKey } }: { input: SendKeySharingTransactionEncryptedKeyInput },
     context: AppQraphQLContext
 ): Promise<boolean> => {
+    await isAuthenticatedMiddleware(context);
     await publishKeySharingTransactionEncryptedKey({
         transactionId,
         encryptedKey,

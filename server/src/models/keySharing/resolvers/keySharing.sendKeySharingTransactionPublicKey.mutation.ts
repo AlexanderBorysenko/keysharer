@@ -1,5 +1,6 @@
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import { types } from "cassandra-driver";
+import { isAuthenticatedMiddleware } from "../../user/middleware/isAuthenticatedMiddleware";
 import { publishKeySharingTransactionPublicKey } from "./keySharing.onReceivedKeySharingTransactionPublicKey.subscription";
 
 export type SendKeySharingTransactionPublicKeyInput = {
@@ -23,6 +24,7 @@ export const sendKeySharingTransactionPublicKey = async (
     { input: { transactionId, publicKey } }: { input: SendKeySharingTransactionPublicKeyInput },
     context: AppQraphQLContext
 ): Promise<boolean> => {
+    await isAuthenticatedMiddleware(context);
     await publishKeySharingTransactionPublicKey({
         transactionId,
         publicKey,
