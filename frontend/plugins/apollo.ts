@@ -5,7 +5,6 @@ import { getMainDefinition } from '@apollo/client/utilities'
 import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { watch, ref } from 'vue'
-import { v4 } from 'uuid'
 import { createClient } from 'graphql-ws'
 
 import { typedGql } from "~/graphql/zeus/typedDocumentNode";
@@ -34,7 +33,6 @@ export default defineNuxtPlugin(() => {
         onWsErrorResolvedCallbacks.forEach(cb => cb());
     }
 
-    const pingPongId = ref<string>(v4())
     const config = useRuntimeConfig()
 
     const httpLink = createHttpLink({
@@ -48,7 +46,6 @@ export default defineNuxtPlugin(() => {
 
     const getAuthorizationHeaders = () => ({
         Authorization: `Bearer ${$AuthorizationToken.value}`,
-        pingPongId: pingPongId.value,
     })
     function createAuthLink(token: string) {
         return setContext((_, { headers }) => ({
@@ -61,18 +58,21 @@ export default defineNuxtPlugin(() => {
     function createWsLink(token: string) {
         return new GraphQLWsLink(createClient({
             url: config.public.wsHost,
-            disablePong: true,
+            keepAlive: 10000,
             retryAttempts: Infinity,
             shouldRetry: () => true,
-            connectionParams: {
+            connectionParams: () => ({
                 ...getAuthorizationHeaders(),
-            },
+            }),
             retryWait: async () => {
                 await new Promise(resolve => setTimeout(resolve, 2500));
                 return;
             },
             on: {
                 error: () => {
+                    wsErrorOccurred.value = true;
+                },
+                closed: () => {
                     wsErrorOccurred.value = true;
                 },
                 opened: () => {
@@ -83,13 +83,11 @@ export default defineNuxtPlugin(() => {
     }
 
     function initApollo(token: string) {
-        // close previous connection
-        wsLink?.client.dispose();
-        apolloClient.value = null
+        const previousWsLink = wsLink
 
-        wsLink = createWsLink(token)
+        const newWsLink = createWsLink(token)
         authLink = createAuthLink(token)
-        apolloClient.value = new ApolloClient({
+        const newApolloClient = new ApolloClient({
             link: split(
                 ({ query }) => {
                     const definition = getMainDefinition(query)
@@ -98,7 +96,7 @@ export default defineNuxtPlugin(() => {
                         definition.operation === 'subscription'
                     )
                 },
-                wsLink,
+                newWsLink,
                 authLink.concat(httpLink)
             ),
             cache: new InMemoryCache(),
@@ -113,6 +111,12 @@ export default defineNuxtPlugin(() => {
                 },
             }
         });
+
+        // swap in the new client/link first so `$isWsConnected` never flaps to
+        // false during a token-refresh rebuild, then dispose the old connection
+        wsLink = newWsLink
+        apolloClient.value = newApolloClient
+        previousWsLink?.client.dispose();
     }
 
     watch(
@@ -187,26 +191,44 @@ export default defineNuxtPlugin(() => {
         };
 
         const stop = ref(false);
+        let activeSubscriptionHandle: { unsubscribe: () => void } | null = null;
+        const unsubscribeActive = () => {
+            activeSubscriptionHandle?.unsubscribe();
+            activeSubscriptionHandle = null;
+        };
         const stopSubscription = () => {
             stop.value = true;
             callbacks.splice(0, callbacks.length);
+            unsubscribeActive();
         };
 
         watch(
             [() => apolloClient.value, () => $isUserInitialized.value],
             () => {
+                // tear down the previous live subscription before creating a
+                // new one (on client rebuild) or leaving one running (teardown)
+                unsubscribeActive();
+
                 if (!apolloClient.value || !$isUserInitialized.value) return;
                 const query = typedGql('subscription')(subscription as any);
 
                 const subscriptionInstance = apolloClient.value.subscribe({
                     query,
                 });
-                subscriptionInstance.subscribe({
+                activeSubscriptionHandle = subscriptionInstance.subscribe({
                     next: (payload) => {
                         if (stop.value) return;
                         const subscriptionKey = Object.keys(subscription)[0];
                         // @ts-ignore
                         callbacks.forEach((cb) => cb(payload.data[subscriptionKey]));
+                    },
+                    error: (error) => {
+                        console.error('Subscription error:', error);
+                        // reconcile state via the same catch-up path used for reconnects
+                        wsErrorOccurred.value = true;
+                    },
+                    complete: () => {
+                        console.log('Subscription completed.');
                     },
                 });
             },
@@ -227,7 +249,6 @@ export default defineNuxtPlugin(() => {
             getAuthorizationHeaders,
             executeQuery,
             executeMutation,
-            pingPongId,
             onWsErrorResolved,
             removeOnWsErrorResolved,
             useSubscription
