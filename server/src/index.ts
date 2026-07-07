@@ -4,7 +4,7 @@ import { schema } from './graphql/schema';
 import { client } from './db/client';
 import { initializeDatabase } from './db/initialize';
 import type { AppQraphQLContext } from '../types/AppQraphQLContext';
-import { getContextUser, unsafeGetContextUser } from './models/user/service/getContextUser';
+import { getContextUser } from './models/user/service/getContextUser';
 import { makeHandler } from 'graphql-ws/lib/use/bun';
 import { type ExecutionArgs } from "@envelop/types";
 import { join } from 'path';
@@ -13,9 +13,6 @@ import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
 import queueUserAction from './services/queueUserAction';
-import { types } from 'cassandra-driver';
-import { publishOnlineServerPing } from './models/user/resolvers/user.onlineServerPing.subscription';
-import { usersOnlinePingPongIterationIdsStorage, usersOnlinePingPongIterationIntervalsStorage } from './models/user/storage/usersOnlinePingPongStorage';
 
 const resolveAllowOrigin = (request: Request): string => {
     const requestOrigin = request.headers.get('origin') || '';
@@ -88,17 +85,22 @@ async function startServer() {
                 const user = await getContextUser(context);
                 if (!user) {
                     console.log('\nUser not found in onConnect\n');
-                    return;
-                }
-                const pingPongId: string = context.connectionParams?.pingPongId as string;
-                if (!pingPongId) {
-                    console.log('\nPingPongId not found in onConnect\n');
-                    return;
+                    // graphql-ws treats a falsy return other than `false` as an implicit
+                    // acknowledgement of the connection. Reject explicitly so the socket
+                    // is closed (4403) and the client reconnects with fresh credentials.
+                    return false;
                 }
 
-                queueUserAction(user.username, async () => {
+                queueUserAction(user.id.toString(), async () => {
                     console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
+
+                    // Only stash presence identity on the connection context after the
+                    // increment has actually happened, so onClose never decrements for a
+                    // connection that was never counted as online.
+                    (context as any).presenceUserId = user.id;
+                    (context as any).presenceIncremented = true;
+
                     await publishOnlineStatusChanged({ userId: user.id });
 
                     const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
@@ -106,46 +108,27 @@ async function startServer() {
                     console.log('User connected:', user.username);
                     console.log('===============================\n');
                 });
-                usersOnlinePingPongIterationIdsStorage.set(pingPongId, '');
-                usersOnlinePingPongIterationIntervalsStorage.set(pingPongId, setInterval(async () => {
-                    const pingPongIterationId = types.TimeUuid.now().toString();
-                    await publishOnlineServerPing({
-                        pingPongIterationId: types.Uuid.fromString(pingPongIterationId),
-                        userId: user.id,
-                        pingPongId: types.Uuid.fromString(pingPongId)
-                    });
-                    setTimeout(() => {
-                        if (usersOnlinePingPongIterationIdsStorage.get(pingPongId) !== pingPongIterationId) {
-                            context.extra.socket.close();
-                        }
-                    }, 5000)
-                }, 10000));
             },
             onClose: async (context) => {
-                const user = await unsafeGetContextUser(context);
-                if (!user) {
-                    console.log('\nUser not found in onClose\n');
-                    return;
-                }
-                const pingPongId: string = context.connectionParams?.pingPongId as string;
-                if (!pingPongId) {
-                    console.log('\nPingPongId not found in onClose\n');
+                const presenceUserId = (context as any).presenceUserId;
+                const presenceIncremented = (context as any).presenceIncremented;
+
+                // Only decrement connections that were actually counted as online in
+                // onConnect. Identity comes from the verified id stashed there, never from
+                // an unverified (jwt.decode-based) re-derivation here.
+                if (!presenceIncremented || !presenceUserId) {
                     return;
                 }
 
-                clearInterval(usersOnlinePingPongIterationIntervalsStorage.get(pingPongId));
-                usersOnlinePingPongIterationIntervalsStorage.delete(pingPongId);
-                usersOnlinePingPongIterationIdsStorage.delete(pingPongId);
-
-                queueUserAction(user.username, async () => {
+                queueUserAction(presenceUserId.toString(), async () => {
                     console.log('\n===============================');
-                    await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'decrement');
-                    await publishOnlineStatusChanged({ userId: user.id });
+                    await userActiveSessionsService.updateUsersActiveSessionsCount(presenceUserId, 'decrement');
+                    await publishOnlineStatusChanged({ userId: presenceUserId });
 
-                    const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
+                    const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(presenceUserId);
                     console.log('Active Sessions:', activeSessionsCount);
 
-                    console.log('User disconnected:', user.username);
+                    console.log('User disconnected:', presenceUserId.toString());
                     console.log('===============================\n');
                 });
             },
@@ -194,7 +177,16 @@ async function startServer() {
                 //@ts-ignore
                 return yoga.fetch(request, server);
             },
-            websocket: websocketHandler,
+            websocket: {
+                ...websocketHandler,
+                // graphql-ws protocol keepAlive (client-sent Ping, our auto Pong reply) is
+                // ordinary socket traffic and resets this timer. Now that the custom
+                // app-level ping/pong loop is gone, this is what protects otherwise-healthy
+                // sockets (throttled background tabs, mobile radio wake, brief network
+                // blips) from being idle-timed-out. Set explicitly (matching Bun's own
+                // default of 120s) so the behavior doesn't depend on an implicit default.
+                idleTimeout: 120,
+            },
             port: 4000,
         });
 
