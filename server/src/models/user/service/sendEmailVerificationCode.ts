@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { sendEmail, type EmailOptions } from "../../../utils/emailUtils";
 import { renderTemplate } from "../../../utils/htmlTemplateUtils";
 import type { EmailVerificationCode, User } from "../user.types";
@@ -41,7 +42,7 @@ export const sendEmailVerificationCode = async (user: User) => {
 
 	const emailVerificationCode: EmailVerificationCode = {
 		userId: user.id,
-		code: Math.floor(100000 + Math.random() * 900000).toString(),
+		code: randomInt(100000, 1000000).toString(),
 		expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now,
 		issuedAt: new Date(),
 	};
