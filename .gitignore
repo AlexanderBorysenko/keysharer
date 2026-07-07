@@ -1,0 +1,22 @@
+graphify-out
+.claude
+CLAUDE.md
+
+# Dependencies
+node_modules
+
+# Env files (never commit real secrets; .env-template / .env-example stay tracked)
+.env
+.env.*
+
+# Build output
+frontend/.output
+frontend/.nuxt
+frontend/dist
+server/dist
+
+# SDD workspace (scratch)
+.superpowers
+
+# Logs
+*.log
