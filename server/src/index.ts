@@ -91,16 +91,20 @@ async function startServer() {
                     return false;
                 }
 
+                // Stash presence identity synchronously, before the increment is even
+                // enqueued. graphql-ws acks the connection as soon as onConnect returns,
+                // which can race ahead of the queued increment closure below; if onClose
+                // fires in that window it must still know this connection is one that
+                // will (eventually) be incremented, so it can enqueue a matching
+                // decrement on the same per-user FIFO chain. queueUserAction serializes
+                // by key, so the decrement enqueued in onClose is guaranteed to run after
+                // this increment even when connect and disconnect happen back-to-back.
+                (context as any).presenceUserId = user.id;
+                (context as any).presenceIncremented = true;
+
                 queueUserAction(user.id.toString(), async () => {
                     console.log('\n===============================');
                     await userActiveSessionsService.updateUsersActiveSessionsCount(user.id, 'increment');
-
-                    // Only stash presence identity on the connection context after the
-                    // increment has actually happened, so onClose never decrements for a
-                    // connection that was never counted as online.
-                    (context as any).presenceUserId = user.id;
-                    (context as any).presenceIncremented = true;
-
                     await publishOnlineStatusChanged({ userId: user.id });
 
                     const activeSessionsCount = await userActiveSessionsService.getUserActiveSessionsCount(user.id);
@@ -113,9 +117,15 @@ async function startServer() {
                 const presenceUserId = (context as any).presenceUserId;
                 const presenceIncremented = (context as any).presenceIncremented;
 
-                // Only decrement connections that were actually counted as online in
-                // onConnect. Identity comes from the verified id stashed there, never from
-                // an unverified (jwt.decode-based) re-derivation here.
+                // Only decrement connections whose onConnect got far enough to enqueue an
+                // increment (rejected/unauthenticated connections return before setting
+                // this flag, so they never reach here). Identity comes from the verified
+                // id stashed there, never from an unverified (jwt.decode-based)
+                // re-derivation here. We enqueue the decrement rather than wait for the
+                // increment to have completed: queueUserAction serializes per user id in
+                // FIFO order, so enqueueing on the same key is enough to guarantee this
+                // decrement runs after that increment, even for a connect immediately
+                // followed by a disconnect.
                 if (!presenceIncremented || !presenceUserId) {
                     return;
                 }
