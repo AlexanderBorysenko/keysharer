@@ -3,7 +3,7 @@ import { getContextJWTToken } from "../../../utils/getContextJWTToken";
 import { findUser } from "./findUser";
 import type { AppQraphQLContext } from "../../../../types/AppQraphQLContext";
 import type { Context } from "graphql-ws";
-import type { Extra } from "graphql-ws/lib/use/bun";
+import type { Extra } from "graphql-ws/use/bun";
 
 export const getContextUser = async (
 	context:

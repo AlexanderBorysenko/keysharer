@@ -20,7 +20,7 @@
     "@whatwg-node/server-plugin-cookies": "^1.0.7",
     "bcrypt": "^6.0.0",
     "cassandra-driver": "^4.9.0",
-    "graphql-ws": "^5.16.2",
+    "graphql-ws": "^6.0.8",
     "graphql-yoga": "^5.21.2",
     "isomorphic-dompurify": "^3.18.0",
     "jsonwebtoken": "^9.0.3",

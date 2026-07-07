@@ -6,7 +6,7 @@ import { client } from './db/client';
 import { initializeDatabase } from './db/initialize';
 import type { AppQraphQLContext } from '../types/AppQraphQLContext';
 import { getContextUser } from './models/user/service/getContextUser';
-import { makeHandler } from 'graphql-ws/lib/use/bun';
+import { makeHandler } from 'graphql-ws/use/bun';
 import { type ExecutionArgs } from "@envelop/types";
 import { join } from 'path';
 import { useCookies } from '@whatwg-node/server-plugin-cookies';
@@ -68,19 +68,22 @@ async function startServer() {
             execute: (args: ExecutionArgs) => args.rootValue.execute(args),
             subscribe: (args: ExecutionArgs) => args.rootValue.subscribe(args),
 
-            onSubscribe: async (context, msg) => {
+            // graphql-ws v6 split the single `SubscribeMessage` param into
+            // separate `id`/`payload` args on `onSubscribe` — see the moved
+            // import above.
+            onSubscribe: async (context, _id, payload) => {
                 const { schema, execute, subscribe, contextFactory, parse, validate } = yoga.getEnveloped({
                     ...context,
                     req: context.extra.request,
                     socket: context.extra.socket,
-                    params: msg.payload,
+                    params: payload,
                 })
 
                 const args = {
                     schema,
-                    operationName: msg.payload.operationName,
-                    document: parse(msg.payload.query),
-                    variableValues: msg.payload.variables,
+                    operationName: payload.operationName,
+                    document: parse(payload.query),
+                    variableValues: payload.variables,
                     contextValue: await contextFactory(),
                     rootValue: {
                         execute,
