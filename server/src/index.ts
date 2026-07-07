@@ -1,5 +1,6 @@
 import Bun from 'bun';
-import { createYoga } from 'graphql-yoga';
+import { createYoga, type Plugin } from 'graphql-yoga';
+import { NoSchemaIntrospectionCustomRule } from 'graphql';
 import { schema } from './graphql/schema';
 import { client } from './db/client';
 import { initializeDatabase } from './db/initialize';
@@ -13,15 +14,26 @@ import { env } from 'process';
 import userActiveSessionsService from './models/user/service/userActiveSessionsService';
 import { publishOnlineStatusChanged } from './models/user/resolvers/user.onlineStatusChanged.subscription';
 import queueUserAction from './services/queueUserAction';
+import { validateEnv } from './config/validateEnv';
+import { resolveAllowOrigin } from './cors/resolveAllowOrigin';
 
-const resolveAllowOrigin = (request: Request): string => {
-    const requestOrigin = request.headers.get('origin') || '';
-    const allowedOrigins = ['https://app.keysharer.com', '//localhost'];
-    return allowedOrigins.some(allowedOrigin => requestOrigin.includes(allowedOrigin)) ? requestOrigin : '';
-}
+export { resolveAllowOrigin };
+
+// Disables schema introspection in production. Built as a small inline
+// envelop plugin (onValidate + addValidationRule) rather than pulling in
+// @graphql-yoga/plugin-disable-introspection, since `graphql` (which ships
+// NoSchemaIntrospectionCustomRule) is already a transitive dependency of
+// graphql-yoga and is imported directly elsewhere in this codebase.
+const disableIntrospectionPlugin: Plugin = {
+    onValidate({ addValidationRule }) {
+        addValidationRule(NoSchemaIntrospectionCustomRule);
+    },
+};
 
 async function startServer() {
     try {
+        validateEnv();
+
         await client.connect();
         console.info('Підключено до Cassandra успішно');
 
@@ -30,9 +42,7 @@ async function startServer() {
 
         const yoga = createYoga<AppQraphQLContext>({
             schema,
-            graphiql: {
-                subscriptionsProtocol: 'WS',
-            },
+            graphiql: process.env.IS_DEV ? { subscriptionsProtocol: 'WS' } : false,
             context: async (context: AppQraphQLContext) => {
                 return {
                     ...context,
@@ -48,7 +58,8 @@ async function startServer() {
             landingPage: false,
             graphqlEndpoint: '/',
             plugins: [
-                useCookies()
+                useCookies(),
+                ...(process.env.IS_DEV ? [] : [disableIntrospectionPlugin]),
             ]
         });
 
